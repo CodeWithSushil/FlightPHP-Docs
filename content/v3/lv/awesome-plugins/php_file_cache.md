@@ -1,17 +1,17 @@
 # flightphp/cache
 
-Gaismas, vienkārša un neatkarīga PHP failā kešošanas klase, kas izveidota no [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache) forka
+Viegla, vienkārša un patstāvīga PHP in-file kešatmiņas klase, kas atdalīta no [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache)
 
 **Priekšrocības** 
-- Gaisma, neatkarīga un vienkārša
-- Viss kods vienā failā - bez bezjēdzīgiem draiveriem.
-- Droša - katrs ģenerētais kešošanas fails satur PHP galvenes ar die, padarot tiešu piekļuvi neiespējamu pat tad, ja kāds zina ceļu un jūsu serveris nav pareizi konfigurēts
+- Viegla, patstāvīga un vienkārša
+- Viss kods vienā failā - nav bezjēdzīgu draiveru.
+- Droša - katram ģenerētajam kešatmiņas failam ir php galvene ar die, padarot tiešu piekļuvi neiespējamu pat tad, ja kāds zina ceļu un jūsu serveris nav pareizi konfigurēts
 - Labi dokumentēta un testēta
-- Pareizi apstrādā vienlaicību, izmantojot flock
+- Pareizi apstrādā vienlaicīgumu, izmantojot flock
 - Atbalsta PHP 7.4+
 - Bezmaksas saskaņā ar MIT licenci
 
-Šī dokumentācijas vietne izmanto šo bibliotēku, lai kešotu katru no lapām!
+Šī dokumentācijas vietne izmanto šo bibliotēku, lai kešotu katru lapu!
 
 Noklikšķiniet [šeit](https://github.com/flightphp/cache), lai skatītu kodu.
 
@@ -25,35 +25,35 @@ composer require flightphp/cache
 
 ## Lietošana
 
-Lietošana ir diezgan vienkārša. Tas saglabā kešošanas failu kešošanas direktorijā.
+Lietošana ir diezgan vienkārša. Tas saglabā kešatmiņas failu kešatmiņas direktorijā.
 
 ```php
 use flight\Cache;
 
 $app = Flight::app();
 
-// Jūs nododiet direktoriju, kurā kešs tiks saglabāts, konstruktorā
+// Jūs nododat direktoriju, kurā tiks saglabāta kešatmiņa, konstruktorā
 $app->register('cache', Cache::class, [ __DIR__ . '/../cache/' ], function(Cache $cache) {
 
-	// Tas nodrošina, ka kešs tiek izmantots tikai ražošanas režīmā
+	// Tas nodrošina, ka kešatmiņa tiek izmantota tikai ražošanas režīmā
 	// ENVIRONMENT ir konstante, kas ir iestatīta jūsu bootstrap failā vai citur jūsu lietotnē
 	$cache->setDevMode(ENVIRONMENT === 'development');
 });
 ```
 
-### Iegūt kešošanas vērtību
+### Iegūt kešatmiņas vērtību
 
-Jūs izmantojat `get()` metodi, lai iegūtu kešotu vērtību. Ja vēlaties ērtu metodi, kas atsvaidzinās kešu, ja tas ir beidzies, varat izmantot `refreshIfExpired()`.
+Jūs izmantojat `get()` metodi, lai iegūtu kešotu vērtību. Ja vēlaties ērtības metodi, kas atsvaidzinās kešatmiņu, ja tā ir beidzies, varat izmantot `refreshIfExpired()`.
 
 ```php
 
-// Iegūt kešošanas instanci
+// Iegūt kešatmiņas instanci
 $cache = Flight::cache();
 $data = $cache->refreshIfExpired('simple-cache-test', function () {
-    return date("H:i:s"); // return data to be cached
+    return date("H:i:s"); // atgriezt datus, kas tiks kešoti
 }, 10); // 10 sekundes
 
-// or
+// vai
 $data = $cache->get('simple-cache-test');
 if(empty($data)) {
 	$data = date("H:i:s");
@@ -61,70 +61,70 @@ if(empty($data)) {
 }
 ```
 
-### Saglabāt kešošanas vērtību
+### Saglabāt kešatmiņas vērtību
 
-Jūs izmantojat `set()` metodi, lai saglabātu vērtību kešā.
+Jūs izmantojat `set()` metodi, lai saglabātu vērtību kešatmiņā.
 
 ```php
 Flight::cache()->set('simple-cache-test', 'my cached data', 10); // 10 sekundes
 ```
 
-### Dzēst kešošanas vērtību
+### Dzēst kešatmiņas vērtību
 
-Jūs izmantojat `delete()` metodi, lai dzēstu vērtību kešā.
+Jūs izmantojat `delete()` metodi, lai dzēstu vērtību kešatmiņā.
 
 ```php
 Flight::cache()->delete('simple-cache-test');
 ```
 
-### Pārbaudīt, vai kešošanas vērtība pastāv
+### Pārbaudīt, vai kešatmiņas vērtība pastāv
 
-Jūs izmantojat `exists()` metodi, lai pārbaudītu, vai vērtība pastāv kešā.
+Jūs izmantojat `exists()` metodi, lai pārbaudītu, vai vērtība pastāv kešatmiņā.
 
 ```php
 if(Flight::cache()->exists('simple-cache-test')) {
-	// do something
+	// darīt kaut ko
 }
 ```
 
-### Notīrīt kešu
-Jūs izmantojat `flush()` metodi, lai notīrītu visu kešu.
+### Notīrīt kešatmiņu
+Jūs izmantojat `flush()` metodi, lai notīrītu visu kešatmiņu.
 
 ```php
 Flight::cache()->flush();
 ```
 
-### Izvilkt meta datus ar kešu
+### Izvilkt meta datus ar kešatmiņu
 
-Ja vēlaties izvilkt laika zīmes un citus meta datus par kešošanas ierakstu, pārliecinieties, ka nododiet `true` kā pareizo parametru.
+Ja vēlaties izvilkt laika zīmogus un citus meta datus par kešatmiņas ierakstu, pārliecinieties, ka nododat `true` kā pareizo parametru.
 
 ```php
 $data = $cache->refreshIfExpired("simple-cache-meta-test", function () {
     echo "Refreshing data!" . PHP_EOL;
-    return date("H:i:s"); // return data to be cached
-}, 10, true); // true = return with metadata
-// or
-$data = $cache->get("simple-cache-meta-test", true); // true = return with metadata
+    return date("H:i:s"); // atgriezt datus, kas tiks kešoti
+}, 10, true); // true = atgriezt ar metadatiem
+// vai
+$data = $cache->get("simple-cache-meta-test", true); // true = atgriezt ar metadatiem
 
 /*
-Example cached item retrieved with metadata:
+Kešotā vienuma piemērs, kas iegūts ar metadatiem:
 {
-    "time":1511667506, <-- save unix timestamp
-    "expire":10,       <-- expire time in seconds
-    "data":"04:38:26", <-- unserialized data
+    "time":1511667506, <-- saglabāt unix laika zīmogu
+    "expire":10,       <-- izbeigšanās laiks sekundēs
+    "data":"04:38:26", <-- atserializēti dati
     "permanent":false
 }
 
-Using metadata, we can, for example, calculate when item was saved or when it expires
-We can also access the data itself with the "data" key
+Izmantojot metadatus, mēs varam, piemēram, aprēķināt, kad vienums tika saglabāts vai kad tas beidzas
+Mēs varam arī piekļūt pašiem datiem ar atslēgu "data"
 */
 
-$expiresin = ($data["time"] + $data["expire"]) - time(); // get unix timestamp when data expires and subtract current timestamp from it
-$cacheddate = $data["data"]; // we access the data itself with the "data" key
+$expiresin = ($data["time"] + $data["expire"]) - time(); // iegūt unix laika zīmogu, kad dati beidzas, un atņemt no tā pašreizējo laika zīmogu
+$cacheddate = $data["data"]; // mēs piekļūstam pašiem datiem ar atslēgu "data"
 
 echo "Latest cache save: $cacheddate, expires in $expiresin seconds";
 ```
 
-## Dokumentācija
+## Avota kods
 
-Apmeklējiet [https://github.com/flightphp/cache](https://github.com/flightphp/cache), lai skatītu kodu. Pārliecinieties, ka skatāt [examples](https://github.com/flightphp/cache/tree/master/examples) mapi papildu veidiem, kā izmantot kešu.
+Apmeklējiet [https://github.com/flightphp/cache](https://github.com/flightphp/cache), lai skatītu kodu.

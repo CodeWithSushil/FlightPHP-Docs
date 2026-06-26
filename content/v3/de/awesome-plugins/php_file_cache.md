@@ -1,13 +1,13 @@
 # flightphp/cache
 
-Leichte, einfache und eigenständige PHP-In-Datei-Caching-Klasse, geforkt von [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache)
+Leichte, einfache und eigenständige PHP-Datei-Caching-Klasse, die von [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache) geforkt wurde
 
-**Vorteile** 
+**Vorteile**
 - Leicht, eigenständig und einfach
-- Aller Code in einer Datei - keine sinnlosen Treiber.
-- Sicher - jede generierte Cache-Datei hat einen PHP-Header mit die, was direkten Zugriff unmöglich macht, selbst wenn jemand den Pfad kennt und Ihr Server nicht richtig konfiguriert ist
+- Der gesamte Code in einer Datei - keine unnötigen Treiber.
+- Sicher - jede generierte Cache-Datei hat einen PHP-Header mit die, wodurch der direkte Zugriff unmöglich ist, selbst wenn jemand den Pfad kennt und Ihr Server nicht richtig konfiguriert ist
 - Gut dokumentiert und getestet
-- Behandelt Konkurrenz richtig über flock
+- Behandelt Parallelität korrekt über flock
 - Unterstützt PHP 7.4+
 - Kostenlos unter einer MIT-Lizenz
 
@@ -17,7 +17,7 @@ Klicken Sie [hier](https://github.com/flightphp/cache), um den Code anzusehen.
 
 ## Installation
 
-Installieren Sie über composer:
+Installieren Sie über Composer:
 
 ```bash
 composer require flightphp/cache
@@ -25,7 +25,7 @@ composer require flightphp/cache
 
 ## Verwendung
 
-Die Verwendung ist ziemlich unkompliziert. Dies speichert eine Cache-Datei im Cache-Verzeichnis.
+Die Verwendung ist ziemlich einfach. Dies speichert eine Cache-Datei im Cache-Verzeichnis.
 
 ```php
 use flight\Cache;
@@ -36,21 +36,21 @@ $app = Flight::app();
 $app->register('cache', Cache::class, [ __DIR__ . '/../cache/' ], function(Cache $cache) {
 
 	// Dies stellt sicher, dass der Cache nur im Produktionsmodus verwendet wird
-	// ENVIRONMENT ist eine Konstante, die in Ihrer Bootstrap-Datei oder anderswo in Ihrer App gesetzt wird
+	// ENVIRONMENT ist eine Konstante, die in Ihrer Bootstrap-Datei oder an anderer Stelle in Ihrer App gesetzt wird
 	$cache->setDevMode(ENVIRONMENT === 'development');
 });
 ```
 
 ### Einen Cache-Wert abrufen
 
-Sie verwenden die `get()`-Methode, um einen gecachten Wert abzurufen. Wenn Sie eine Bequemlichkeitsmethode wollen, die den Cache erneuert, wenn er abgelaufen ist, können Sie `refreshIfExpired()` verwenden.
+Sie verwenden die `get()`-Methode, um einen gecachten Wert abzurufen. Wenn Sie eine bequeme Methode wünschen, die den Cache aktualisiert, wenn er abgelaufen ist, können Sie `refreshIfExpired()` verwenden.
 
 ```php
 
 // Cache-Instanz abrufen
 $cache = Flight::cache();
 $data = $cache->refreshIfExpired('simple-cache-test', function () {
-    return date("H:i:s"); // return data to be cached
+    return date("H:i:s"); // Daten zurückgeben, die gecacht werden sollen
 }, 10); // 10 Sekunden
 
 // oder
@@ -87,44 +87,44 @@ if(Flight::cache()->exists('simple-cache-test')) {
 }
 ```
 
-### Den Cache leeren
-Sie verwenden die `flush()`-Methode, um den gesamten Cache zu leeren.
+### Den Cache löschen
+Sie verwenden die `flush()`-Methode, um den gesamten Cache zu löschen.
 
 ```php
 Flight::cache()->flush();
 ```
 
-### Metadaten mit Cache abrufen
+### Metadaten mit Cache auslesen
 
-Wenn Sie Timestamps und andere Metadaten zu einem Cache-Eintrag abrufen möchten, stellen Sie sicher, dass Sie `true` als korrekten Parameter übergeben.
+Wenn Sie Zeitstempel und andere Metadaten über einen Cache-Eintrag auslesen möchten, stellen Sie sicher, dass Sie `true` als korrekten Parameter übergeben.
 
 ```php
 $data = $cache->refreshIfExpired("simple-cache-meta-test", function () {
     echo "Refreshing data!" . PHP_EOL;
-    return date("H:i:s"); // return data to be cached
-}, 10, true); // true = return with metadata
+    return date("H:i:s"); // Daten zurückgeben, die gecacht werden sollen
+}, 10, true); // true = mit Metadaten zurückgeben
 // oder
-$data = $cache->get("simple-cache-meta-test", true); // true = return with metadata
+$data = $cache->get("simple-cache-meta-test", true); // true = mit Metadaten zurückgeben
 
 /*
-Beispiel für einen gecachten Eintrag, der mit Metadaten abgerufen wird:
+Beispiel für ein gecachtes Element, das mit Metadaten abgerufen wurde:
 {
-    "time":1511667506, <-- save unix timestamp
-    "expire":10,       <-- expire time in seconds
-    "data":"04:38:26", <-- unserialized data
+    "time":1511667506, <-- Unix-Zeitstempel speichern
+    "expire":10,       <-- Ablaufzeit in Sekunden
+    "data":"04:38:26", <-- deserialisierte Daten
     "permanent":false
 }
 
-Mit Metadaten können wir z. B. berechnen, wann der Eintrag gespeichert wurde oder wann er abläuft
-Wir können auch auf die Daten selbst mit dem "data"-Schlüssel zugreifen
+Mit Metadaten können wir beispielsweise berechnen, wann ein Element gespeichert wurde oder wann es abläuft
+Wir können auch über den "data"-Schlüssel auf die Daten selbst zugreifen
 */
 
-$expiresin = ($data["time"] + $data["expire"]) - time(); // get unix timestamp when data expires and subtract current timestamp from it
-$cacheddate = $data["data"]; // we access the data itself with the "data" key
+$expiresin = ($data["time"] + $data["expire"]) - time(); // Unix-Zeitstempel abrufen, wann die Daten ablaufen, und den aktuellen Zeitstempel davon abziehen
+$cacheddate = $data["data"]; // wir greifen über den "data"-Schlüssel auf die Daten selbst zu
 
-echo "Latest cache save: $cacheddate, expires in $expiresin seconds";
+echo "Letzte Cache-Speicherung: $cacheddate, läuft in $expiresin Sekunden ab";
 ```
 
-## Dokumentation
+## Quellcode
 
-Besuchen Sie [https://github.com/flightphp/cache](https://github.com/flightphp/cache), um den Code anzusehen. Stellen Sie sicher, dass Sie den [examples](https://github.com/flightphp/cache/tree/master/examples)-Ordner für zusätzliche Möglichkeiten zur Verwendung des Caches ansehen.
+Besuchen Sie [https://github.com/flightphp/cache](https://github.com/flightphp/cache), um den Code anzusehen.

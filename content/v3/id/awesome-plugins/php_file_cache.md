@@ -1,19 +1,19 @@
 # flightphp/cache
 
-Kelas penangkapan file PHP mandiri yang ringan, sederhana dan standalone, difork dari [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache)
+Ringan, sederhana, dan berdiri sendiri kelas caching dalam-file PHP yang di-fork dari [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache)
 
-**Keunggulan** 
-- Ringan, mandiri dan sederhana
-- Semua kode dalam satu file - tidak ada driver yang tidak berguna.
-- Aman - setiap file cache yang dihasilkan memiliki header PHP dengan die, membuat akses langsung tidak mungkin bahkan jika seseorang mengetahui jalur dan server Anda tidak dikonfigurasi dengan benar
-- Didokumentasikan dengan baik dan diuji
+**Keuntungan** 
+- Ringan, berdiri sendiri dan sederhana
+- Semua kode dalam satu file - tidak ada driver yang tidak perlu.
+- Aman - setiap file cache yang dihasilkan memiliki header php dengan die, membuat akses langsung tidak mungkin bahkan jika seseorang mengetahui jalur dan server Anda tidak dikonfigurasi dengan benar
+- Didokumentasikan dan diuji dengan baik
 - Menangani konkurensi dengan benar melalui flock
 - Mendukung PHP 7.4+
 - Gratis di bawah lisensi MIT
 
-Situs dokumentasi ini menggunakan pustaka ini untuk menangkap setiap halaman!
+Situs dokumentasi ini menggunakan library ini untuk meng-cache setiap halaman!
 
-Klik [di sini](https://github.com/flightphp/cache) untuk melihat kode.
+Klik [here](https://github.com/flightphp/cache) untuk melihat kode.
 
 ## Instalasi
 
@@ -25,25 +25,25 @@ composer require flightphp/cache
 
 ## Penggunaan
 
-Penggunaan cukup sederhana. Ini menyimpan file cache di direktori cache.
+Penggunaan cukup mudah. Ini menyimpan file cache di direktori cache.
 
 ```php
 use flight\Cache;
 
 $app = Flight::app();
 
-// Anda melewatkan direktori tempat cache akan disimpan ke dalam konstruktor
+// Anda meneruskan direktori tempat cache akan disimpan ke dalam konstruktor
 $app->register('cache', Cache::class, [ __DIR__ . '/../cache/' ], function(Cache $cache) {
 
 	// Ini memastikan bahwa cache hanya digunakan saat dalam mode produksi
-	// ENVIRONMENT adalah konstanta yang disetel dalam file bootstrap Anda atau di tempat lain dalam aplikasi Anda
+	// ENVIRONMENT adalah konstanta yang ditetapkan di file bootstrap Anda atau di tempat lain di aplikasi Anda
 	$cache->setDevMode(ENVIRONMENT === 'development');
 });
 ```
 
 ### Mendapatkan Nilai Cache
 
-Anda menggunakan metode `get()` untuk mendapatkan nilai cache. Jika Anda ingin metode kemudahan yang akan menyegarkan cache jika sudah kedaluwarsa, Anda bisa menggunakan `refreshIfExpired()`.
+Anda menggunakan metode `get()` untuk mendapatkan nilai yang di-cache. Jika Anda menginginkan metode yang mudah yang akan menyegarkan cache jika sudah kedaluwarsa, Anda dapat menggunakan `refreshIfExpired()`.
 
 ```php
 
@@ -63,7 +63,7 @@ if(empty($data)) {
 
 ### Menyimpan Nilai Cache
 
-Anda menggunakan metode `set()` untuk menyimpan nilai di cache.
+Anda menggunakan metode `set()` untuk menyimpan nilai dalam cache.
 
 ```php
 Flight::cache()->set('simple-cache-test', 'my cached data', 10); // 10 detik
@@ -71,15 +71,15 @@ Flight::cache()->set('simple-cache-test', 'my cached data', 10); // 10 detik
 
 ### Menghapus Nilai Cache
 
-Anda menggunakan metode `delete()` untuk menghapus nilai di cache.
+Anda menggunakan metode `delete()` untuk menghapus nilai dalam cache.
 
 ```php
 Flight::cache()->delete('simple-cache-test');
 ```
 
-### Memeriksa Apakah Nilai Cache Ada
+### Memeriksa apakah Nilai Cache Ada
 
-Anda menggunakan metode `exists()` untuk memeriksa apakah nilai ada di cache.
+Anda menggunakan metode `exists()` untuk memeriksa apakah nilai ada dalam cache.
 
 ```php
 if(Flight::cache()->exists('simple-cache-test')) {
@@ -87,16 +87,16 @@ if(Flight::cache()->exists('simple-cache-test')) {
 }
 ```
 
-### Membersihkan Cache
-Anda menggunakan metode `flush()` untuk membersihkan seluruh cache.
+### Menghapus Cache
+Anda menggunakan metode `flush()` untuk menghapus seluruh cache.
 
 ```php
 Flight::cache()->flush();
 ```
 
-### Mengambil metadata dengan cache
+### Mengambil meta data dengan cache
 
-Jika Anda ingin mengambil timestamp dan metadata lainnya tentang entri cache, pastikan Anda melewatkan `true` sebagai parameter yang benar.
+Jika Anda ingin mengambil timestamp dan meta data lainnya tentang entri cache, pastikan Anda meneruskan `true` sebagai parameter yang benar.
 
 ```php
 $data = $cache->refreshIfExpired("simple-cache-meta-test", function () {
@@ -115,8 +115,8 @@ Contoh item cache yang diambil dengan metadata:
     "permanent":false
 }
 
-Menggunakan metadata, kita bisa, misalnya, menghitung kapan item disimpan atau kapan kedaluwarsa
-Kita juga bisa mengakses data itu sendiri dengan kunci "data"
+Dengan menggunakan metadata, kita dapat, misalnya, menghitung kapan item disimpan atau kapan kedaluwarsa
+Kita juga dapat mengakses data itu sendiri dengan kunci "data"
 */
 
 $expiresin = ($data["time"] + $data["expire"]) - time(); // get unix timestamp when data expires and subtract current timestamp from it
@@ -125,6 +125,6 @@ $cacheddate = $data["data"]; // we access the data itself with the "data" key
 echo "Latest cache save: $cacheddate, expires in $expiresin seconds";
 ```
 
-## Dokumentasi
+## Kode Sumber
 
-Kunjungi [https://github.com/flightphp/cache](https://github.com/flightphp/cache) untuk melihat kode. Pastikan Anda melihat folder [examples](https://github.com/flightphp/cache/tree/master/examples) untuk cara tambahan menggunakan cache.
+Kunjungi [https://github.com/flightphp/cache](https://github.com/flightphp/cache) untuk melihat kode.

@@ -1,34 +1,34 @@
-# Flight を使った AI と開発者エクスペリエンス
+# AIとFlightの開発者体験
 
 ## 概要
 
-Flight は、AI 駆動のツールと現代的な開発者ワークフローを使用して PHP プロジェクトを簡単に強化します。LLM (Large Language Model) プロバイダーへの接続のための組み込みコマンドと、プロジェクト固有の AI コーディング指示を生成するための機能により、Flight は GitHub Copilot、Cursor、Windsurf、Antigravity (Gemini) などの AI アシスタントを最大限に活用するのに役立ちます。
+Flightは、AIを活用したツールとモダンな開発者ワークフローでPHPプロジェクトを強化します。LLM（大規模言語モデル）プロバイダーへの接続や、プロジェクト固有のAIコーディング指示の生成を行う組み込みコマンドにより、GitHub Copilot、Cursor、Windsurf、Antigravity（Gemini）などのAIアシスタントを最大限に活用できます。
 
-## 理解
+## 理解する
 
-AI コーディングアシスタントは、プロジェクトのコンテキスト、慣習、目標を理解しているときに最も役立ちます。Flight の AI ヘルパーは、以下のことを可能にします：
-- プロジェクトを人気の LLM プロバイダー (OpenAI、Grok、Claude など) に接続
-- AI ツール向けのプロジェクト固有の指示を生成および更新し、すべての人に一貫性のある関連するヘルプを提供
-- コンテキストの説明に費やす時間を減らし、チームを調整し生産性を維持
+AIコーディングアシスタントは、プロジェクトの文脈・規約・目標を理解しているときに最も役立ちます。FlightのAIヘルパーは以下を可能にします:
+- 人気のLLMプロバイダー（OpenAI、Grok、Claudeなど）へのプロジェクト接続
+- AIツール向けのプロジェクト固有指示の生成・更新により、一貫性のある関連性の高い支援を実現
+- チーム全体の連携と生産性を向上させ、文脈説明にかかる時間を削減
 
-これらの機能は、Flight コア CLI と公式の [flightphp/skeleton](https://github.com/flightphp/skeleton) スタータープロジェクトに組み込まれています。
+これらの機能はFlightコアCLIおよび公式の[flightphp/skeleton](https://github.com/flightphp/skeleton)スタータープロジェクトに組み込まれています。
 
-## 基本的な使用方法
+## 基本的な使い方
 
-### LLM 認証情報の設定
+### LLM認証情報の設定
 
-`ai:init` コマンドは、プロジェクトを LLM プロバイダーに接続するためのガイドを提供します。
+`ai:init`コマンドは、プロジェクトをLLMプロバイダーに接続する手順を案内します。
 
 ```bash
 php runway ai:init
 ```
 
-プロンプトが表示され、以下のことを行います：
-- プロバイダーを選択 (OpenAI、Grok、Claude など)
-- API キーを入力
-- ベース URL とモデル名を設定
+以下の入力を求められます:
+- プロバイダーの選択（OpenAI、Grok、Claudeなど）
+- APIキーの入力
+- ベースURLとモデル名の設定
 
-これにより、将来の LLM リクエストに必要な認証情報が作成されます。
+これにより、今後のLLMリクエストに必要な認証情報が作成されます。
 
 **例:**
 ```
@@ -40,19 +40,20 @@ Enter the model name you want to use (e.g. gpt-4, claude-3-opus, etc) [gpt-4o]:
 Credentials saved to .runway-creds.json
 ```
 
-### プロジェクト固有の AI 指示の生成
+### プロジェクト固有のAI指示の生成
 
-`ai:generate-instructions` コマンドは、プロジェクトに合わせてカスタマイズされた AI コーディングアシスタント向けの指示を作成または更新するのに役立ちます。
+`ai:generate-instructions`コマンドは、プロジェクトに合わせたAIコーディングアシスタント向け指示の作成または更新を支援します。
 
 ```bash
 php runway ai:generate-instructions
 ```
 
-プロジェクトについて (説明、データベース、テンプレート、セキュリティ、チームサイズなど) のいくつかの質問に答えます。Flight は LLM プロバイダーを使用して指示を生成し、それを以下のファイルに書き込みます：
-- `.github/copilot-instructions.md` (GitHub Copilot 用)
-- `.cursor/rules/project-overview.mdc` (Cursor 用)
-- `.windsurfrules` (Windsurf 用)
-- `.gemini/GEMINI.md` (Antigravity 用)
+プロジェクトに関するいくつかの質問（説明、データベース、テンプレートエンジン、セキュリティ、チーム規模など）に回答します。FlightはLLMプロバイダーを使用して指示を生成し、同じ内容を以下のファイルに書き込みます:
+- `.github/copilot-instructions.md`（GitHub Copilot用）
+- `.cursor/rules/project-overview.mdc`（Cursor用）
+- `.windsurfrules`（Windsurf用）
+- `.gemini/GEMINI.md`（Antigravity用）
+- `AGENTS.md`（プロジェクトルートに配置し、ツール非依存のAIアシスタント用）
 
 **例:**
 ```
@@ -64,25 +65,26 @@ Is security an important element of this project? (y/n) y
 AI instructions updated successfully.
 ```
 
-これで、AI ツールはプロジェクトの実ニーズに基づいた、より賢く関連性の高い提案を提供します。
+これで、AIツールはプロジェクトの実際の要件に基づいて、よりスマートで関連性の高い提案を行えるようになります。
 
-## 高度な使用方法
+## 高度な使い方
 
-- コマンドオプションを使用して、認証情報や指示ファイルの場所をカスタマイズできます (各コマンドで `--help` を参照)。
-- AI ヘルパーは、OpenAI 互換の API をサポートする任意の LLM プロバイダーと連携するように設計されています。
-- プロジェクトが進化したら指示を更新したい場合、`ai:generate-instructions` を再実行してプロンプトに再度答えてください。
+- コマンドオプション（各コマンドの`--help`を参照）を使用して、認証情報や指示ファイルの保存場所をカスタマイズできます。
+- AIヘルパーは、OpenAI互換APIをサポートする任意のLLMプロバイダーで動作するよう設計されています。
+- プロジェクトの進化に伴い指示を更新したい場合は、`ai:generate-instructions`を再度実行してプロンプトに回答してください。
 
 ## 関連項目
 
-- [Flight Skeleton](https://github.com/flightphp/skeleton) – AI 統合付きの公式スターター
-- [Runway CLI](/awesome-plugins/runway) – これらのコマンドを駆動する CLI ツールの詳細
+- [Flight Skeleton](https://github.com/flightphp/skeleton) – AI統合を含む公式スターター
+- [Runway CLI](/awesome-plugins/runway) – これらのコマンドを支えるCLIツールの詳細
 
 ## トラブルシューティング
 
-- 「Missing .runway-creds.json」が表示された場合、まず `php runway ai:init` を実行してください。
-- API キーが有効で、選択したモデルにアクセス可能であることを確認してください。
-- 指示が更新されない場合、プロジェクトディレクトリのファイルパーミッションを確認してください。
+- 「Missing .runway-creds.json」と表示された場合は、まず`php runway ai:init`を実行してください。
+- APIキーが有効で、選択したモデルにアクセス可能であることを確認してください。
+- 指示が更新されない場合は、プロジェクトディレクトリのファイル権限を確認してください。
 
 ## 変更履歴
 
-- v3.16.0 – AI 統合のための `ai:init` と `ai:generate-instructions` CLI コマンドを追加。
+- v3.18.4 – `ai:generate-instructions`がプロジェクト指示をプロジェクトルートの`AGENTS.md`にも書き込むようになりました。
+- v3.16.0 – AI統合用の`ai:init`および`ai:generate-instructions` CLIコマンドを追加しました。

@@ -1,34 +1,34 @@
-# AI un izstrādātāju pieredze ar Flight
+# AI un Izstrādātāja Pieredze ar Flight
 
 ## Pārskats
 
-Flight padara vieglu jūsu PHP projektu uzlādes ar AI vadītiem rīkiem un modernām izstrādātāju darba plūsmām. Ar iebūvētiem komandām savienojumiem ar LLM (Large Language Model) sniedzējiem un ģenerēšanu projektu specifiskām AI kodēšanas instrukcijām, Flight palīdz jums un jūsu komandai iegūt maksimumu no AI asistentiem kā GitHub Copilot, Cursor, Windsurf un Antigravity (Gemini).
+Flight atvieglo jūsu PHP projektu uzlabošanu ar AI darbinātiem rīkiem un mūsdienīgām izstrādātāju darbplūsmām. Ar iebūvētām komandām savienošanai ar LLM (Large Language Model) nodrošinātājiem un projektu specifisku AI kodēšanas instrukciju ģenerēšanu, Flight palīdz jums un jūsu komandai maksimāli izmantot AI palīgus, piemēram, GitHub Copilot, Cursor, Windsurf un Antigravity (Gemini).
 
-## Saprašana
+## Izpratne
 
-AI kodēšanas asistenti ir visnoderīgākie, kad viņi saprot jūsu projekta kontekstu, konvencijas un mērķus. Flight AI palīgi ļauj jums:
-- Savienot jūsu projektu ar populāriem LLM sniedzējiem (OpenAI, Grok, Claude utt.)
-- Ģenerēt un atjaunināt projektu specifiskas instrukcijas AI rīkiem, lai visi saņemtu konsekventu, relevantu palīdzību
-- Turēt jūsu komandu saskaņotu un produktīvu, ar mazāku laiku, kas pavadīts konteksta skaidrošanā
+AI kodēšanas palīgi ir visnoderīgākie, kad tie izprot jūsu projekta kontekstu, konvencijas un mērķus. Flight AI palīgi ļauj jums:
+- Savienot savu projektu ar populāriem LLM nodrošinātājiem (OpenAI, Grok, Claude, utt.)
+- Ģenerēt un atjaunināt projektu specifiskas instrukcijas AI rīkiem, lai visi saņemtu konsekventu, atbilstošu palīdzību
+- Uzturēt savu komandu saskaņotu un produktīvu, mazāk laika tērējot konteksta skaidrošanai
 
-Šīs funkcijas ir iebūvētas Flight kodola CLI un oficiālajā [flightphp/skeleton](https://github.com/flightphp/skeleton) sākuma projektā.
+Šīs funkcijas ir iebūvētas Flight kodola CLI un oficiālajā [flightphp/skeleton](https://github.com/flightphp/skeleton) starter projektā.
 
-## Pamata izmantošana
+## Pamata Lietošana
 
-### LLM akreditīvu iestatīšana
+### LLM Akreditācijas Datu Iestatīšana
 
-`ai:init` komanda ved jūs cauri jūsu projekta savienojumam ar LLM sniedzēju.
+`ai:init` komanda palīdz savienot jūsu projektu ar LLM nodrošinātāju.
 
 ```bash
 php runway ai:init
 ```
 
-Jums tiks lūgts:
-- Izvēlēties jūsu sniedzēju (OpenAI, Grok, Claude utt.)
-- Ievadīt jūsu API atslēgu
+Jums tiks piedāvāts:
+- Izvēlēties savu nodrošinātāju (OpenAI, Grok, Claude, utt.)
+- Ievadīt savu API atslēgu
 - Iestatīt bāzes URL un modeļa nosaukumu
 
-Tas izveido nepieciešamos akreditīvus, lai jūs varētu veikt nākotnes LLM pieprasījumus.
+Tas izveido nepieciešamos akreditācijas datus turpmākiem LLM pieprasījumiem.
 
 **Piemērs:**
 ```
@@ -40,19 +40,20 @@ Enter the model name you want to use (e.g. gpt-4, claude-3-opus, etc) [gpt-4o]:
 Credentials saved to .runway-creds.json
 ```
 
-### Ģenerēšana projektu specifisku AI instrukciju
+### Projekta Specifisku AI Instrukciju Ģenerēšana
 
-`ai:generate-instructions` komanda palīdz jums izveidot vai atjaunināt instrukcijas AI kodēšanas asistentiem, pielāgotas jūsu projektam.
+`ai:generate-instructions` komanda palīdz izveidot vai atjaunināt instrukcijas AI kodēšanas palīgiem, pielāgotas jūsu projektam.
 
 ```bash
 php runway ai:generate-instructions
 ```
 
-Jūs atbildēsiet uz dažiem jautājumiem par jūsu projektu (apraksts, datubāze, veidnes, drošība, komandas lielums utt.). Flight izmanto jūsu LLM sniedzēju, lai ģenerētu instrukcijas, tad ieraksta tās:
-- `.github/copilot-instructions.md` (for GitHub Copilot)
-- `.cursor/rules/project-overview.mdc` (for Cursor)
-- `.windsurfrules` (for Windsurf)
-- `.gemini/GEMINI.md` (for Antigravity)
+Jums būs jāatbild uz dažiem jautājumiem par savu projektu (apraksts, datubāze, veidņu izveide, drošība, komandas izmērs, utt.). Flight izmanto jūsu LLM nodrošinātāju, lai ģenerētu instrukcijas, pēc tam raksta to pašu saturu uz:
+- `.github/copilot-instructions.md` (GitHub Copilot)
+- `.cursor/rules/project-overview.mdc` (Cursor)
+- `.windsurfrules` (Windsurf)
+- `.gemini/GEMINI.md` (Antigravity)
+- `AGENTS.md` (projekta saknē, rīku-agnostiskiem AI palīgiem)
 
 **Piemērs:**
 ```
@@ -64,25 +65,26 @@ Is security an important element of this project? (y/n) y
 AI instructions updated successfully.
 ```
 
-Tagad jūsu AI rīki sniegs gudrākus, relevantākus ieteikumus, balstītus uz jūsu projekta reālajām vajadzībām.
+Tagad jūsu AI rīki sniegs gudrākus, atbilstošākus ieteikumus, balstoties uz jūsu projekta reālajām vajadzībām.
 
-## Padziļinātā izmantošana
+## Paplašinātā Lietošana
 
-- Jūs varat pielāgot jūsu akreditīvu vai instrukciju failu atrašanās vietu, izmantojot komandas opcijas (skatīt `--help` katrai komandai).
-- AI palīgi ir paredzēti darbam ar jebkuru LLM sniedzēju, kas atbalsta OpenAI saderīgās API.
-- Ja jūs vēlaties atjaunināt jūsu instrukcijas, kad jūsu projekts attīstās, tikai palaidiet atkārtoti `ai:generate-instructions` un atbildiet uz uzvednēm atkārtoti.
+- Jūs varat pielāgot savu akreditācijas datu vai instrukciju failu atrašanās vietu, izmantojot komandu opcijas (skatiet `--help` katrai komandai).
+- AI palīgi ir izstrādāti darbam ar jebkuru LLM nodrošinātāju, kas atbalsta OpenAI saderīgas API.
+- Ja vēlaties atjaunināt savas instrukcijas, projektam attīstoties, vienkārši vēlreiz palaidiet `ai:generate-instructions` un atbildiet uz uzvednēm.
 
-## Skatīt arī
+## Skatiet Arī
 
-- [Flight Skeleton](https://github.com/flightphp/skeleton) – Oficiālais sākuma ar AI integrāciju
-- [Runway CLI](/awesome-plugins/runway) – Vairāk par CLI rīku, kas nodrošina šīs komandas
+- [Flight Skeleton](https://github.com/flightphp/skeleton) – Oficiālais starteris ar AI integrāciju
+- [Runway CLI](/awesome-plugins/runway) – Vairāk par CLI rīku, kas darbina šīs komandas
 
-## Traucējumu novēršana
+## Problēmu Novēršana
 
-- Ja jūs redzat "Missing .runway-creds.json", palaidiet `php runway ai:init` vispirms.
+- Ja redzat "Missing .runway-creds.json", vispirms palaidiet `php runway ai:init`.
 - Pārliecinieties, ka jūsu API atslēga ir derīga un tai ir piekļuve izvēlētajam modelim.
-- Ja instrukcijas neatjauninātas, pārbaudiet failu atļaujas jūsu projektu direktorijā.
+- Ja instrukcijas neatjauninās, pārbaudiet failu atļaujas savā projekta direktorijā.
 
-## Izmaiņu žurnāls
+## Izmaiņu Žurnāls
 
+- v3.18.4 – `ai:generate-instructions` tagad arī raksta projekta instrukcijas uz `AGENTS.md` projekta saknē.
 - v3.16.0 – Pievienotas `ai:init` un `ai:generate-instructions` CLI komandas AI integrācijai.
