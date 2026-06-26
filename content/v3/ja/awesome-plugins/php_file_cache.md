@@ -1,56 +1,56 @@
 # flightphp/cache
 
-[Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache) からフォークされた、軽量でシンプルなスタンドアロンのPHPインファイルキャッシングクラス
+軽量でシンプル、スタンドアロンのPHPファイル内キャッシュクラス。[Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache)からフォーク
 
-**利点** 
-- 軽量でスタンドアロンでシンプル
-- すべてのコードが1つのファイル内 - 無駄なドライバなし。
-- セキュア - 生成されるすべてのキャッシュファイルにPHPヘッダーとdieが含まれており、パスを知っていてもサーバーが正しく設定されていない場合でも直接アクセスを不可能にします
-- よく文書化され、テスト済み
-- flock を使用して同時実行を正しく処理
-- PHP 7.4+ をサポート
-- MITライセンスの下で無料
+**利点**
+- 軽量でスタンドアロン、シンプル
+- すべてのコードが1つのファイル - 無意味なドライバーはありません。
+- セキュア - 生成されたすべてのキャッシュファイルにはPHPヘッダーが付いており、dieを使用するため、パスを知っていても直接アクセスは不可能で、サーバーが適切に設定されていない場合でも安全
+- ドキュメントが充実しており、テスト済み
+- flockを通じて同時実行を正しく処理
+- PHP 7.4+をサポート
+- MITライセンスで無料
 
-このドキュメントサイトはこのライブラリを使用して各ページをキャッシュしています！
+このドキュメントサイトは、各ページをキャッシュするためにこのライブラリを使用しています！
 
-コードを見るには [here](https://github.com/flightphp/cache) をクリックしてください。
+コードを表示するには[こちら](https://github.com/flightphp/cache)をクリックしてください。
 
 ## インストール
 
-Composer を使用してインストール：
+composer経由でインストール:
 
 ```bash
 composer require flightphp/cache
 ```
 
-## 使い方
+## 使用方法
 
-使い方はかなりストレートフォワードです。これによりキャッシュディレクトリにキャッシュファイルが保存されます。
+使用方法は非常に簡単です。これにより、キャッシュディレクトリにキャッシュファイルが保存されます。
 
 ```php
 use flight\Cache;
 
 $app = Flight::app();
 
-// コンストラクタにキャッシュが保存されるディレクトリを渡します
+// キャッシュが保存されるディレクトリをコンストラクタに渡します
 $app->register('cache', Cache::class, [ __DIR__ . '/../cache/' ], function(Cache $cache) {
 
-	// これにより、プロダクションモードでのみキャッシュが使用されることを保証します
-	// ENVIRONMENT はブートストラップファイルやアプリの他の場所で設定される定数です
+	// キャッシュが本番モードでのみ使用されることを保証します
+	// ENVIRONMENTはbootstrapファイルまたはアプリ内の他の場所で設定される定数です
 	$cache->setDevMode(ENVIRONMENT === 'development');
 });
 ```
 
-### キャッシュ値を取得
+### キャッシュ値の取得
 
-`get()` メソッドを使用してキャッシュされた値を取得します。期限切れの場合にキャッシュを更新する便利なメソッドが必要な場合は、`refreshIfExpired()` を使用できます。
+`get()`メソッドを使用してキャッシュされた値を取得します。期限切れの場合にキャッシュを更新する便利なメソッドが必要な場合は、`refreshIfExpired()`を使用できます。
 
 ```php
 
 // キャッシュインスタンスを取得
 $cache = Flight::cache();
 $data = $cache->refreshIfExpired('simple-cache-test', function () {
-    return date("H:i:s"); // キャッシュするデータを返す
+    return date("H:i:s"); // キャッシュするデータを返します
 }, 10); // 10秒
 
 // または
@@ -61,25 +61,25 @@ if(empty($data)) {
 }
 ```
 
-### キャッシュ値を保存
+### キャッシュ値の保存
 
-`set()` メソッドを使用してキャッシュに値を保存します。
+`set()`メソッドを使用してキャッシュに値を保存します。
 
 ```php
 Flight::cache()->set('simple-cache-test', 'my cached data', 10); // 10秒
 ```
 
-### キャッシュ値を消去
+### キャッシュ値の削除
 
-`delete()` メソッドを使用してキャッシュから値を消去します。
+`delete()`メソッドを使用してキャッシュ内の値を削除します。
 
 ```php
 Flight::cache()->delete('simple-cache-test');
 ```
 
-### キャッシュ値の存在を確認
+### キャッシュ値の存在確認
 
-`exists()` メソッドを使用してキャッシュに値が存在するかを確認します。
+`exists()`メソッドを使用してキャッシュ内に値が存在するかを確認します。
 
 ```php
 if(Flight::cache()->exists('simple-cache-test')) {
@@ -87,21 +87,21 @@ if(Flight::cache()->exists('simple-cache-test')) {
 }
 ```
 
-### キャッシュをクリア
-`flush()` メソッドを使用してキャッシュ全体をクリアします。
+### キャッシュのクリア
+`flush()`メソッドを使用してキャッシュ全体をクリアします。
 
 ```php
 Flight::cache()->flush();
 ```
 
-### キャッシュのメタデータを取得
+### キャッシュからメタデータを取得
 
-キャッシュエントリのタイムスタンプやその他のメタデータを取得したい場合は、正しいパラメータとして `true` を渡してください。
+キャッシュエントリのタイムスタンプやその他のメタデータを取得したい場合は、正しいパラメータとして`true`を渡してください。
 
 ```php
 $data = $cache->refreshIfExpired("simple-cache-meta-test", function () {
     echo "Refreshing data!" . PHP_EOL;
-    return date("H:i:s"); // キャッシュするデータを返す
+    return date("H:i:s"); // キャッシュするデータを返します
 }, 10, true); // true = メタデータ付きで返す
 // または
 $data = $cache->get("simple-cache-meta-test", true); // true = メタデータ付きで返す
@@ -109,22 +109,22 @@ $data = $cache->get("simple-cache-meta-test", true); // true = メタデータ�
 /*
 メタデータ付きで取得したキャッシュアイテムの例:
 {
-    "time":1511667506, <-- 保存時のUnixタイムスタンプ
+    "time":1511667506, <-- 保存されたunixタイムスタンプ
     "expire":10,       <-- 秒単位の有効期限
-    "data":"04:38:26", <-- 逆シリアライズされたデータ
+    "data":"04:38:26", <-- デシリアライズされたデータ
     "permanent":false
 }
 
-メタデータを使用して、例えばアイテムが保存された時刻や有効期限を計算できます
-また、"data" キーでデータ自体にアクセスできます
+メタデータを使用することで、例えばアイテムが保存された時間や有効期限を計算できます
+"data"キーでデータ自体にアクセスすることもできます
 */
 
-$expiresin = ($data["time"] + $data["expire"]) - time(); // データの有効期限のUnixタイムスタンプを取得し、現在のタイムスタンプを引く
-$cacheddate = $data["data"]; // "data" キーでデータ自体にアクセス
+$expiresin = ($data["time"] + $data["expire"]) - time(); // データの有効期限を示すunixタイムスタンプを取得し、そこから現在のタイムスタンプを引きます
+$cacheddate = $data["data"]; // "data"キーでデータ自体にアクセスします
 
 echo "Latest cache save: $cacheddate, expires in $expiresin seconds";
 ```
 
-## ドキュメント
+## ソースコード
 
-コードを見るには [https://github.com/flightphp/cache](https://github.com/flightphp/cache) を訪れてください。キャッシュの使用方法の追加例については [examples](https://github.com/flightphp/cache/tree/master/examples) フォルダを確認してください。
+コードを表示するには[https://github.com/flightphp/cache](https://github.com/flightphp/cache)をご覧ください。

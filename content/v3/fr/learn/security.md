@@ -2,67 +2,68 @@
 
 ## Aperçu
 
-La sécurité est une priorité majeure pour les applications web. Vous devez vous assurer que votre application est sécurisée et que les données de vos utilisateurs sont 
-protégées. Flight fournit un certain nombre de fonctionnalités pour vous aider à sécuriser vos applications web.
+La sécurité est un élément crucial en ce qui concerne les applications web. Vous voulez vous assurer que votre application est sécurisée et que les données de vos utilisateurs sont 
+sûres. Flight fournit un certain nombre de fonctionnalités pour vous aider à sécuriser vos applications web.
 
 ## Compréhension
 
-Il existe un certain nombre de menaces de sécurité courantes dont vous devez être conscient lors de la construction d'applications web. Parmi les menaces les plus courantes, on trouve :
+Il existe un certain nombre de menaces de sécurité courantes dont vous devez être conscient lors de la création d'applications web. Certaines des menaces les plus courantes
+incluent :
 - Cross Site Request Forgery (CSRF)
 - Cross Site Scripting (XSS)
 - SQL Injection
 - Cross Origin Resource Sharing (CORS)
 
-[Templates](/learn/templates) aident avec XSS en échappant la sortie par défaut, afin que vous n'ayez pas à vous en souvenir. [Sessions](/awesome-plugins/session) peuvent aider avec CSRF en stockant un jeton CSRF dans la session de l'utilisateur comme indiqué ci-dessous. L'utilisation de requêtes préparées avec PDO peut aider à prévenir les attaques par injection SQL (ou en utilisant les méthodes pratiques dans la classe [PdoWrapper](/learn/pdo-wrapper)). CORS peut être géré avec un simple hook avant que `Flight::start()` ne soit appelé.
+[Les templates](/learn/templates) aident à contrer le XSS en échappant la sortie par défaut afin que vous n'ayez pas à vous en souvenir. [Les sessions](/awesome-plugins/session) peuvent aider avec le CSRF en stockant un jeton CSRF dans la session de l'utilisateur comme décrit ci-dessous. L'utilisation de requêtes préparées avec PDO peut aider à prévenir les attaques par injection SQL (ou en utilisant les méthodes pratiques de la classe [PdoWrapper](/learn/pdo-wrapper)). Le CORS peut être géré avec un simple hook avant que `Flight::start()` ne soit appelé.
 
-Toutes ces méthodes fonctionnent ensemble pour aider à garder vos applications web sécurisées. Il devrait toujours être à l'avant-plan de votre esprit d'apprendre et de comprendre les meilleures pratiques de sécurité.
+Toutes ces méthodes fonctionnent ensemble pour aider à maintenir la sécurité de vos applications web. Il devrait toujours être au premier plan de vos préoccupations d'apprendre et de comprendre les meilleures pratiques en matière de sécurité.
 
 ## Utilisation de base
 
 ### En-têtes
 
-Les en-têtes HTTP sont l'un des moyens les plus simples de sécuriser vos applications web. Vous pouvez utiliser des en-têtes pour prévenir le clickjacking, XSS et d'autres attaques. 
+Les en-têtes HTTP sont l'un des moyens les plus simples de sécuriser vos applications web. Vous pouvez utiliser les en-têtes pour prévenir le clickjacking, le XSS et d'autres attaques. 
 Il existe plusieurs façons d'ajouter ces en-têtes à votre application.
 
 Deux excellents sites web pour vérifier la sécurité de vos en-têtes sont [securityheaders.com](https://securityheaders.com/) et 
-[observatory.mozilla.org](https://observatory.mozilla.org/). Après avoir configuré le code ci-dessous, vous pouvez facilement vérifier que vos en-têtes fonctionnent avec ces deux sites.
+[observatory.mozilla.org](https://observatory.mozilla.org/). Après avoir configuré le code ci-dessous, vous pouvez facilement vérifier que vos en-têtes fonctionnent avec ces deux sites web.
 
 #### Ajout manuel
 
 Vous pouvez ajouter manuellement ces en-têtes en utilisant la méthode `header` sur l'objet `Flight\Response`.
 ```php
-// Définir l'en-tête X-Frame-Options pour prévenir le clickjacking
+// Définit l'en-tête X-Frame-Options pour prévenir le clickjacking
 Flight::response()->header('X-Frame-Options', 'SAMEORIGIN');
 
-// Définir l'en-tête Content-Security-Policy pour prévenir XSS
-// Note : cet en-tête peut devenir très complexe, vous devrez donc
+// Définit l'en-tête Content-Security-Policy pour prévenir le XSS
+// Remarque : cet en-tête peut devenir très complexe, donc vous voudrez
 //  consulter des exemples sur internet pour votre application
 Flight::response()->header("Content-Security-Policy", "default-src 'self'");
 
-// Définir l'en-tête X-XSS-Protection pour prévenir XSS
+// Définit l'en-tête X-XSS-Protection pour prévenir le XSS
 Flight::response()->header('X-XSS-Protection', '1; mode=block');
 
-// Définir l'en-tête X-Content-Type-Options pour prévenir le sniffing MIME
+// Définit l'en-tête X-Content-Type-Options pour prévenir le reniflage MIME
 Flight::response()->header('X-Content-Type-Options', 'nosniff');
 
-// Définir l'en-tête Referrer-Policy pour contrôler la quantité d'informations de référent envoyées
+// Définit l'en-tête Referrer-Policy pour contrôler la quantité d'informations de référence envoyées
 Flight::response()->header('Referrer-Policy', 'no-referrer-when-downgrade');
 
-// Définir l'en-tête Strict-Transport-Security pour forcer HTTPS
+// Définit l'en-tête Strict-Transport-Security pour forcer HTTPS
 Flight::response()->header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
-// Définir l'en-tête Permissions-Policy pour contrôler les fonctionnalités et API utilisables
+// Définit l'en-tête Permissions-Policy pour contrôler quelles fonctionnalités et APIs peuvent être utilisées
 Flight::response()->header('Permissions-Policy', 'geolocation=()');
 ```
 
-Ces en-têtes peuvent être ajoutés en haut de vos fichiers `routes.php` ou `index.php`.
+Ceux-ci peuvent être ajoutés en haut de vos fichiers `routes.php` ou `index.php`.
 
-#### Ajout en tant que filtre
+#### Ajout comme filtre
 
-Vous pouvez également les ajouter dans un filtre/hook comme suit : 
+Vous pouvez également les ajouter dans un filtre/hook comme suit :
 
 ```php
-// Ajouter les en-têtes dans un filtre
+// Ajoute les en-têtes dans un filtre
 Flight::before('start', function() {
 	Flight::response()->header('X-Frame-Options', 'SAMEORIGIN');
 	Flight::response()->header("Content-Security-Policy", "default-src 'self'");
@@ -74,9 +75,9 @@ Flight::before('start', function() {
 });
 ```
 
-#### Ajout en tant que middleware
+#### Ajout comme middleware
 
-Vous pouvez également les ajouter en tant que classe middleware, ce qui offre la plus grande flexibilité pour choisir les routes auxquelles les appliquer. En général, ces en-têtes devraient être appliqués à toutes les réponses HTML et API.
+Vous pouvez également les ajouter en tant que classe middleware qui offre la plus grande flexibilité pour les routes auxquelles appliquer cela. En général, ces en-têtes devraient être appliqués à toutes les réponses HTML et API.
 
 ```php
 // app/middlewares/SecurityHeadersMiddleware.php
@@ -107,8 +108,8 @@ class SecurityHeadersMiddleware
 	}
 }
 
-// index.php ou là où vous avez vos routes
-// FYI, ce groupe de chaîne vide agit comme un middleware global pour
+// index.php ou partout où vous avez vos routes
+// À noter, ce groupe de chaîne vide agit comme un middleware global pour
 // toutes les routes. Bien sûr, vous pourriez faire la même chose et simplement ajouter
 // cela uniquement à des routes spécifiques.
 Flight::group('', function(Router $router) {
@@ -119,18 +120,18 @@ Flight::group('', function(Router $router) {
 
 ### Cross Site Request Forgery (CSRF)
 
-Cross Site Request Forgery (CSRF) est un type d'attaque où un site web malveillant peut faire en sorte que le navigateur d'un utilisateur envoie une requête à votre site web. 
+Le Cross Site Request Forgery (CSRF) est un type d'attaque où un site web malveillant peut faire en sorte que le navigateur d'un utilisateur envoie une requête à votre site web. 
 Cela peut être utilisé pour effectuer des actions sur votre site web sans la connaissance de l'utilisateur. Flight ne fournit pas de mécanisme de protection CSRF intégré, 
 mais vous pouvez facilement implémenter le vôtre en utilisant un middleware.
 
 #### Configuration
 
-D'abord, vous devez générer un jeton CSRF et le stocker dans la session de l'utilisateur. Vous pouvez ensuite utiliser ce jeton dans vos formulaires et le vérifier quand 
+D'abord, vous devez générer un jeton CSRF et le stocker dans la session de l'utilisateur. Vous pouvez ensuite utiliser ce jeton dans vos formulaires et le vérifier lorsque 
 le formulaire est soumis. Nous utiliserons le plugin [flightphp/session](/awesome-plugins/session) pour gérer les sessions.
 
 ```php
-// Générer un jeton CSRF et le stocker dans la session de l'utilisateur
-// (en supposant que vous ayez créé un objet session et l'avez attaché à Flight)
+// Génère un jeton CSRF et le stocke dans la session de l'utilisateur
+// (en supposant que vous avez créé un objet session et l'avez attaché à Flight)
 // voir la documentation des sessions pour plus d'informations
 Flight::register('session', flight\Session::class);
 
@@ -141,10 +142,10 @@ if(Flight::session()->get('csrf_token') === null) {
 }
 ```
 
-##### Utilisation du template Flight PHP par défaut
+##### Utilisation du template PHP Flight par défaut
 
 ```html
-<!-- Utiliser le jeton CSRF dans votre formulaire -->
+<!-- Utilisez le jeton CSRF dans votre formulaire -->
 <form method="post">
 	<input type="hidden" name="csrf_token" value="<?= Flight::session()->get('csrf_token') ?>">
 	<!-- autres champs du formulaire -->
@@ -162,7 +163,7 @@ Flight::map('render', function(string $template, array $data, ?string $block): v
 
 	// autres configurations...
 
-	// Définir une fonction personnalisée pour afficher le jeton CSRF
+	// Définit une fonction personnalisée pour afficher le jeton CSRF
 	$latte->addFunction('csrf', function() {
 		$csrfToken = Flight::session()->get('csrf_token');
 		return new \Latte\Runtime\Html('<input type="hidden" name="csrf_token" value="' . $csrfToken . '">');
@@ -181,7 +182,7 @@ Et maintenant dans vos templates Latte, vous pouvez utiliser la fonction `csrf()
 </form>
 ```
 
-#### Vérifier le jeton CSRF
+#### Vérification du jeton CSRF
 
 Vous pouvez vérifier le jeton CSRF en utilisant plusieurs méthodes.
 
@@ -208,13 +209,13 @@ class CsrfMiddleware
 		if($this->app->request()->method == 'POST') {
 			$token = $this->app->request()->data->csrf_token;
 			if($token !== $this->app->session()->get('csrf_token')) {
-				$this->app->halt(403, 'Jeton CSRF invalide');
+				$this->app->halt(403, 'Invalid CSRF token');
 			}
 		}
 	}
 }
 
-// index.php ou là où vous avez vos routes
+// index.php ou partout où vous avez vos routes
 use app\middlewares\CsrfMiddleware;
 
 Flight::group('', function(Router $router) {
@@ -230,12 +231,12 @@ Flight::group('', function(Router $router) {
 Flight::before('start', function() {
 	if(Flight::request()->method == 'POST') {
 
-		// capturer le jeton csrf des valeurs du formulaire
+		// capture le jeton csrf depuis les valeurs du formulaire
 		$token = Flight::request()->data->csrf_token;
 		if($token !== Flight::session()->get('csrf_token')) {
-			Flight::halt(403, 'Jeton CSRF invalide');
+			Flight::halt(403, 'Invalid CSRF token');
 			// ou pour une réponse JSON
-			Flight::jsonHalt(['error' => 'Jeton CSRF invalide'], 403);
+			Flight::jsonHalt(['error' => 'Invalid CSRF token'], 403);
 		}
 	}
 });
@@ -243,66 +244,73 @@ Flight::before('start', function() {
 
 ### Cross Site Scripting (XSS)
 
-Cross Site Scripting (XSS) est un type d'attaque où une entrée de formulaire malveillante peut injecter du code dans votre site web. La plupart de ces opportunités proviennent 
-des valeurs de formulaire que vos utilisateurs finaux rempliront. Vous ne devez **jamais** faire confiance à la sortie de vos utilisateurs ! Supposez toujours qu'ils sont 
-les meilleurs hackers au monde. Ils peuvent injecter du JavaScript ou du HTML malveillant dans votre page. Ce code peut être utilisé pour voler des informations à vos 
-utilisateurs ou effectuer des actions sur votre site web. En utilisant la classe view de Flight ou un autre moteur de templating comme [Latte](/awesome-plugins/latte), vous pouvez facilement échapper la sortie pour prévenir les attaques XSS.
+Le Cross Site Scripting (XSS) est un type d'attaque où une entrée de formulaire malveillante peut injecter du code dans votre site web. La plupart de ces opportunités proviennent 
+des valeurs de formulaire que vos utilisateurs finaux rempliront. Vous ne devez **jamais** faire confiance à la sortie de vos utilisateurs ! Supposez toujours que tous sont les 
+meilleurs hackers du monde. Ils peuvent injecter du JavaScript ou du HTML malveillant dans votre page. Ce code peut être utilisé pour voler des informations de vos 
+utilisateurs ou effectuer des actions sur votre site web. En utilisant la classe view de Flight ou un autre moteur de template comme [Latte](/awesome-plugins/latte), vous pouvez facilement échapper la sortie pour prévenir les attaques XSS.
 
 ```php
-// Supposons que l'utilisateur soit astucieux et essaie d'utiliser ceci comme nom
+// Supposons que l'utilisateur soit malin et essaie d'utiliser ceci comme son nom
 $name = '<script>alert("XSS")</script>';
 
-// Cela échappera la sortie
+// Cela va échapper la sortie
 Flight::view()->set('name', $name);
 // Cela affichera : &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;
 
-// Si vous utilisez quelque chose comme Latte enregistré comme votre classe view, il échappera automatiquement cela.
+// Si vous utilisez quelque chose comme Latte enregistré comme votre classe view, cela va aussi échapper automatiquement cela.
 Flight::view()->render('template', ['name' => $name]);
 ```
 
 ### SQL Injection
 
-SQL Injection est un type d'attaque où un utilisateur malveillant peut injecter du code SQL dans votre base de données. Cela peut être utilisé pour voler des informations 
-de votre base de données ou effectuer des actions sur votre base de données. Encore une fois, vous ne devez **jamais** faire confiance à l'entrée de vos utilisateurs ! Supposez toujours qu'ils en ont après votre peau. L'utilisation de requêtes préparées dans vos objets `PDO` préviendra les injections SQL.
+L'injection SQL est un type d'attaque où un utilisateur malveillant peut injecter du code SQL dans votre base de données. Cela peut être utilisé pour voler des informations 
+de votre base de données ou effectuer des actions sur votre base de données. Encore une fois, vous ne devez **jamais** faire confiance à l'entrée de vos utilisateurs ! Supposez toujours qu'ils sont 
+à la recherche de sang. Vous pouvez utiliser des requêtes préparées dans vos objets `PDO` qui empêcheront l'injection SQL.
 
 ```php
-// En supposant que vous ayez Flight::db() enregistré comme votre objet PDO
+// En supposant que vous avez Flight::db() enregistré comme votre objet PDO
 $statement = Flight::db()->prepare('SELECT * FROM users WHERE username = :username');
 $statement->execute([':username' => $username]);
 $users = $statement->fetchAll();
 
-// Si vous utilisez la classe PdoWrapper, cela peut être fait facilement en une ligne
+// Si vous utilisez la classe PdoWrapper, cela peut facilement être fait en une ligne
 $users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = :username', [ 'username' => $username ]);
 
-// Vous pouvez faire la même chose avec un objet PDO avec des placeholders ?
+// Vous pouvez faire la même chose avec un objet PDO avec des marqueurs ?
 $statement = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
 ```
 
 #### Exemple non sécurisé
 
-Voici pourquoi nous utilisons des requêtes préparées SQL pour nous protéger d'exemples innocents comme celui-ci :
+Ce qui suit explique pourquoi nous utilisons des requêtes SQL préparées pour protéger contre des exemples innocents comme celui ci-dessous :
 
 ```php
 // l'utilisateur final remplit un formulaire web.
-// pour la valeur du formulaire, le hacker met quelque chose comme ceci :
+// pour la valeur du formulaire, le hacker entre quelque chose comme ceci :
 $username = "' OR 1=1; -- ";
 
 $sql = "SELECT * FROM users WHERE username = '$username' LIMIT 5";
 $users = Flight::db()->fetchAll($sql);
-// Après que la requête soit construite, cela ressemble à ceci
+// Après que la requête soit construite, elle ressemble à ceci
 // SELECT * FROM users WHERE username = '' OR 1=1; -- LIMIT 5
 
 // Cela semble étrange, mais c'est une requête valide qui fonctionnera. En fait,
-// c'est une attaque d'injection SQL très courante qui renverra tous les utilisateurs.
+// c'est une attaque par injection SQL très courante qui retournera tous les utilisateurs.
 
-var_dump($users); // cela dumpera tous les utilisateurs dans la base de données, pas seulement le nom d'utilisateur unique
+var_dump($users); // cela va vider tous les utilisateurs de la base de données, pas seulement le seul nom d'utilisateur
 ```
+
+### Validation du callback JSONP
+
+Si vous utilisez la méthode `Flight::jsonp()` de Flight, sachez que Flight valide le nom du paramètre de callback JSONP contre une regex de liste blanche stricte (`/^[A-Za-z_$][\w$.]{0,127}$/`). Tout nom de callback qui ne correspond pas à ce modèle fera que Flight lancera une exception, empêchant l'injection de JavaScript arbitraire via une valeur de callback malveillante.
+
+Cette validation est intégrée et ne nécessite aucune configuration supplémentaire, mais il est utile d'en être conscient lors du débogage d'erreurs inattendues provenant des points de terminaison JSONP.
 
 ### CORS
 
-Cross-Origin Resource Sharing (CORS) est un mécanisme qui permet à de nombreuses ressources (par exemple, polices, JavaScript, etc.) sur une page web d'être 
-requises depuis un autre domaine en dehors du domaine d'origine de la ressource. Flight n'a pas de fonctionnalité intégrée, 
-mais cela peut facilement être géré avec un hook à exécuter avant que la méthode `Flight::start()` ne soit appelée.
+Le Cross-Origin Resource Sharing (CORS) est un mécanisme qui permet à de nombreuses ressources (par exemple, polices, JavaScript, etc.) sur une page web d'être 
+demandées depuis un autre domaine en dehors du domaine d'origine de la ressource. Flight n'a pas de fonctionnalité intégrée, 
+mais cela peut facilement être géré avec un hook qui s'exécute avant que la méthode `Flight::start()` ne soit appelée.
 
 ```php
 // app/utils/CorsUtil.php
@@ -361,15 +369,60 @@ class CorsUtil
 	}
 }
 
-// index.php ou là où vous avez vos routes
+// index.php ou partout où vous avez vos routes
 $CorsUtil = new CorsUtil();
 
 // Cela doit être exécuté avant que start ne s'exécute.
 Flight::before('start', [ $CorsUtil, 'setupCors' ]);
 ```
 
+### Durcissement de la configuration de Flight
+
+Flight expose plusieurs paramètres du moteur qui ont des implications directes sur la sécurité. Configurer ces paramètres correctement est l'un des moyens les plus simples de durcir votre application.
+
+#### `flight.allow_method_override`
+
+Par défaut, Flight permet aux clients de remplacer la méthode HTTP d'une requête en utilisant soit l'en-tête `X-HTTP-Method-Override`, soit un champ `_method` dans un corps POST. Bien que cela soit pratique pour les formulaires HTML qui ne peuvent envoyer que `GET`/`POST`, cela peut être dangereux si vous ne vous y attendez pas — un attaquant pourrait forger des requêtes `DELETE` ou `PUT` via un formulaire normal.
+
+Si votre application ne dépend pas de ce comportement (par exemple, vous construisez une API consommée par des clients modernes ou des frontends JavaScript qui peuvent envoyer n'importe quel verbe HTTP), vous devriez le désactiver :
+
+```php
+// Dans votre index.php ou fichier de bootstrap, avant Flight::start()
+Flight::set('flight.allow_method_override', false);
+```
+
+La valeur par défaut est `true` pour la compatibilité ascendante, mais **la définir sur `false` est fortement recommandée** pour toute application qui n'a pas explicitement besoin de la fonctionnalité de remplacement.
+
+#### `flight.debug`
+
+Flight a un paramètre `flight.debug` qui contrôle si des informations d'erreur détaillées (message d'exception, code et trace complète de la pile) sont rendues dans le navigateur lorsqu'une exception non gérée se produit. La valeur par défaut est `false`, ce qui signifie qu'un message générique `500 Internal Server Error` est affiché — aucun détail interne n'est divulgué au client.
+
+Ne l'activez jamais sur un serveur de production. Utilisez-le uniquement localement ou dans un environnement de staging :
+
+```php
+// Sûr uniquement pour le développement local — JAMAIS en production
+Flight::set('flight.debug', true);
+```
+
+Lorsque `flight.debug` est `false` (par défaut), vous pouvez toujours capturer les erreurs en activant `flight.log_errors` :
+
+```php
+// Enregistre les erreurs côté serveur sans les exposer au client
+Flight::set('flight.debug', false);
+Flight::set('flight.log_errors', true);
+```
+
+#### Configuration de production recommandée
+
+```php
+// index.php ou app/config/config.php
+Flight::set('flight.allow_method_override', false);
+Flight::set('flight.debug', false);
+Flight::set('flight.log_errors', true);
+```
+
 ### Gestion des erreurs
-Masquez les détails d'erreurs sensibles en production pour éviter de divulguer des informations aux attaquants. En production, enregistrez les erreurs au lieu de les afficher avec `display_errors` défini à `0`.
+Masquez les détails d'erreur sensibles en production pour éviter de divulguer des informations aux attaquants. En production, enregistrez les erreurs au lieu de les afficher avec `display_errors` défini sur `0`.
 
 ```php
 // Dans votre bootstrap.php ou index.php
@@ -377,48 +430,48 @@ Masquez les détails d'erreurs sensibles en production pour éviter de divulguer
 // ajoutez ceci à votre app/config/config.php
 $environment = ENVIRONMENT;
 if ($environment === 'production') {
-    ini_set('display_errors', 0); // Désactiver l'affichage des erreurs
-    ini_set('log_errors', 1);     // Enregistrer les erreurs à la place
+    ini_set('display_errors', 0); // Désactive l'affichage des erreurs
+    ini_set('log_errors', 1);     // Enregistre les erreurs à la place
     ini_set('error_log', '/path/to/error.log');
 }
 
 // Dans vos routes ou contrôleurs
 // Utilisez Flight::halt() pour des réponses d'erreur contrôlées
-Flight::halt(403, 'Accès refusé');
+Flight::halt(403, 'Access denied');
 ```
 
 ### Assainissement des entrées
-Ne faites jamais confiance à l'entrée utilisateur. Assainissez-la en utilisant [filter_var](https://www.php.net/manual/en/function.filter-var.php) avant de la traiter pour empêcher les données malveillantes de s'infiltrer.
+Ne faites jamais confiance à l'entrée utilisateur. Assainissez-la en utilisant [filter_var](https://www.php.net/manual/en/function.filter-var.php) avant le traitement pour empêcher des données malveillantes de s'infiltrer.
 
 ```php
 
 // Supposons une requête $_POST avec $_POST['input'] et $_POST['email']
 
-// Assainir une entrée chaîne
+// Assainit une entrée de chaîne
 $clean_input = filter_var(Flight::request()->data->input, FILTER_SANITIZE_STRING);
-// Assainir un email
+// Assainit un email
 $clean_email = filter_var(Flight::request()->data->email, FILTER_SANITIZE_EMAIL);
 ```
 
 ### Hachage des mots de passe
-Stockez les mots de passe de manière sécurisée et vérifiez-les en toute sécurité en utilisant les fonctions intégrées de PHP comme [password_hash](https://www.php.net/manual/en/function.password-hash.php) et [password_verify](https://www.php.net/manual/en/function.password-verify.php). Les mots de passe ne doivent jamais être stockés en texte clair, ni chiffrés avec des méthodes réversibles. Le hachage garantit que même si votre base de données est compromise, les mots de passe réels restent protégés.
+Stockez les mots de passe de manière sécurisée et vérifiez-les en toute sécurité en utilisant les fonctions intégrées de PHP comme [password_hash](https://www.php.net/manual/en/function.password-hash.php) et [password_verify](https://www.php.net/manual/en/function.password-verify.php). Les mots de passe ne doivent jamais être stockés en texte clair, ni être chiffrés avec des méthodes réversibles. Le hachage garantit que même si votre base de données est compromise, les mots de passe réels restent protégés.
 
 ```php
 $password = Flight::request()->data->password;
-// Hacher un mot de passe lors du stockage (par exemple, pendant l'inscription)
+// Hache un mot de passe lors du stockage (par exemple, pendant l'enregistrement)
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// Vérifier un mot de passe (par exemple, pendant la connexion)
+// Vérifie un mot de passe (par exemple, pendant la connexion)
 if (password_verify($password, $stored_hash)) {
     // Le mot de passe correspond
 }
 ```
 
-### Limitation de taux
-Protégez contre les attaques par force brute ou les attaques par déni de service en limitant les taux de requêtes avec un cache.
+### Limitation de débit
+Protégez contre les attaques par force brute ou les attaques par déni de service en limitant les taux de requête avec un cache.
 
 ```php
-// En supposant que vous ayez flightphp/cache installé et enregistré
+// En supposant que vous avez flightphp/cache installé et enregistré
 // Utilisation de flightphp/cache dans un filtre
 Flight::before('start', function() {
     $cache = Flight::cache();
@@ -427,18 +480,18 @@ Flight::before('start', function() {
     $attempts = (int) $cache->retrieve($key);
     
     if ($attempts >= 10) {
-        Flight::halt(429, 'Trop de requêtes');
+        Flight::halt(429, 'Too many requests');
     }
     
-    $cache->set($key, $attempts + 1, 60); // Réinitialiser après 60 secondes
+    $cache->set($key, $attempts + 1, 60); // Réinitialisation après 60 secondes
 });
 ```
 
 ## Voir aussi
 - [Sessions](/awesome-plugins/session) - Comment gérer les sessions utilisateur de manière sécurisée.
-- [Templates](/learn/templates) - Utilisation des templates pour échapper automatiquement la sortie et prévenir XSS.
+- [Templates](/learn/templates) - Utilisation des templates pour échapper automatiquement la sortie et prévenir le XSS.
 - [PDO Wrapper](/learn/pdo-wrapper) - Interactions simplifiées avec la base de données avec des requêtes préparées.
-- [Middleware](/learn/middleware) - Comment utiliser le middleware pour simplifier l'ajout d'en-têtes de sécurité.
+- [Middleware](/learn/middleware) - Comment utiliser le middleware pour simplifier le processus d'ajout d'en-têtes de sécurité.
 - [Responses](/learn/responses) - Comment personnaliser les réponses HTTP avec des en-têtes sécurisés.
 - [Requests](/learn/requests) - Comment gérer et assainir l'entrée utilisateur.
 - [filter_var](https://www.php.net/manual/en/function.filter-var.php) - Fonction PHP pour l'assainissement des entrées.
@@ -446,8 +499,9 @@ Flight::before('start', function() {
 - [password_verify](https://www.php.net/manual/en/function.password-verify.php) - Fonction PHP pour vérifier les mots de passe hachés.
 
 ## Dépannage
-- Reportez-vous à la section "Voir aussi" ci-dessus pour des informations de dépannage liées aux problèmes avec les composants du Framework Flight.
+- Reportez-vous à la section "Voir aussi" ci-dessus pour les informations de dépannage liées aux problèmes avec les composants du Framework Flight.
 
-## Journal des modifications
-- v3.1.0 - Ajout de sections sur CORS, Gestion des erreurs, Assainissement des entrées, Hachage des mots de passe, et Limitation de taux.
-- v2.0 - Ajout d'échappement pour les vues par défaut pour prévenir XSS.
+## Changelog
+- v3.18.1 - Ajout de la section Durcissement de la configuration de Flight couvrant `flight.allow_method_override`, `flight.debug` et la validation du callback JSONP.
+- v3.1.0 - Ajout de sections sur le CORS, la gestion des erreurs, l'assainissement des entrées, le hachage des mots de passe et la limitation de débit.
+- v2.0 - Ajout de l'échappement pour les vues par défaut pour prévenir le XSS.

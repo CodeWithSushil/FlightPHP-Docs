@@ -1,34 +1,34 @@
 # KI & Entwicklererfahrung mit Flight
 
-## Überblick
+## Übersicht
 
-Flight erleichtert es, Ihre PHP-Projekte mit KI-gestützten Tools und modernen Entwickler-Workflows zu superchargen. Mit integrierten Befehlen zum Verbinden mit LLM-Anbietern (Large Language Model) und zum Generieren projektspezifischer KI-Coding-Anweisungen hilft Flight Ihnen und Ihrem Team, das Maximum aus KI-Assistenten wie GitHub Copilot, Cursor, Windsurf und Antigravity (Gemini) herauszuholen.
+Flight macht es einfach, Ihre PHP-Projekte mit KI-gestützten Tools und modernen Entwickler-Workflows zu erweitern. Mit integrierten Befehlen zur Verbindung mit LLM-Anbietern (Large Language Model) und zur Erstellung projektspezifischer KI-Codierungsanweisungen hilft Flight Ihnen und Ihrem Team, das Beste aus KI-Assistenten wie GitHub Copilot, Cursor, Windsurf und Antigravity (Gemini) herauszuholen.
 
 ## Verständnis
 
-KI-Coding-Assistenten sind am hilfreichsten, wenn sie den Kontext, die Konventionen und die Ziele Ihres Projekts verstehen. Die KI-Helfer von Flight ermöglichen es Ihnen:
-- Ihr Projekt mit beliebten LLM-Anbietern zu verbinden (OpenAI, Grok, Claude usw.)
+KI-Codierungsassistenten sind am hilfreichsten, wenn sie den Kontext, die Konventionen und Ziele Ihres Projekts verstehen. Flights KI-Helfer ermöglichen Ihnen:
+- Ihr Projekt mit beliebten LLM-Anbietern zu verbinden (OpenAI, Grok, Claude, usw.)
 - Projektspezifische Anweisungen für KI-Tools zu generieren und zu aktualisieren, damit alle konsistente, relevante Hilfe erhalten
-- Ihr Team ausgerichtet und produktiv zu halten, mit weniger Zeit für das Erklären des Kontexts
+- Ihr Team ausgerichtet und produktiv zu halten, mit weniger Zeit für die Erklärung des Kontexts
 
-Diese Funktionen sind in den Flight-Core-CLI und das offizielle [flightphp/skeleton](https://github.com/flightphp/skeleton) Starter-Projekt integriert.
+Diese Funktionen sind in das Flight Core-CLI und das offizielle [flightphp/skeleton](https://github.com/flightphp/skeleton) Starter-Projekt integriert.
 
-## Grundlegende Nutzung
+## Grundlegende Verwendung
 
-### Einrichten von LLM-Zugangsdaten
+### LLM-Anmeldedaten einrichten
 
-Der Befehl `ai:init` führt Sie durch den Prozess, Ihr Projekt mit einem LLM-Anbieter zu verbinden.
+Der Befehl `ai:init` führt Sie durch die Verbindung Ihres Projekts mit einem LLM-Anbieter.
 
 ```bash
 php runway ai:init
 ```
 
 Sie werden aufgefordert:
-- Ihren Anbieter auszuwählen (OpenAI, Grok, Claude usw.)
+- Ihren Anbieter auszuwählen (OpenAI, Grok, Claude, usw.)
 - Ihren API-Schlüssel einzugeben
 - Die Basis-URL und den Modellnamen festzulegen
 
-Dies erstellt die notwendigen Zugangsdaten, damit Sie zukünftige LLM-Anfragen stellen können.
+Dadurch werden die notwendigen Anmeldedaten für zukünftige LLM-Anfragen erstellt.
 
 **Beispiel:**
 ```
@@ -40,19 +40,20 @@ Enter the model name you want to use (e.g. gpt-4, claude-3-opus, etc) [gpt-4o]:
 Credentials saved to .runway-creds.json
 ```
 
-### Generieren projektspezifischer KI-Anweisungen
+### Projektspezifische KI-Anweisungen generieren
 
-Der Befehl `ai:generate-instructions` hilft Ihnen, Anweisungen für KI-Coding-Assistenten zu erstellen oder zu aktualisieren, die auf Ihr Projekt zugeschnitten sind.
+Der Befehl `ai:generate-instructions` hilft Ihnen, Anweisungen für KI-Codierungsassistenten zu erstellen oder zu aktualisieren, die auf Ihr Projekt zugeschnitten sind.
 
 ```bash
 php runway ai:generate-instructions
 ```
 
-Sie beantworten ein paar Fragen zu Ihrem Projekt (Beschreibung, Datenbank, Templating, Sicherheit, Teamgröße usw.). Flight verwendet Ihren LLM-Anbieter, um Anweisungen zu generieren, und schreibt sie dann in:
+Sie beantworten einige Fragen zu Ihrem Projekt (Beschreibung, Datenbank, Templating, Sicherheit, Teamgröße, usw.). Flight verwendet Ihren LLM-Anbieter zur Generierung von Anweisungen und schreibt dann denselben Inhalt in:
 - `.github/copilot-instructions.md` (für GitHub Copilot)
 - `.cursor/rules/project-overview.mdc` (für Cursor)
 - `.windsurfrules` (für Windsurf)
 - `.gemini/GEMINI.md` (für Antigravity)
+- `AGENTS.md` (im Projektstammverzeichnis, für tool-agnostische KI-Assistenten)
 
 **Beispiel:**
 ```
@@ -64,18 +65,18 @@ Is security an important element of this project? (y/n) y
 AI instructions updated successfully.
 ```
 
-Nun geben Ihre KI-Tools intelligentere, relevantere Vorschläge basierend auf den tatsächlichen Bedürfnissen Ihres Projekts.
+Jetzt geben Ihre KI-Tools intelligentere, relevantere Vorschläge basierend auf den tatsächlichen Anforderungen Ihres Projekts.
 
-## Erweiterte Nutzung
+## Erweiterte Verwendung
 
-- Sie können den Speicherort Ihrer Zugangsdaten- oder Anweisungsdateien mit Befehlsoptionen anpassen (siehe `--help` für jeden Befehl).
+- Sie können den Speicherort Ihrer Anmeldedaten- oder Anweisungsdateien mit Befehlsoptionen anpassen (siehe `--help` für jeden Befehl).
 - Die KI-Helfer sind so konzipiert, dass sie mit jedem LLM-Anbieter funktionieren, der OpenAI-kompatible APIs unterstützt.
-- Wenn Sie Ihre Anweisungen aktualisieren möchten, während sich Ihr Projekt weiterentwickelt, führen Sie einfach `ai:generate-instructions` erneut aus und beantworten die Prompts erneut.
+- Wenn Sie Ihre Anweisungen aktualisieren möchten, während sich Ihr Projekt weiterentwickelt, führen Sie einfach `ai:generate-instructions` erneut aus und beantworten die Eingabeaufforderungen erneut.
 
 ## Siehe auch
 
-- [Flight Skeleton](https://github.com/flightphp/skeleton) – Das offizielle Starter-Projekt mit KI-Integration
-- [Runway CLI](/awesome-plugins/runway) – Mehr über das CLI-Tool, das diese Befehle antreibt
+- [Flight Skeleton](https://github.com/flightphp/skeleton) – Der offizielle Starter mit KI-Integration
+- [Runway CLI](/awesome-plugins/runway) – Mehr über das CLI-Tool, das diese Befehle unterstützt
 
 ## Fehlerbehebung
 
@@ -85,4 +86,5 @@ Nun geben Ihre KI-Tools intelligentere, relevantere Vorschläge basierend auf de
 
 ## Änderungsprotokoll
 
-- v3.16.0 – Hinzugefügt: `ai:init` und `ai:generate-instructions` CLI-Befehle für KI-Integration.
+- v3.18.4 – `ai:generate-instructions` schreibt Projektanweisungen jetzt auch in `AGENTS.md` im Projektstammverzeichnis.
+- v3.16.0 – Hinzufügung der CLI-Befehle `ai:init` und `ai:generate-instructions` für die KI-Integration.
