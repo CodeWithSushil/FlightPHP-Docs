@@ -48,11 +48,12 @@ The `ai:generate-instructions` command helps you create or update instructions f
 php runway ai:generate-instructions
 ```
 
-You'll answer a few questions about your project (description, database, templating, security, team size, etc.). Flight uses your LLM provider to generate instructions, then writes them to:
+You'll answer a few questions about your project (description, database, templating, security, team size, etc.). Flight uses your LLM provider to generate instructions, then writes the same content to:
 - `.github/copilot-instructions.md` (for GitHub Copilot)
 - `.cursor/rules/project-overview.mdc` (for Cursor)
 - `.windsurfrules` (for Windsurf)
 - `.gemini/GEMINI.md` (for Antigravity)
+- `AGENTS.md` (at the project root, for tool-agnostic AI assistants)
 
 **Example:**
 ```
@@ -85,4 +86,5 @@ Now, your AI tools will give smarter, more relevant suggestions based on your pr
 
 ## Changelog
 
+- v3.18.4 – `ai:generate-instructions` now also writes project instructions to `AGENTS.md` at the project root.
 - v3.16.0 – Added `ai:init` and `ai:generate-instructions` CLI commands for AI integration.
