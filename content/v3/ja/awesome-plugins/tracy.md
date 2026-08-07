@@ -1,10 +1,10 @@
 # Tracy
 
-Tracy は Flight と一緒に使用できる素晴らしいエラーハンドラです。アプリケーションのデバッグに役立つ数々のパネルがあります。拡張して独自のパネルを追加するのも非常に簡単です。Flight チームは、[flightphp/tracy-extensions](https://github.com/flightphp/tracy-extensions) プラグイン用にいくつかのパネルを作成しました。
+TracyはFlightで使用できる素晴らしいエラーハンドラです。アプリケーションのデバッグに役立つ複数のパネルを備えています。また、非常に簡単に拡張でき、独自のパネルを追加することも可能です。Flightチームは、[flightphp/tracy-extensions](https://github.com/flightphp/tracy-extensions)プラグインを使用してFlightプロジェクト向けにいくつかのパネルを作成しました（Flight変数、DBクエリ、リクエスト、セッション、およびプロファイラープロファイルを渡す場合のオプションの**Twig**パネル—[Tracy Extensions](/awesome-plugins/tracy-extensions)を参照）。
 
 ## インストール
 
-Composer でインストールします。Tracy は本番用のエラーハンドリングコンポーネントが付属しているため、実際には dev バージョンなしでインストールする必要があります。
+Composerでインストールします。また、Tracyには本番環境用のエラーハンドリングコンポーネントが付属しているため、dev版ではなく通常版をインストールすることをお勧めします。
 
 ```bash
 composer require tracy/tracy
@@ -12,7 +12,7 @@ composer require tracy/tracy
 
 ## 基本設定
 
-開始するための基本的な設定オプションがあります。詳細については、[Tracy ドキュメント](https://tracy.nette.org/en/configuring) を参照してください。
+開始するための基本的な設定オプションがあります。詳細については[Tracy Documentation](https://tracy.nette.org/en/configuring)をご覧ください。
 
 ```php
 
@@ -20,26 +20,27 @@ require 'vendor/autoload.php';
 
 use Tracy\Debugger;
 
-// Tracy を有効にする
+// Tracyを有効化
 Debugger::enable();
-// Debugger::enable(Debugger::DEVELOPMENT) // 明示する必要がある場合もあります（Debugger::PRODUCTION も同様）
-// Debugger::enable('23.75.345.200'); // IP アドレスの配列を提供することもできます
+// Debugger::enable(Debugger::DEVELOPMENT) // 明示的に指定する必要がある場合もあります（Debugger::PRODUCTIONも同様）
+// Debugger::enable('23.75.345.200'); // IPアドレスの配列を指定することもできます
 
-// ここにエラーと例外が記録されます。このディレクトリが存在し、書き込み可能であることを確認してください。
+// エラーと例外が記録される場所です。このディレクトリが存在し、書き込み可能であることを確認してください。
 Debugger::$logDirectory = __DIR__ . '/../log/';
 Debugger::$strictMode = true; // すべてのエラーを表示
-// Debugger::$strictMode = E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED; // ディプリケートされた通知を除くすべてのエラー
+// Debugger::$strictMode = E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED; // 非推奨通知を除くすべてのエラー
 if (Debugger::$showBar) {
-    $app->set('flight.content_length', false); // Debugger バーが表示されている場合、Flight によって content-length が設定できません。
+    $app->set('flight.content_length', false); // デバッガーバーが表示されている場合、Flightはcontent-lengthを設定できません
 
-	// これは Flight 用の Tracy 拡張機能に固有のものです。これを含めた場合は有効にしてください。
+	// 含めている場合はFlight用のTracy Extensionに固有です
+	// それ以外の場合はコメントアウトしてください。
 	new TracyExtensionLoader($app);
 }
 ```
 
-## 便利なヒント
+## 役立つヒント
 
-コードのデバッグ中に、データを出力するための非常に役立つ関数がいくつかあります。
+コードをデバッグする際、データを表示するための非常に便利な関数があります。
 
-- `bdump($var)` - これにより、変数が Tracy バーにダンプされます（別のパネルで表示されます）。
-- `dumpe($var)` - これにより、変数がダンプされ、その後すぐにプログラムが停止します。
+- `bdump($var)` - 変数をTracy Barの別パネルにダンプします。
+- `dumpe($var)` - 変数をダンプした後、すぐに終了します。

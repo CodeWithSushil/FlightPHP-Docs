@@ -1,24 +1,24 @@
-# Collections
+# Sammlungen
 
-## Überblick
+## Übersicht
 
-Die `Collection`-Klasse in Flight ist ein nützliches Hilfsprogramm zum Verwalten von Datensätzen. Sie ermöglicht den Zugriff und die Manipulation von Daten mit Array- und Objekt-Notation, was Ihren Code sauberer und flexibler macht.
+Die `Collection`-Klasse in Flight ist ein praktisches Hilfsmittel zur Verwaltung von Datensätzen. Sie ermöglicht den Zugriff auf Daten sowohl mit Array- als auch mit Objektnotation, was deinen Code sauberer und flexibler macht.
 
 ## Verständnis
 
-Eine `Collection` ist im Wesentlichen eine Umhüllung um ein Array, aber mit zusätzlichen Fähigkeiten. Sie können sie wie ein Array verwenden, darüber iterieren, die Anzahl ihrer Elemente zählen und sogar auf Elemente zugreifen, als wären sie Objekteigenschaften. Dies ist besonders nützlich, wenn Sie strukturierte Daten in Ihrer App weitergeben möchten oder Ihren Code lesbarer gestalten wollen.
+Eine `Collection` ist im Grunde ein Wrapper um ein Array, aber mit einigen zusätzlichen Funktionen. Du kannst sie wie ein Array verwenden, darüber iterieren, die Anzahl der Elemente zählen und sogar auf Elemente zugreifen, als wären es Objekteigenschaften. Das ist besonders nützlich, wenn du strukturierte Daten in deiner App weitergeben möchtest oder wenn du deinen Code etwas lesbarer machen willst.
 
 Collections implementieren mehrere PHP-Schnittstellen:
-- `ArrayAccess` (damit Sie Array-Syntax verwenden können)
-- `Iterator` (damit Sie mit `foreach` iterieren können)
-- `Countable` (damit Sie `count()` verwenden können)
-- `JsonSerializable` (damit Sie einfach in JSON umwandeln können)
+- `ArrayAccess` (damit du Array-Syntax verwenden kannst)
+- `Iterator` (damit du mit `foreach` iterieren kannst)
+- `Countable` (damit du `count()` verwenden kannst)
+- `JsonSerializable` (damit du einfach in JSON konvertieren kannst)
 
 ## Grundlegende Verwendung
 
-### Erstellen einer Collection
+### Eine Collection erstellen
 
-Sie können eine Collection erstellen, indem Sie einfach ein Array an ihren Konstruktor übergeben:
+Du kannst eine Collection erstellen, indem du einfach ein Array an den Konstruktor übergibst:
 
 ```php
 use flight\util\Collection;
@@ -32,9 +32,9 @@ $data = [
 $collection = new Collection($data);
 ```
 
-### Zugriff auf Elemente
+### Auf Elemente zugreifen
 
-Sie können auf Elemente mit Array- oder Objekt-Notation zugreifen:
+Du kannst auf Elemente entweder mit Array- oder Objektnotation zugreifen:
 
 ```php
 // Array-Notation
@@ -44,11 +44,11 @@ echo $collection['name']; // Ausgabe: FlightPHP
 echo $collection->version; // Ausgabe: 3
 ```
 
-Wenn Sie versuchen, auf einen Schlüssel zuzugreifen, der nicht existiert, erhalten Sie `null` anstelle eines Fehlers.
+Wenn du versuchst, auf einen Schlüssel zuzugreifen, der nicht existiert, erhältst du `null` anstatt eines Fehlers.
 
-### Setzen von Elementen
+### Elemente setzen
 
-Sie können Elemente mit beiden Notationen setzen:
+Du kannst Elemente ebenfalls mit beiden Notationen setzen:
 
 ```php
 // Array-Notation
@@ -58,9 +58,9 @@ $collection['author'] = 'Mike Cao';
 $collection->license = 'MIT';
 ```
 
-### Überprüfen und Entfernen von Elementen
+### Vorhandensein prüfen und Elemente entfernen
 
-Überprüfen Sie, ob ein Element existiert:
+Prüfen, ob ein Element existiert:
 
 ```php
 if (isset($collection['name'])) {
@@ -72,16 +72,16 @@ if (isset($collection->version)) {
 }
 ```
 
-Entfernen Sie ein Element:
+Ein Element entfernen:
 
 ```php
 unset($collection['author']);
 unset($collection->license);
 ```
 
-### Iterieren über eine Collection
+### Über eine Collection iterieren
 
-Collections sind iterierbar, sodass Sie sie in einer `foreach`-Schleife verwenden können:
+Collections sind iterierbar, du kannst sie also in einer `foreach`-Schleife verwenden:
 
 ```php
 foreach ($collection as $key => $value) {
@@ -89,9 +89,9 @@ foreach ($collection as $key => $value) {
 }
 ```
 
-### Zählen von Elementen
+### Elemente zählen
 
-Sie können die Anzahl der Elemente in einer Collection zählen:
+Du kannst die Anzahl der Elemente in einer Collection zählen:
 
 ```php
 echo count($collection); // Ausgabe: 4
@@ -121,35 +121,35 @@ $collection->clear();
 
 ### JSON-Serialisierung
 
-Collections können einfach in JSON umgewandelt werden:
+Collections können einfach in JSON konvertiert werden:
 
 ```php
 echo json_encode($collection);
 // Ausgabe: {"name":"FlightPHP","version":3,"features":["routing","views","extending"],"license":"MIT"}
 ```
 
-## Erweiterte Verwendung
+## Fortgeschrittene Verwendung
 
-Sie können das interne Daten-Array vollständig ersetzen, falls benötigt:
+Du kannst das interne Datenarray bei Bedarf vollständig ersetzen:
 
 ```php
 $collection->setData(['foo' => 'bar']);
 ```
 
-Collections sind besonders nützlich, wenn Sie strukturierte Daten zwischen Komponenten weitergeben möchten oder eine objektorientiertere Schnittstelle für Array-Daten bereitstellen wollen.
+Collections sind besonders nützlich, wenn du strukturierte Daten zwischen Komponenten weitergeben möchtest oder wenn du eine objektorientiertere Schnittstelle für Array-Daten bereitstellen willst.
 
 ## Siehe auch
 
-- [Requests](/learn/requests) - Erfahren Sie, wie Sie HTTP-Anfragen handhaben und wie Collections zur Verwaltung von Anfragedaten verwendet werden können.
-- [PDO Wrapper](/learn/pdo-wrapper) - Erfahren Sie, wie Sie den PDO-Wrapper in Flight verwenden und wie Collections zur Verwaltung von Datenbankergebnissen genutzt werden können.
+- [Anfragen](/learn/requests) – Erfahre, wie du HTTP-Anfragen verarbeitest und wie Collections zur Verwaltung von Anfragedaten verwendet werden können.
+- [SimplePdo](/learn/simple-pdo) – Datenbank-Helfer, der Abfragezeilen als Collections zurückgibt.
 
 ## Fehlerbehebung
 
-- Wenn Sie versuchen, auf einen nicht existierenden Schlüssel zuzugreifen, erhalten Sie `null` anstelle eines Fehlers.
-- Denken Sie daran, dass Collections nicht rekursiv sind: Verschachtelte Arrays werden nicht automatisch in Collections umgewandelt.
-- Wenn Sie die Collection zurücksetzen müssen, verwenden Sie `$collection->clear()` oder `$collection->setData([])`.
+- Wenn du versuchst, auf einen Schlüssel zuzugreifen, der nicht existiert, erhältst du `null` anstatt eines Fehlers.
+- Denke daran, dass Collections nicht rekursiv sind: Verschachtelte Arrays werden nicht automatisch in Collections umgewandelt.
+- Wenn du die Collection zurücksetzen musst, verwende `$collection->clear()` oder `$collection->setData([])`.
 
 ## Änderungsprotokoll
 
-- v3.0 - Verbesserte Typ-Hinweise und Unterstützung für PHP 8+.
-- v1.0 - Erste Veröffentlichung der Collection-Klasse.
+- v3.0 – Verbesserte Typ-Hinweise und PHP 8+-Unterstützung.
+- v1.0 – Erstveröffentlichung der Collection-Klasse.

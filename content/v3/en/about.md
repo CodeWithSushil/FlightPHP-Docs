@@ -1,6 +1,6 @@
 # Flight PHP Framework
 
-Flight is a fast, simple, extensible framework for PHP—built for developers who want to get things done quickly, with zero fuss. Whether you're building a classic web app, a blazing-fast API, or experimenting with the latest AI-powered tools, Flight's low footprint and straightforward design make it a perfect fit. Flight is meant to be lean, but can also handle enterprise architecture requirements.
+Flight is a fast, simple, extensible framework for PHP—built for developers who want to get things done quickly, with zero fuss. Whether you're building a classic web app, a blazing-fast API, or pairing with AI coding assistants, Flight's low footprint and straightforward design make it a perfect fit. Flight is meant to be lean, but can also handle enterprise architecture requirements.
 
 ## Why Choose Flight?
 
@@ -8,7 +8,7 @@ Flight is a fast, simple, extensible framework for PHP—built for developers wh
 - **Loved by Pros:** Experienced devs love Flight for its flexibility and control. You can scale from a tiny prototype to a full-featured app without switching frameworks.
 - **Backwards Compatible:** We value your time. Flight v3 is an augmentation of v2, keeping almost all of the same API. We believe in evolution, not revolution—no more "breaking the world" every time a major version comes out.
 - **Zero Dependencies:** Flight's core is completely dependency-free—no polyfills, no external packages, not even PSR interfaces. This means fewer attack vectors, a smaller footprint, and no surprise breaking changes from upstream dependencies. Optional plugins may include dependencies, but the core will always stay lean and secure.
-- **AI Focused:** Flight's minimal overhead and clean architecture make it ideal for integrating AI tools and APIs. Whether you're building smart chatbots, AI-driven dashboards, or just want to experiment, Flight gets out of your way so you can focus on what matters. The [skeleton app](https://github.com/flightphp/skeleton) comes with pre-built instructions files for the major AI coding assistants out of the box! [Learn more about using AI with Flight](/learn/ai)
+- **AI Friendly:** Flight's small API surface and the [official skeleton](https://github.com/flightphp/skeleton) (one layout, `AGENTS.md`, constructor injection) make it easy for AI coding tools to stay on-pattern. Same codebase whether you type every line or pair with an agent. [Learn more about using AI with Flight](/learn/ai).
 
 ## Video Overview
 
@@ -58,9 +58,20 @@ Flight::start();
 
 That's it! You have a basic Flight application. You can now run this file with `php -S localhost:8000` and visit `http://localhost:8000` in your browser to see the output.
 
+Short `Flight::` examples like this are great for learning and micro apps. For a full project layout that humans and AI tools share, use the skeleton below.
+
 ## Skeleton/Boilerplate App
 
-There's an example app to help you start your project with Flight. It has a structured layout, basic configs all set and handle composer scripts right out of the gate! Check out [flightphp/skeleton](https://github.com/flightphp/skeleton) for a ready-to-go project, or visit the [examples](examples) page for inspiration. Want to see how AI fits in? [Explore AI-powered examples](/learn/ai).
+There's an official starter to help you begin any new Flight project. It sets up structure, config, Composer scripts, and AI-friendly instructions out of the gate.
+
+Check out [flightphp/skeleton](https://github.com/flightphp/skeleton) for a ready-to-go project, or visit the [examples](examples) page for inspiration. Want the AI workflow details? [Explore AI & developer experience](/learn/ai).
+
+What you get (high level):
+
+- **`App\` namespaces** with PascalCase folders (`app/Controller/`, `app/Middleware/`, `app/Model/`, …)—folder **case** must match the namespace (see [Autoloading](/learn/autoloading))
+- **Dice + `Engine` injection** so controllers stay testable (prefer `$this->app` over `Flight::` in app code)
+- **Twig** views, **SimplePdo** + ActiveRecord sample, Runway **migrate**
+- Root **`AGENTS.md`** (plus scoped copies) and **`SECURITY.md`** for assistants and security policy
 
 ## Installing the Skeleton App
 
@@ -75,11 +86,16 @@ cd my-project/
 composer start
 ```
 
-It will create the project structure, setup the files you need, and you're ready to go!
+It creates the project structure, copies `config_sample.php` → `config.php` (and `.env.example` → `.env` when present), and you're ready to go. Optional sample data:
+
+```bash
+php runway migrate
+# then visit /posts and /api/posts
+```
 
 ## High Performance
 
-Flight is one of the fastest PHP frameworks out there. Its lightweight core means less overhead and more speed—perfect for both traditional apps and modern AI-powered projects. You can see all the benchmarks at [TechEmpower](https://www.techempower.com/benchmarks/#section=data-r18&hw=ph&test=frameworks)
+Flight is one of the fastest PHP frameworks out there. Its lightweight core means less overhead and more speed—perfect for both traditional apps and modern AI-assisted workflows. You can see all the benchmarks at [TechEmpower](https://www.techempower.com/benchmarks/#section=data-r18&hw=ph&test=frameworks)
 
 See the benchmark below with some other popular PHP frameworks.
 
@@ -98,13 +114,13 @@ See the benchmark below with some other popular PHP frameworks.
 
 ## Flight and AI
 
-Curious how it handles AI? [Discover](/learn/ai) how Flight makes working with your favorite coding LLM easy!
+Curious how Flight pairs with coding LLMs? [Discover](/learn/ai) how `AGENTS.md`, Runway `ai:*` commands, and the skeleton layout keep assistants on the rails.
 
 ## Stability and Backwards Compatibility
 
 We value your time. We've all seen frameworks that completely reinvent themselves every couple of years, leaving developers with broken code and expensive migrations. Flight is different. Flight v3 was designed as an augmentation of v2, which means that the API you know and love hasn't been stripped away. In fact, most v2 projects will work without any changes in v3. 
 
-We're committed to keeping Flight stable so you can focus on building your app, not fixing your framework.
+We're committed to keeping Flight stable so you can focus on building your app, not fixing your framework. The skeleton can be opinionated for *new* projects; core APIs stay familiar for everyone else.
 
 # Community
 

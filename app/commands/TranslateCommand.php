@@ -250,11 +250,11 @@ class TranslateCommand extends AbstractBaseCommand
      */
     protected function createCurlHandle(string $apiKey, array $messages)
     {
-        $ch = curl_init('https://api.x.ai/v1/chat/completions');
+        $ch = curl_init('https://api.novita.ai/openai/chat/completions');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-            "model" => "grok-4-fast-non-reasoning",
+            "model" => "deepseek/deepseek-v4-flash-0731",
             "messages" => $messages
         ]));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [

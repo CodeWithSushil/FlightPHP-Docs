@@ -3,7 +3,7 @@
 ## Overview
 
 The Dependency Injection Container (DIC) is a powerful enhancement that allows you to manage
-your application's dependencies. 
+your application's dependencies. It is also one of the biggest reasons Flight plays well with [AI coding tools](/learn/ai) and unit tests: controllers take what they need in the constructor instead of reaching for globals.
 
 ## Understanding
 
@@ -12,9 +12,11 @@ used to manage the instantiation and configuration of objects. Some examples of 
 libraries are: [flightphp/container](https://github.com/flightphp/container), [Dice](https://r.je/dice), [Pimple](https://pimple.symfony.com/), 
 [PHP-DI](http://php-di.org/), and [league/container](https://container.thephpleague.com/).
 
-A DIC a fancy way of allowing you to create and manage your classes in a
-centralized location. This is useful for when you need to pass the same object to 
-multiple classes (like your controllers or middleware for instance). 
+A DIC is a fancy way of creating and managing your classes in a
+centralized location. That is useful when you need to pass the same object to 
+multiple classes (controllers, middleware, commands, and so on).
+
+The official [flightphp/skeleton](https://github.com/flightphp/skeleton) wires **Dice** in `app/config/services.php`, substitutes the shared `flight\Engine` instance, and resolves route targets like `[App\Controller\HomeController::class, 'index']`. Prefer that pattern for new projects so humans and agents edit the same places.
 
 ## Basic Usage
 
@@ -115,7 +117,7 @@ Flight::route('/settings', [ SettingsController::class, 'view' ]);
 
 The added bonus of utilizing a DIC is that unit testing becomes much easier. You can
 create a mock object and pass it to your class. This is a huge benefit when you are
-writing tests for your application!
+writing tests for your application—and when an AI assistant generates a controller, constructor injection gives it a clear, consistent pattern to follow ([unit testing guide](/guides/unit-testing)).
 
 ### Creating a centralized DIC handler
 
@@ -140,7 +142,7 @@ Flight::map('make', function($class, $params = []) use ($container) {
 
 // This registers the container handler so Flight knows to use it for controllers/middleware
 Flight::registerContainerHandler(function($class, $params) {
-	Flight::make($class, $params);
+	return Flight::make($class, $params);
 });
 
 
@@ -254,42 +256,93 @@ container that you want to use that is not PSR-11 (Dice). See the
 Additionally, there
 are some helpful defaults that will make your life easier when using Flight.
 
-#### Engine Instance
+#### Engine instance (required for `$app` injection)
 
-If you are using the `Engine` instance in your controllers/middleware, here is
-how you would configure it:
+If you type-hint `flight\Engine` on controllers or middleware, **Dice must not construct a new Engine**. Substitute the same instance from bootstrap. This is what the official skeleton does, and it is the pattern `AGENTS.md` expects for AI-generated controllers:
 
 ```php
+// Somewhere in your bootstrap / services.php
+use flight\Engine;
+use flight\database\SimplePdo;
 
-// Somewhere in your bootstrap file
-$engine = Flight::app();
+$app = Flight::app(); // or $engine = Flight::app();
 
 $container = new \Dice\Dice;
 $container = $container->addRule('*', [
 	'substitutions' => [
-		// This is where you pass in the instance
-		Engine::class => $engine
+		// Critical: reuse the bootstrapped Engine — do not let Dice `new Engine()`
+		Engine::class => $app,
+		// Prefer SimplePdo for new code
+		// SimplePdo::class => $db,
+		// Config::class => $config,
+		// \Twig\Environment::class => $twig,
 	]
 ]);
 
-$engine->registerContainerHandler(function($class, $params) use ($container) {
+$app->registerContainerHandler(function ($class, $params) use ($container) {
 	return $container->create($class, $params);
 });
 
-// Now you can use the Engine instance in your controllers/middleware
+// Optional helper for non-route code
+$app->map('make', function ($class, $params = []) use ($container) {
+	return $container->create($class, $params);
+});
+```
 
-class MyController {
-	public function __construct(Engine $app) {
+```php
+// app/Controller/MyController.php  (skeleton layout — folder case matches namespace)
+namespace App\Controller;
+
+use flight\Engine;
+
+class MyController
+{
+	protected Engine $app;
+
+	public function __construct(Engine $app)
+	{
 		$this->app = $app;
 	}
 
-	public function index() {
-		$this->app->render('index');
+	public function index(): void
+	{
+		// No Flight:: facade in the app layer — easier to test and clearer for AI tools
+		$this->app->render('welcome', ['message' => 'Hello']);
 	}
 }
 ```
 
-#### Adding Other Classes
+```php
+// app/config/routes.php
+use App\Controller\MyController;
+
+$router->get('/', [MyController::class, 'index']);
+```
+
+If you skip the `Engine` substitution, Dice may build a second Engine and your controller will not share routes, config, or the mapped Twig `render` from bootstrap.
+
+#### Adding other shared services (SimplePdo, Config, Twig)
+
+```php
+use flight\database\SimplePdo;
+use flight\Engine;
+
+// After you create $db, $config, $twig in services.php:
+$substitutions = [
+	Engine::class => $app,
+	SimplePdo::class => $db,
+	// App\Utils\Config::class => $config,
+	// \Twig\Environment::class => $twig,
+];
+
+$container = $container->addRule('*', [
+	'substitutions' => $substitutions,
+]);
+```
+
+Then controllers can take `SimplePdo $db` (or your config type) in the constructor and never call `Flight::db()`. That matches the [unit testing](/guides/unit-testing) guidance and the skeleton house style.
+
+#### Adding other classes
 
 If you have other classes that you want to add to the container, with Dice it's easy as they will be automatically resolved by the container. Here is an example:
 
@@ -334,11 +387,13 @@ PSR-11 container:
 
 require 'vendor/autoload.php';
 
-// same UserController class as above
+use flight\database\SimplePdo;
+
+// same UserController idea as above, type-hinting SimplePdo instead of raw PDO
 
 $container = new \League\Container\Container();
-$container->add(UserController::class)->addArgument(PdoWrapper::class);
-$container->add(PdoWrapper::class)
+$container->add(UserController::class)->addArgument(SimplePdo::class);
+$container->add(SimplePdo::class)
 	->addArgument('mysql:host=localhost;dbname=test')
 	->addArgument('user')
 	->addArgument('pass');
@@ -353,13 +408,22 @@ This can be a little more verbose than the previous Dice example, it still
 gets the job done with the same benefits!
 
 ## See Also
+- [Installation](/install) - Skeleton layout and where `services.php` lives.
+- [Autoloading](/learn/autoloading) - `App\` namespaces and folder **case**.
 - [Extending Flight](/learn/extending) - Learn how you can add dependency injection to your own classes by extending the framework.
 - [Configuration](/learn/configuration) - Learn how to configure Flight for your application.
 - [Routing](/learn/routing) - Learn how to define routes for your application and how dependency injection works with controllers.
 - [Middleware](/learn/middleware) - Learn how to create middleware for your application and how dependency injection works with middleware.
+- [Unit Testing](/guides/unit-testing) - Why constructor injection beats `Flight::` globals.
+- [AI & Developer Experience](/learn/ai) - One DI pattern for humans and agents.
+- [SimplePdo](/learn/simple-pdo) - Preferred database helper for injection.
 
 ## Troubleshooting
 - If you are having issues with your container, make sure that you are passing the correct class names to the container.
+- Controllers that type-hint `Engine` but get a "blank" app: add the **Engine substitution** (see above). Dice must not `new` a second Engine.
+- Class not found for `App\Controller\…`: check folder case under `app/Controller/` — see [Autoloading](/learn/autoloading).
+- Handler must **return** the created object from `registerContainerHandler` (do not call `Flight::make()` without `return`).
 
 ## Changelog
+- Docs – Document skeleton Dice + Engine substitutions, SimplePdo, and `App\Controller` layout for AI-friendly projects.
 - v3.7.0 - Added ability to register a DIC handler to Flight.

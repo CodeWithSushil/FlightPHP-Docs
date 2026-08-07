@@ -4,6 +4,8 @@
 
 Flight provides a simple way to configure various aspects of the framework to suit your application's needs. Some are set by default, but you can override them as needed. You can also set your own variables to be used throughout your application.
 
+Clear, layered config (file defaults + environment secrets) also helps [AI coding tools](/learn/ai): agents learn one place for literals and one place for secrets, instead of inventing `$_ENV` reads inside controllers.
+
 ## Understanding
 
 You can customize certain behaviors of Flight by setting configuration values
@@ -13,7 +15,7 @@ through the `set` method.
 Flight::set('flight.log_errors', true);
 ```
 
-In the `app/config/config.php` file, you can see all the default configuration variables available to you.
+In a structured app (including the [skeleton](https://github.com/flightphp/skeleton)), you typically load project settings from `app/config/config.php` and then apply relevant keys onto the Engine (for example `flight.base_url`, `flight.views.path`). You can also inject a small config object into controllers instead of reading globals everywhere—friendlier for tests and for agents following `AGENTS.md`.
 
 ## Basic Usage
 
@@ -36,7 +38,7 @@ The following is a list of all the available configuration settings:
   - **Setting this to `false` is recommended** for applications that do not need HTML-form-based method spoofing, as it prevents clients from forging `DELETE` or `PUT` requests through a standard POST form.
   - See [Security](/learn/security#flight-configuration-hardening) for more details.
 - **flight.views.path** `string` - Directory containing view template files. (default: ./views)
-- **flight.views.extension** `string` - View template file extension. (default: .php)
+- **flight.views.extension** `string` - View template file extension. (default: `.php`; the official skeleton sets this to `.twig` when using Twig)
 - **flight.content_length** `bool` - Set the `Content-Length` header. (default: true)
   - If you are using [Tracy](/awesome-plugins/tracy), this needs to be set to false so Tracy can render properly.
 - **flight.v2.output_buffering** `bool` - Use legacy output buffering. See [migrating to v3](migrating-to-v3). (default: false)
@@ -51,6 +53,51 @@ to autoload classes with `_` in the class name.
 // Defaulted to true
 Loader::$v2ClassLoading = false;
 ```
+
+Remember that [autoloading](/learn/autoloading) also depends on **folder case** matching your namespaces—especially with the skeleton's `App\` + `app/Controller/` layout.
+
+### Project config and `.env` (skeleton pattern)
+
+Flight core does not require `.env` files. Many apps only use a PHP config array. The official skeleton layers configuration so secrets stay out of git while Runway can still rewrite **literal** config safely:
+
+1. **`.env` / real environment** — secrets and deploy overrides (gitignored).
+2. **`app/config/config.php`** — literal PHP array defaults (copied from `config_sample.php`). Prefer **no** `$_ENV[...]` expressions inside this file: tools like `runway config:set` may rewrite it as static values and could bake secrets into the file.
+3. **Merge at bootstrap** — env wins for mapped keys; app code reads a config object or `$app->get()`, not `$_ENV` in controllers.
+
+Example shape of `config_sample.php` / `config.php` (simplified):
+
+```php
+<?php
+// Literals only — secrets belong in .env for the skeleton workflow
+return [
+	'app' => [
+		'env' => 'development',
+		'debug' => true,
+		'base_url' => '/',
+		'timezone' => 'UTC',
+	],
+	'database' => [
+		'driver' => 'sqlite', // or mysql, or '' to disable
+		'host' => 'localhost',
+		'dbname' => '',
+		'user' => '',
+		'password' => '',
+		'file_path' => __DIR__ . '/../../database.sqlite',
+	],
+	// ...
+];
+```
+
+```bash
+# .env.example → .env (skeleton)
+APP_ENV=development
+APP_DEBUG=true
+FLIGHT_BASE_URL=/
+DB_DRIVER=sqlite
+# DB_PASSWORD=...
+```
+
+This split is deliberate for [AI-friendly projects](/learn/ai): instructions can say “defaults in `config.php`, secrets in `.env`, inject Config / Engine—never invent env access in a controller.” Existing apps can ignore `.env` entirely and keep a single config file.
 
 ### Variables
 
@@ -81,7 +128,7 @@ Flight::clear('id');
 Flight::clear();
 ```
 
-> **Note:** Just because you can set a variable doesn't mean you should. Use this feature sparingly. The reason why is that anything stored in here becomes a global variable. Global variables are bad because they can be changed from anywhere in your application, making it hard to track down bugs. Additionally this can complicate things like [unit testing](/guides/unit-testing).
+> **Note:** Just because you can set a variable doesn't mean you should. Use this feature sparingly. The reason why is that anything stored in here becomes a global variable. Global variables are bad because they can be changed from anywhere in your application, making it hard to track down bugs. Additionally this can complicate things like [unit testing](/guides/unit-testing). Prefer constructor injection (as in the skeleton + Dice setup) for services and config that controllers need.
 
 ### Errors and Exceptions
 
@@ -121,16 +168,22 @@ Flight::map('notFound', function () {
 ```
 
 ## See Also
+- [Installation](/install) - Skeleton config, `.env`, and bootstrap layout.
+- [Autoloading](/learn/autoloading) - Namespaces and folder case.
 - [Extending Flight](/learn/extending) - How to extend and customize Flight's core functionality.
 - [Unit Testing](/guides/unit-testing) - How to write unit tests for your Flight application.
+- [AI & Developer Experience](/learn/ai) - `AGENTS.md` and consistent project instructions.
 - [Tracy](/awesome-plugins/tracy) - A plugin for advanced error handling and debugging.
 - [Tracy Extensions](/awesome-plugins/tracy_extensions) - Extensions for integrating Tracy with Flight.
 - [APM](/awesome-plugins/apm) - A plugin for application performance monitoring and error tracking.
+- [Security](/learn/security) - Hardening flags and secret handling.
 
 ## Troubleshooting
 - If you are having problems finding out all the values of your configuration, you can do `var_dump(Flight::get());`
+- If Runway or deploy tooling rewrote `config.php`, confirm secrets were not committed—keep them in `.env` or the real environment when using the skeleton pattern.
 
 ## Changelog
+- Docs – Document skeleton-style config / `.env` layering and Twig view extension default for new projects.
 - v3.18.1 - Added `flight.debug` and `flight.allow_method_override` configuration options.
 - v3.5.0 - Added configuration for `flight.v2.output_buffering` to support legacy output buffering behavior.
 - v2.0 - Core configurations added.

@@ -2,17 +2,17 @@
 
 ## 概述
 
-Flight 中的单元测试帮助您确保应用程序按预期运行，早发现错误，并使您的代码库更容易维护。Flight 设计为与 [PHPUnit](https://phpunit.de/) 无缝协作，这是最受欢迎的 PHP 测试框架。
+Flight 中的单元测试可帮助您确保应用程序按预期运行，及早发现错误，并使代码库更易于维护。Flight 旨在与 [PHPUnit](https://phpunit.de/) 顺畅配合，PHPUnit 是最流行的 PHP 测试框架。
 
 ## 理解
 
-单元测试检查应用程序的小部分行为（如控制器或服务）在隔离状态下。在 Flight 中，这意味着测试您的路由、控制器和逻辑如何响应不同的输入——而不依赖全局状态或真实的外部服务。
+单元测试会隔离地检查应用程序中各个小部分（如控制器或服务）的行为。在 Flight 中，这意味着测试您的路由、控制器和逻辑如何响应不同的输入——而不依赖全局状态或真实的外部服务。
 
 关键原则：
-- **测试行为，而不是实现：** 关注您的代码做什么，而不是如何做。
-- **避免全局状态：** 使用依赖注入而不是 `Flight::set()` 或 `Flight::get()`。
-- **模拟外部服务：** 用测试替身替换数据库或邮件程序等内容。
-- **保持测试快速且专注：** 单元测试不应访问真实数据库或 API。
+- **测试行为而非实现：** 关注代码做什么，而不是如何做。
+- **避免全局状态：** 使用依赖注入，而不是 `Flight::set()` 或 `Flight::get()`。
+- **模拟外部服务：** 使用测试替身来替换数据库或邮件程序等内容。
+- **保持测试快速且专注：** 单元测试不应访问真实的数据库或 API。
 
 ## 基本用法
 
@@ -22,14 +22,14 @@ Flight 中的单元测试帮助您确保应用程序按预期运行，早发现�
    ```bash
    composer require --dev phpunit/phpunit
    ```
-2. 在项目根目录中创建 `tests` 目录。
-3. 在您的 `composer.json` 中添加测试脚本：
+2. 在项目根目录中创建一个 `tests` 目录。
+3. 将测试脚本添加到您的 `composer.json`：
    ```json
    "scripts": {
        "test": "phpunit --configuration phpunit.xml"
    }
    ```
-4. 创建 `phpunit.xml` 文件：
+4. 创建一个 `phpunit.xml` 文件：
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
    <phpunit bootstrap="vendor/autoload.php">
@@ -43,9 +43,9 @@ Flight 中的单元测试帮助您确保应用程序按预期运行，早发现�
 
 现在您可以使用 `composer test` 运行测试。
 
-### 测试简单的路由处理程序
+### 测试简单的路由处理器
 
-假设您有一个验证电子邮件的路由：
+假设您有一条用于验证电子邮件的路由：
 
 ```php
 // index.php
@@ -67,7 +67,7 @@ class UserController {
 }
 ```
 
-为此控制器的简单测试：
+针对此控制器的简单测试：
 
 ```php
 use PHPUnit\Framework\TestCase;
@@ -100,14 +100,14 @@ class UserControllerTest extends TestCase {
 
 **提示：**
 - 使用 `$app->request()->data` 模拟 POST 数据。
-- 在测试中避免使用 `Flight::` 静态方法——使用 `$app` 实例。
+- 在测试中避免使用 `Flight::` 静态方法——请使用 `$app` 实例。
 
-### 为可测试控制器使用依赖注入
+### 使用依赖注入来使控制器可测试
 
-将依赖项（如数据库或邮件程序）注入到您的控制器中，使其在测试中易于模拟：
+将依赖项（如数据库或邮件程序）注入控制器中，以便在测试中轻松模拟它们：
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
@@ -130,14 +130,14 @@ class UserController {
 }
 ```
 
-以及带有模拟的测试：
+以及一个使用 mock 的测试：
 
 ```php
 use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
-        $mockDb = $this->createMock(flight\database\PdoWrapper::class);
+        $mockDb = $this->createMock(flight\database\SimplePdo::class);
         $mockDb->method('runQuery')->willReturn(true);
         $mockMailer = new class {
             public $sentEmail = null;
@@ -158,25 +158,25 @@ class UserControllerDICTest extends TestCase {
 
 ## 高级用法
 
-- **模拟：** 使用 PHPUnit 内置的模拟或匿名类来替换依赖项。
-- **直接测试控制器：** 使用新的 `Engine` 实例化控制器并模拟依赖项。
-- **避免过度模拟：** 在可能的情况下让真实逻辑运行；仅模拟外部服务。
+- **模拟（Mocking）：** 使用 PHPUnit 内置的 mock 或匿名类来替换依赖项。
+- **直接测试控制器：** 使用新的 `Engine` 实例化控制器，并模拟依赖项。
+- **避免过度模拟：** 尽可能让真实逻辑运行；只模拟外部服务。
 
 ## 另请参阅
 
-- [Unit Testing Guide](/guides/unit-testing) - 单元测试最佳实践的全面指南。
-- [Dependency Injection Container](/learn/dependency-injection-container) - 如何使用 DIC 来管理依赖项并提高可测试性。
-- [Extending](/learn/extending) - 如何添加自己的助手或覆盖核心类。
-- [PDO Wrapper](/learn/pdo-wrapper) - 简化数据库交互，并在测试中更容易模拟。
-- [Requests](/learn/requests) - 在 Flight 中处理 HTTP 请求。
-- [Responses](/learn/responses) - 向用户发送响应。
-- [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) - 学习 SOLID 原则如何改善您的单元测试。
+- [单元测试指南](/guides/unit-testing) - 全面介绍单元测试最佳实践的指南。
+- [依赖注入容器](/learn/dependency-injection-container) - 如何使用 DIC 管理依赖并提高可测试性。
+- [扩展](/learn/extending) - 如何添加自己的助手或覆盖核心类。
+- [SimplePdo](/learn/simple-pdo) - 简化数据库交互，并且更易于在测试中模拟。
+- [请求](/learn/requests) - 在 Flight 中处理 HTTP 请求。
+- [响应](/learn/responses) - 向用户发送响应。
+- [单元测试与 SOLID 原则](/learn/unit-testing-and-solid-principles) - 了解 SOLID 原则如何改进您的单元测试。
 
 ## 故障排除
 
-- 在您的代码和测试中避免使用全局状态（`Flight::set()`、`$_SESSION` 等）。
-- 如果您的测试很慢，您可能在编写集成测试——模拟外部服务以保持单元测试快速。
-- 如果测试设置复杂，请考虑重构您的代码以使用依赖注入。
+- 避免在代码和测试中使用全局状态（`Flight::set()`、`$_SESSION` 等）。
+- 如果测试运行缓慢，则可能是在编写集成测试——请模拟外部服务以保持单元测试快速运行。
+- 如果测试设置过于复杂，请考虑重构代码以使用依赖注入。
 
 ## 更新日志
 

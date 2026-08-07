@@ -1,20 +1,24 @@
-# Runway
+# ランナウェイ
 
-Runway は、Flight アプリケーションを管理するための CLI アプリケーションです。コントローラーを生成したり、すべてのルートを表示したり、その他さまざまな機能を提供します。これは優れた [adhocore/php-cli](https://github.com/adhocore/php-cli) ライブラリを基にしています。
+ランナウェイは、Flightアプリケーションを管理するためのCLIアプリケーションです。コントローラーの生成、すべてのルートの表示、AIセットアップヘルパー、マイグレーション（スケルトン内）などを実行できます。優れた[adocore/php-cli](https://github.com/adhocore/php-cli)ライブラリを基にしています。
 
-コードを表示するには、[こちら](https://github.com/flightphp/runway) をクリックしてください。
+コードを表示するには[こちら](https://github.com/flightphp/runway)をクリックしてください。
+
+スキャフォールディングコマンドは[official skeleton](https://github.com/flightphp/skeleton)と意図的に連携されており、[AI coding tools](/learn/ai)と人間が毎回同じパス、名前空間、コンストラクタインジェクションスタイルを取得できるようにしています。
 
 ## インストール
 
-Composer を使用してインストールします。
+composerでインストールします。
 
 ```bash
 composer require flightphp/runway
 ```
 
+スケルトンはすでにランナウェイに依存しているため、プロジェクトルートから`php runway`を使用します。
+
 ## 基本設定
 
-Runway を初めて実行すると、`app/config/config.php` 内の `'runway'` キーから `runway` 設定を探します。
+ランナウェイを初めて実行すると、`app/config/config.php`の`'runway'`キーを介して`runway`設定を見つけようとします。
 
 ```php
 <?php
@@ -23,145 +27,214 @@ return [
     'runway' => [
         'app_root' => 'app/',
 		'public_root' => 'public/',
+		// オプション: スケルトンはパブリックエントリのindex_rootも使用します
+		'index_root' => 'public/index.php',
     ],
 ];
 ```
 
-> **注意** - **v1.2.0** 以降、`.runway-config.json` は非推奨です。設定を `app/config/config.php` に移行してください。これを簡単に実行するには、`php runway config:migrate` コマンドを使用できます。
+> **注意** - **v1.2.0**以降、`.runway-config.json`は`app/config/config.php`に置き換えられ、非推奨となりました。古いプロジェクトをアップグレードする場合は`php runway config:migrate`で移行してください。スケルトンは互換性のため、create-project時に小さな`.runway-config.json`を書き込む場合がありますが、今後は`config.php`の`runway`キーを優先してください。
 
-### プロジェクトルートの検出
+### プロジェクトルート検出
 
-Runway は、プロジェクトのルートを検出するのに十分賢いです。サブディレクトリから実行した場合でも、`composer.json`、`.git`、または `app/config/config.php` などの指標を探してプロジェクトルートを決定します。これにより、プロジェクト内のどこからでも Runway コマンドを実行できます！
+ランナウェイはプロジェクトのルートを検出する機能が十分にあり、サブディレクトリから実行しても検出できます。`composer.json`、`.git`、`app/config/config.php`などのインジケータを探して、プロジェクトルートを判断します。つまり、プロジェクト内のどこからでもランナウェイコマンドを実行できるということです！
 
 ## 使用方法
 
-Runway には、Flight アプリケーションを管理するためのいくつかのコマンドがあります。Runway を使用する簡単な方法は 2 つあります。
+ランナウェイには、Flightアプリケーションを管理するために使用できるいくつかのコマンドがあります。ランナウェイを使用するには、2つの簡単な方法があります。
 
-1. スケルトンプロジェクトを使用している場合、プロジェクトのルートから `php runway [command]` を実行できます。
-1. Composer を介してインストールしたパッケージとして Runway を使用している場合、プロジェクトのルートから `vendor/bin/runway [command]` を実行できます。
+1. スケルトンプロジェクトを使用している場合は、プロジェクトのルートから`php runway [command]`を実行できます。
+1. composer経由でインストールされたパッケージとしてランナウェイを使用している場合は、プロジェクトのルートから`vendor/bin/runway [command]`を実行できます。
 
 ### コマンドリスト
 
-`php runway` コマンドを実行することで、利用可能なすべてのコマンドのリストを表示できます。
+`php runway`コマンドを実行すると、利用可能なすべてのコマンドのリストを表示できます。
 
 ```bash
 php runway
 ```
 
+インストールに実際に表示されるコマンドのみに依存してください（コアランナウェイコマンドと、スケルトンの`migrate`のようなプロジェクト固有のコマンド）。
+
 ### コマンドヘルプ
 
-任意のコマンドに対して、`--help` フラグを渡すことで、そのコマンドの使用方法に関する詳細情報を取得できます。
+任意のコマンドで`--help`フラグを渡すと、コマンドの使用方法に関する詳細情報を取得できます。
 
 ```bash
 php runway routes --help
+php runway make:controller --help
 ```
 
-以下にいくつかの例を示します。
+いくつかの例を以下に示します：
 
 ### コントローラーの生成
 
-`runway.app_root` 内の設定に基づいて、`app/controllers/` ディレクトリにコントローラーを生成します。
+`make:controller`は公式スケルトンレイアウトに一致するコントローラーをスキャフォールドします：
+
+| | |
+|--|--|
+| **パス** | `app/Controller/{Name}.php` |
+| **名前空間** | `App\Controller` |
+| **スタイル** | `flight\Engine`のコンストラクタインジェクション（クラス本体に`Flight::`なし） |
 
 ```bash
 php runway make:controller MyController
+# → app/Controller/MyController.php
+#   namespace App\Controller;
 ```
 
-### Active Record モデルの生成
+期待される形状の例（簡略化）：
 
-まず、[Active Record](/awesome-plugins/active-record) プラグインをインストールしたことを確認してください。`runway.app_root` 内の設定に基づいて、`app/records/` ディレクトリにレコードを生成します。
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controller;
+
+use flight\Engine;
+
+class MyController
+{
+	protected Engine $app;
+
+	public function __construct(Engine $app)
+	{
+		$this->app = $app;
+	}
+
+	public function index(): void
+	{
+		// 例: $this->app->render('…', […]);
+	}
+}
+```
+
+Diceがコントローラーを構築できるようにクラス呼び出し可能で登録します：
+
+```php
+// app/config/routes.php
+use App\Controller\MyController;
+
+$router->get('/mine', [MyController::class, 'index']);
+```
+
+**このレイアウトの理由は？** フォルダーの**大文字小文字**は、LinuxでのComposer PSR-4のために名前空間と一致する必要があります（`controllers`ではなく`Controller`） - [Autoloading](/learn/autoloading)を参照してください。ルートとスコープ付き`AGENTS.md`ファイルがAIツールに使用するよう指示するパスも同じであり、生成されたコントローラーと手書きのコントローラーが同一に保たれます。
+
+> 古いドキュメントやコミュニティプロジェクトでは、`app/controllers/`と`app\controllers`が使用されることがありました。*あなたの*ツリーがまだ小文字のフォルダーを使用している場合は、そのまま有効です。**新しいスケルトンプロジェクトと現在の`make:controller`出力は、`app/Controller/` + `App\Controller`を使用します。**
+
+### アクティブレコードモデルの生成
+
+まず、[Active Record](/awesome-plugins/active-record)プラグインをインストールしていることを確認してください。
 
 ```bash
 php runway make:record users
 ```
 
-たとえば、`users` テーブルに以下のスキーマがある場合：`id`、`name`、`email`、`created_at`、`updated_at`、`app/records/UserRecord.php` ファイルに以下のようないくつかのファイルが作成されます：
+公式スケルトンでは、モデルは名前空間**`App\Model`**で**`app/Model/`**の下に配置され、DB接続は**[SimplePdo](/learn/simple-pdo)**（ActiveRecordコンストラクタに注入または渡す）です。生成されるファイル名と名前空間はランナウェイの現在のデフォルトと`runway`設定に従います。新しいモデルを`App\Model`に合わせることで、[autoloading](/learn/autoloading)と`AGENTS.md`に一致するようにしてください。
+
+スケルトンの投稿デモと一致するモデルの例：
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace app\records;
+namespace App\Model;
+
+use flight\ActiveRecord;
 
 /**
- * users テーブルの ActiveRecord クラス。
- * @link https://docs.flightphp.com/awesome-plugins/active-record
- * 
  * @property int $id
- * @property string $name
- * @property string $email
- * @property string $created_at
- * @property string $updated_at
- * // $relations 配列で定義したら、ここに関連付けを追加することもできます
- * @property CompanyRecord $company 関連付けの例
+ * @property string $title
+ * // …
  */
-class UserRecord extends \flight\ActiveRecord
+class Post extends ActiveRecord
 {
-    /**
-     * @var array $relations モデルの関連付けを設定
-     *   https://docs.flightphp.com/awesome-plugins/active-record#relationships
-     */
-    protected array $relations = [];
+	protected array $relations = [];
 
-    /**
-     * コンストラクタ
-     * @param mixed $databaseConnection データベースへの接続
-     */
-    public function __construct($databaseConnection)
-    {
-        parent::__construct($databaseConnection, 'users');
-    }
+	public function __construct($databaseConnection)
+	{
+		parent::__construct($databaseConnection, 'posts');
+	}
 }
 ```
 
+古いジェネレータがまだ`app/records` / `app\records`を出力する場合は、レガシーアプリでその規約を維持するか、ファイルを`app/Model/`に移動して名前空間をフォルダーケースに合わせて更新できます。
+
+### マイグレーション（スケルトン）
+
+公式スケルトンには、`app/commands/`から検出されたプロジェクトコマンド（以下のようなもの）が付属しています：
+
+```bash
+php runway migrate
+```
+
+マイグレーションは`migrations/`の下にあるSQLファイル（SQLiteの場合は`YYYYMMDDHHMMSS_description.sql`、MySQLの場合は`…_description.mysql.sql`など）で、データベースドライバ設定/環境から選択されます。正確なフラグと動作はそのプロジェクトコマンドによって定義されています - アプリで`php runway migrate --help`を実行してください。
+
+### AIヘルパー
+
+ランナウェイは[AI & developer experience](/learn/ai)で使用されるAI指向のコマンドを公開しています：
+
+```bash
+php runway ai:init
+php runway ai:generate-instructions
+```
+
+これらはLLM認証情報を保存し、プロジェクトの指示（主に**`AGENTS.md`**）を生成します。スケルトンでは、`AGENTS.md`（および`app/`の下のスコープ付きコピー）と**`SECURITY.md`**をエージェントの真実のソースとして扱ってください。
+
 ### すべてのルートの表示
 
-これにより、現在 Flight に登録されているすべてのルートが表示されます。
+現在Flightに登録されているすべてのルートを表示します。
 
 ```bash
 php runway routes
 ```
 
-特定のルートのみを表示したい場合、ルートをフィルタリングするためのフラグを渡せます。
+特定のルートのみを表示したい場合は、フラグを渡してルートをフィルタリングできます。
 
 ```bash
-# GET ルートのみを表示
+# GETルートのみを表示
 php runway routes --get
 
-# POST ルートのみを表示
+# POSTルートのみを表示
 php runway routes --post
 
 # など
 ```
 
-## Runway にカスタムコマンドを追加
+## ランナウェイへのカスタムコマンドの追加
 
-Flight のパッケージを作成している場合、またはプロジェクトに独自のカスタムコマンドを追加したい場合、プロジェクト/パッケージのために `src/commands/`、`flight/commands/`、`app/commands/`、または `commands/` ディレクトリを作成することで実現できます。さらにカスタマイズが必要な場合、以下の設定セクションを参照してください。
+Flight用のパッケージを作成する場合、またはプロジェクトに独自のカスタムコマンドを追加したい場合は、プロジェクト/パッケージの`src/commands/`、`flight/commands/`、`app/commands/`、または`commands/`ディレクトリを作成することで実行できます。さらなるカスタマイズが必要な場合は、以下の設定セクションを参照してください。
 
-コマンドを作成するには、`AbstractBaseCommand` クラスを拡張し、最低限 `__construct` メソッドと `execute` メソッドを実装するだけです。
+スケルトンでは、プロジェクトコマンドは名前空間**`App\Command`**で**`app/commands/`**に配置されます。ランナウェイはパスでそれらを検出します。そのフォルダーは、プロジェクトがすでにComposer classmap/PSR-4と同期しているようにしてください。
+
+コマンドを作成するには、`AbstractBaseCommand`クラスを拡張し、最低限`__construct`メソッドと`execute`メソッドを実装します。
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace flight\commands;
+namespace App\Command;
+
+use flight\commands\AbstractBaseCommand;
 
 class ExampleCommand extends AbstractBaseCommand
 {
 	/**
      * コンストラクタ
      *
-     * @param array<string,mixed> $config app/config/config.php からの設定
+     * @param array<string,mixed> $config app/config/config.phpからの設定
      */
     public function __construct(array $config)
     {
-        parent::__construct('make:example', 'ドキュメントのための例を作成', $config);
-        $this->argument('<funny-gif>', '面白い GIF の名前');
+        parent::__construct('make:example', 'ドキュメントの例を作成します', $config);
+        $this->argument('<funny-gif>', '面白いgifの名前');
     }
 
 	/**
-     * 関数を実行
+     * 関数を実行します
      *
      * @return void
      */
@@ -178,15 +251,17 @@ class ExampleCommand extends AbstractBaseCommand
 }
 ```
 
-Flight アプリケーションに独自のカスタムコマンドを構築する方法の詳細については、[adhocore/php-cli ドキュメント](https://github.com/adhocore/php-cli) を参照してください！
+Flightアプリケーションに独自のカスタムコマンドを構築する方法の詳細については、[adhocore/php-cli Documentation](https://github.com/adhocore/php-cli)を参照してください！
 
 ## 設定管理
 
-v1.2.0 以降、設定が `app/config/config.php` に移行されたため、設定を管理するためのヘルパーコマンドがいくつかあります。
+設定は`v1.2.0`以降、`app/config/config.php`に移動したため、設定を管理するためのヘルパーコマンドがいくつかあります。
+
+> **スケルトンのヒント:** `config.php`を**リテラル**なPHP値として保持してください。シークレットは`.env`に属します。`config.php`内に`$_ENV[...]`式を使用しないでください - `config:set`はファイルを静的データとして書き換えるため、シークレットがファイルに焼き付けられる可能性があります。[Configuration](/learn/configuration)を参照してください。
 
 ### 古い設定の移行
 
-古い `.runway-config.json` ファイルがある場合、以下のコマンドで簡単に `app/config/config.php` に移行できます：
+古い`.runway-config.json`ファイルがある場合は、次のコマンドで`app/config/config.php`に簡単に移行できます：
 
 ```bash
 php runway config:migrate
@@ -194,7 +269,7 @@ php runway config:migrate
 
 ### 設定値の設定
 
-`config:set` コマンドを使用して設定値を設定できます。これにより、ファイルを開かずに設定値を更新できます。
+`config:set`コマンドを使用して設定値を設定できます。これはファイルを開かずに設定値を更新したい場合に便利です。
 
 ```bash
 php runway config:set app_root "app/"
@@ -202,15 +277,15 @@ php runway config:set app_root "app/"
 
 ### 設定値の取得
 
-`config:get` コマンドを使用して設定値を取得できます。
+`config:get`コマンドを使用して設定値を取得できます。
 
 ```bash
 php runway config:get app_root
 ```
 
-## すべての Runway 設定
+## すべてのランナウェイ設定
 
-Runway の設定をカスタマイズする必要がある場合、`app/config/config.php` でこれらの値を設定できます。以下に設定できる追加の設定を示します：
+ランナウェイの設定をカスタマイズする必要がある場合は、`app/config/config.php`にこれらの値を設定できます。以下に設定できる追加の設定をいくつか示します：
 
 ```php
 <?php
@@ -219,10 +294,10 @@ return [
     // ... 他の設定値 ...
 
     'runway' => [
-        // アプリケーション ディレクトリが配置されている場所
+        // アプリケーションのディレクトリが配置されている場所
         'app_root' => 'app/',
 
-        // ルート インデックス ファイルが配置されているディレクトリ
+        // ルートインデックスファイルが配置されているディレクトリ
         'index_root' => 'public/',
 
         // 他のプロジェクトのルートへのパス
@@ -231,18 +306,18 @@ return [
             '/var/www/another-project'
         ],
 
-        // ベース パスは通常設定する必要はありませんが、必要に応じてここにあります
+        // ベースパスはほとんどの場合設定する必要はありませんが、必要であればここにあります
         'base_paths' => [
-            '/includes/libs/vendor', // vendor ディレクトリに本当にユニークなパスがある場合など
+            '/includes/libs/vendor', // ベンダーディレクトリや何かに対して本当にユニークなパスがある場合
         ],
 
-        // 最終パスは、プロジェクト内のコマンド ファイルを探す場所です
+        // ファイナルパスはコマンドファイルを検索するためのプロジェクト内の場所です
         'final_paths' => [
             'src/diff-path/commands',
             'app/module/admin/commands',
         ],
 
-        // フルパスを追加したい場合、問題ありません（プロジェクト ルートからの絶対パスまたは相対パス）
+        // フルパスを追加したい場合は、すぐに追加してください（プロジェクトルートからの絶対パスまたは相対パス）
         'paths' => [
             '/home/user/different-project/src/diff-path/commands',
             '/var/www/another-project/app/module/admin/commands',
@@ -254,33 +329,42 @@ return [
 
 ### 設定へのアクセス
 
-設定値を効果的にアクセスする必要がある場合、`__construct` メソッドまたは `app()` メソッド経由でアクセスできます。また、`app/config/services.php` ファイルがある場合、そのサービスもコマンドで利用可能であることに注意してください。
+設定値に効果的にアクセスする必要がある場合は、`__construct`メソッドまたは`app()`メソッドを通じてアクセスできます。`app/config/services.php`ファイルがある場合、それらのサービスもコマンドで利用できることも重要です。
 
 ```php
 public function execute()
 {
     $io = $this->app()->io();
     
-    // 設定にアクセス
+    // 設定へのアクセス
     $app_root = $this->config['runway']['app_root'];
     
-    // データベース接続などのサービスにアクセス
+    // データベース接続などのサービスへのアクセス
     $database = $this->config['database']
     
     // ...
 }
 ```
 
-## AI ヘルパー ラッパー
+## AIヘルパーラッパー
 
-Runway には、AI がコマンドを生成しやすくするためのヘルパー ラッパーがいくつかあります。Symfony Console に似た方法で `addOption` および `addArgument` を使用できます。これは、AI ツールを使用してコマンドを生成する場合に役立ちます。
+ランナウェイには、AIがコマンドを生成しやすくするためのヘルパーラッパーがいくつかあります。Symfony Consoleに似た方法で`addOption`と`addArgument`を使用できます。これはAIツールを使用してコマンドを生成する場合に役立ちます。
 
 ```php
 public function __construct(array $config)
 {
-    parent::__construct('make:example', 'ドキュメントのための例を作成', $config);
+    parent::__construct('make:example', 'ドキュメントの例を作成します', $config);
     
-    // name オプションは null 可能で、完全にオプションのデフォルトです
+    // モード引数はnull可能で、完全にオプションがデフォルトです
     $this->addOption('name', '例の名前', null);
 }
 ```
+
+## 関連項目
+
+- [Installation](/install) - スケルトンツリーとcreate-projectのデフォルト
+- [Autoloading](/learn/autoloading) - `App\`とフォルダーケース
+- [Dependency Injection](/learn/dependency-injection-container) - 生成されたコントローラーのDice + Engineインジェクション
+- [AI & Developer Experience](/learn/ai) - `ai:init`、`ai:generate-instructions`、`AGENTS.md`
+- [Active Record](/awesome-plugins/active-record) - `make:record` / スケルトン`App\Model`で使用されるモデル
+- [SimplePdo](/learn/simple-pdo) - スケルトンのマイグレーションとモデルで使用されるDB接続

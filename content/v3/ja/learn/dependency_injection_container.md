@@ -2,17 +2,20 @@
 
 ## 概要
 
-依存性注入コンテナ (DIC) は、アプリケーションの依存関係を管理するための強力な拡張機能です。
+依存性注入コンテナ（DIC）は、アプリケーションの依存関係を管理できる強力な拡張機能です。また、Flightが [AIコーディングツール](/learn/ai) やユニットテストとうまく連携できる最大の理由の1つでもあります。コントローラーは、グローバルにアクセスする代わりに、コンストラクターで必要なものを受け取ります。
 
 ## 理解
 
-依存性注入 (DI) は、現代の PHP フレームワークにおける重要な概念であり、オブジェクトのインスタンス化と設定を管理するために使用されます。DIC ライブラリの例として、[flightphp/container](https://github.com/flightphp/container)、[Dice](https://r.je/dice)、[Pimple](https://pimple.symfony.com/)、[PHP-DI](http://php-di.org/)、[league/container](https://container.thephpleague.com/) があります。
+依存性注入（DI）は、現代のPHPフレームワークにおける重要な概念であり、オブジェクトのインスタンス化と構成を管理するために使用されます。DICライブラリの例としては、[flightphp/container](https://github.com/flightphp/container)、[Dice](https://r.je/dice)、[Pimple](https://pimple.symfony.com/)、[PHP-DI](http://php-di.org/)、[league/container](https://container.thephpleague.com/) などがあります。
 
-DIC は、クラスを作成し管理するための中央集権的な方法を提供する洗練された方法です。これは、同じオブジェクトを複数のクラス（例: コントローラーやミドルウェア）に渡す必要がある場合に便利です。
+DICは、クラスを一元管理された場所で作成・管理するための凝った方法です。同じオブジェクトを複数のクラス（コントローラー、ミドルウェア、コマンドなど）に渡す必要がある場合に便利です。
 
-## 基本的な使用方法
+公式の [flightphp/skeleton](https://github.com/flightphp/skeleton) は、`app/config/services.php` で **Dice** を配線し、共有の `flight\Engine` インスタンスを置き換え、`[App\Controller\HomeController::class, 'index']` のようなルートターゲットを解決します。新しいプロジェクトでは、人間とエージェントが同じ場所を編集できるように、このパターンを採用してください。
 
-従来の方法は次のようになります：
+## 基本的な使い方
+
+従来のやり方は次のようになるでしょう。
+
 ```php
 
 require 'vendor/autoload.php';
@@ -34,25 +37,25 @@ class UserController {
 	}
 }
 
-// routes.php ファイル内の記述
+// routes.php ファイル内
 
 $db = new PDO('mysql:host=localhost;dbname=test', 'user', 'pass');
 
 $UserController = new UserController($db);
 Flight::route('/user/@id', [ $UserController, 'view' ]);
-// 他の UserController ルート...
-
+// その他のUserControllerルート...
 Flight::start();
 ```
 
-上記のコードでは、新しい `PDO` オブジェクトを作成し、`UserController` クラスに渡しているのがわかります。小規模なアプリケーションではこれで問題ありませんが、アプリケーションが成長するにつれて、同じ `PDO` オブジェクトを複数の場所で作成したり渡したりする必要が出てきます。ここで DIC が役立ちます。
+上記のコードから、新しい `PDO` オブジェクトを作成して `UserController` クラスに渡していることがわかります。これは小規模なアプリケーションには問題ありませんが、アプリケーションが大きくなるにつれて、同じ `PDO` オブジェクトを複数の場所で作成または受け渡ししていることに気づくでしょう。ここでDICが役立ちます。
 
-DIC を使用した同じ例（Dice を使用）：
+次に、DIC（Diceを使用）を使った同じ例を示します。
+
 ```php
 
 require 'vendor/autoload.php';
 
-// 上記と同じクラス。何も変更なし
+// 上記と同じクラスです。何も変更されていません
 class UserController {
 
 	protected PDO $pdo;
@@ -72,67 +75,67 @@ class UserController {
 // 新しいコンテナを作成
 $container = new \Dice\Dice;
 
-// コンテナが PDO オブジェクトをどのように作成するかを指示するルールを追加
-// 以下のように自身に再代入することを忘れずに！
+// PDOオブジェクトの作成方法をコンテナに指示するルールを追加
+// 下記のように必ず自分自身に再代入することを忘れないでください！
 $container = $container->addRule('PDO', [
-	// shared は、同じオブジェクトが毎回返されることを意味します
+	// sharedは、毎回同じオブジェクトが返されることを意味します
 	'shared' => true,
 	'constructParams' => ['mysql:host=localhost;dbname=test', 'user', 'pass' ]
 ]);
 
-// これにより、Flight がコンテナを使用することを知るためのコンテナハンドラを登録します。
+// これによりコンテナハンドラーが登録され、Flightがそれを使用することを認識します。
 Flight::registerContainerHandler(function($class, $params) use ($container) {
 	return $container->create($class, $params);
 });
 
-// これでコンテナを使用して UserController を作成できます
+// これでコンテナを使ってUserControllerを作成できます
 Flight::route('/user/@id', [ UserController::class, 'view' ]);
 
 Flight::start();
 ```
 
-例に多くの追加コードがあると思われるかもしれません。魔法は、`PDO` オブジェクトを必要とする別のコントローラーがある場合に現れます。
+きっと、この例には余分なコードがたくさん追加されたと思っているかもしれません。魔法が発揮されるのは、`PDO` オブジェクトを必要とする別のコントローラーがあるときです。
 
 ```php
 
-// すべてのコントローラーが PDO オブジェクトを必要とするコンストラクタを持っている場合
-// 以下の各ルートに自動的に注入されます!!!
+// すべてのコントローラーのコンストラクターがPDOオブジェクトを必要とする場合
+// 以下の各ルートには自動的にPDOが注入されます!!!
 Flight::route('/company/@id', [ CompanyController::class, 'view' ]);
 Flight::route('/organization/@id', [ OrganizationController::class, 'view' ]);
 Flight::route('/category/@id', [ CategoryController::class, 'view' ]);
 Flight::route('/settings', [ SettingsController::class, 'view' ]);
 ```
 
-DIC を利用する追加の利点は、ユニットテストがはるかに簡単になることです。モックオブジェクトを作成し、クラスに渡すことができます。これは、アプリケーションのテストを書く際に大きな利点です！
+DICを利用する追加の利点は、ユニットテストがはるかに簡単になることです。モックオブジェクトを作成してクラスに渡すことができます。これは、アプリケーションのテストを書く際に大きなメリットです。また、AIアシスタントがコントローラーを生成する場合、コンストラクターインジェクションにより、従うべき明確で一貫性のあるパターンが提供されます（[ユニットテストガイド](/guides/unit-testing)）。
 
-### 中央集権的な DIC ハンドラの作成
+### 集中管理型DICハンドラーの作成
 
-[拡張](/learn/extending) により、アプリケーションを拡張することで、services ファイルに中央集権的な DIC ハンドラを作成できます。例は以下の通りです：
+アプリを[拡張](/learn/extending)することで、サービスファイルに集中管理型のDICハンドラーを作成できます。次に例を示します。
 
 ```php
 // services.php
 
 // 新しいコンテナを作成
 $container = new \Dice\Dice;
-// 以下のように自身に再代入することを忘れずに！
+// 下記のように必ず自分自身に再代入することを忘れないでください！
 $container = $container->addRule('PDO', [
-	// shared は、同じオブジェクトが毎回返されることを意味します
+	// sharedは、毎回同じオブジェクトが返されることを意味します
 	'shared' => true,
 	'constructParams' => ['mysql:host=localhost;dbname=test', 'user', 'pass' ]
 ]);
 
-// これで任意のオブジェクトを作成するためのマッピング可能なメソッドを作成できます。
+// これで、任意のオブジェクトを作成するためのマップ可能なメソッドを作成できます。
 Flight::map('make', function($class, $params = []) use ($container) {
 	return $container->create($class, $params);
 });
 
-// これにより、Flight がコントローラー/ミドルウェアで使用することを知るためのコンテナハンドラを登録します
+// これによりコンテナハンドラーが登録され、Flightがコントローラー/ミドルウェアにそれを使用することを認識します。
 Flight::registerContainerHandler(function($class, $params) {
-	Flight::make($class, $params);
+	return Flight::make($class, $params);
 });
 
 
-// コンストラクタで PDO オブジェクトを受け取るサンプルクラスがあると仮定します
+// コンストラクターでPDOオブジェクトを受け取る次のサンプルクラスがあるとします
 class EmailCron {
 	protected PDO $pdo;
 
@@ -145,14 +148,14 @@ class EmailCron {
 	}
 }
 
-// 最後に、依存性注入を使用してオブジェクトを作成できます
+// そして最後に、依存性注入を使用してオブジェクトを作成できます
 $emailCron = Flight::make(EmailCron::class);
 $emailCron->send();
 ```
 
 ### `flightphp/container`
 
-Flight には、依存性注入を処理するためのシンプルな PSR-11 準拠コンテナを提供するプラグインがあります。使用方法の簡単な例は以下の通りです：
+Flightには、依存性注入を処理するために使用できるシンプルなPSR-11準拠コンテナを提供するプラグインがあります。その使用例を簡単に示します。
 
 ```php
 
@@ -176,7 +179,7 @@ class TestController {
 
   function index() {
     var_dump($this->pdo);
-	// これを正しく出力します！
+	// これは正しく出力されます！
   }
 }
 
@@ -185,9 +188,9 @@ Flight::route('GET /', [TestController::class, 'index']);
 Flight::start();
 ```
 
-#### flightphp/container の高度な使用方法
+#### flightphp/container の高度な使い方
 
-依存関係を再帰的に解決することもできます。例は以下の通りです：
+依存関係を再帰的に解決することもできます。次に例を示します。
 
 ```php
 <?php
@@ -234,47 +237,99 @@ object(PdoUserRepository)#4 (1) {
 
 ### DICE
 
-独自の DIC ハンドラを作成することもできます。これは、PSR-11 (Dice) ではないカスタムコンテナを使用したい場合に便利です。[基本的な使用方法](#basic-usage) セクションでその方法を確認してください。
+独自のDICハンドラーを作成することもできます。これは、PSR-11ではない独自のコンテナ（Diceなど）を使用したい場合に便利です。これを行う方法については、[基本的な使い方](#basic-usage) のセクションを参照してください。
 
-さらに、Flight を使用する際に生活を楽にするいくつかの便利なデフォルトがあります。
+さらに、Flightを使用する際に作業を容易にする便利なデフォルトがいくつかあります。
 
-#### Engine インスタンス
+#### Engineインスタンス（`$app` インジェクションに必要）
 
-コントローラー/ミドルウェアで `Engine` インスタンスを使用している場合の設定方法は以下の通りです：
+コントローラーやミドルウェアで `flight\Engine` を型宣言する場合、**Dice は新しい Engine を構築してはなりません**。ブートストラップから同じインスタンスを置き換えてください。これが公式スケルトンのやり方であり、AI生成コントローラーで `AGENTS.md` が期待するパターンです。
 
 ```php
+// ブートストラップ / services.php のどこか
+use flight\Engine;
+use flight\database\SimplePdo;
 
-// ブートストラップファイルのどこかで
-$engine = Flight::app();
+$app = Flight::app(); // または $engine = Flight::app();
 
 $container = new \Dice\Dice;
 $container = $container->addRule('*', [
 	'substitutions' => [
-		// ここでインスタンスを渡します
-		Engine::class => $engine
+		// 重要: ブートストラップ済みのEngineを再利用してください。Diceに `new Engine()` をさせないでください
+		Engine::class => $app,
+		// 新しいコードではSimplePdoを推奨します
+		// SimplePdo::class => $db,
+		// Config::class => $config,
+		// \Twig\Environment::class => $twig,
 	]
 ]);
 
-$engine->registerContainerHandler(function($class, $params) use ($container) {
+$app->registerContainerHandler(function ($class, $params) use ($container) {
 	return $container->create($class, $params);
 });
 
-// これでコントローラー/ミドルウェアで Engine インスタンスを使用できます
+// ルート以外のコード用のオプションヘルパー
+$app->map('make', function ($class, $params = []) use ($container) {
+	return $container->create($class, $params);
+});
+```
 
-class MyController {
-	public function __construct(Engine $app) {
+```php
+// app/Controller/MyController.php（スケルトンレイアウト — フォルダー名の大文字小文字は名前空間と一致します）
+namespace App\Controller;
+
+use flight\Engine;
+
+class MyController
+{
+	protected Engine $app;
+
+	public function __construct(Engine $app)
+	{
 		$this->app = $app;
 	}
 
-	public function index() {
-		$this->app->render('index');
+	public function index(): void
+	{
+		// アプリ層では Flight:: ファサードを使用しません — テストが容易で、AIツールにとっても明確です
+		$this->app->render('welcome', ['message' => 'Hello']);
 	}
 }
 ```
 
-#### 他のクラスの追加
+```php
+// app/config/routes.php
+use App\Controller\MyController;
 
-コンテナに追加したい他のクラスがある場合、Dice ではコンテナによって自動的に解決されるため簡単です。例は以下の通りです：
+$router->get('/', [MyController::class, 'index']);
+```
+
+`Engine` の置き換えをスキップすると、Dice が2つ目の Engine を構築し、コントローラーがブートストラップからのルート、設定、マップされた Twig `render` を共有しなくなる可能性があります。
+
+#### 他の共有サービスを追加する（SimplePdo、Config、Twig）
+
+```php
+use flight\database\SimplePdo;
+use flight\Engine;
+
+// services.php で $db、$config、$twig を作成した後:
+$substitutions = [
+	Engine::class => $app,
+	SimplePdo::class => $db,
+	// App\Utils\Config::class => $config,
+	// \Twig\Environment::class => $twig,
+];
+
+$container = $container->addRule('*', [
+	'substitutions' => $substitutions,
+]);
+```
+
+これで、コントローラーはコンストラクターで `SimplePdo $db`（または設定型）を受け取り、`Flight::db()` を呼び出す必要がなくなります。これは、[ユニットテスト](/guides/unit-testing) のガイダンスとスケルトンのハウススタイルに一致します。
+
+#### 他のクラスを追加する
+
+コンテナに追加したい他のクラスがある場合、Dice ではコンテナによって自動的に解決されるため簡単です。次に例を示します。
 
 ```php
 
@@ -309,17 +364,19 @@ Flight::route('/user', 'UserController->index');
 
 ### PSR-11
 
-Flight は PSR-11 準拠の任意のコンテナも使用できます。つまり、PSR-11 インターフェースを実装する任意のコンテナを使用できます。League の PSR-11 コンテナを使用した例は以下の通りです：
+Flightは、PSR-11準拠の任意のコンテナも使用できます。つまり、PSR-11インターフェースを実装した任意のコンテナを使用できます。次に、LeagueのPSR-11コンテナを使用した例を示します。
 
 ```php
 
 require 'vendor/autoload.php';
 
-// 上記と同じ UserController クラス
+use flight\database\SimplePdo;
+
+// 上記と同じUserControllerの考え方ですが、素のPDOの代わりにSimplePdoを型宣言します
 
 $container = new \League\Container\Container();
-$container->add(UserController::class)->addArgument(PdoWrapper::class);
-$container->add(PdoWrapper::class)
+$container->add(UserController::class)->addArgument(SimplePdo::class);
+$container->add(SimplePdo::class)
 	->addArgument('mysql:host=localhost;dbname=test')
 	->addArgument('user')
 	->addArgument('pass');
@@ -330,16 +387,28 @@ Flight::route('/user', [ 'UserController', 'view' ]);
 Flight::start();
 ```
 
-前の Dice の例よりも少し冗長ですが、同じ利点で仕事をしてくれます！
+これは以前のDiceの例よりも少し冗長かもしれませんが、同じ利点で目的を達成できます！
 
-## 関連項目
-- [Flight の拡張](/learn/extending) - フレームワークを拡張して独自のクラスに依存性注入を追加する方法を学びます。
-- [設定](/learn/configuration) - アプリケーション向けに Flight を設定する方法を学びます。
-- [ルーティング](/learn/routing) - アプリケーションのルートを定義する方法と、コントローラーでの依存性注入の動作を学びます。
-- [ミドルウェア](/learn/middleware) - アプリケーション向けにミドルウェアを作成する方法と、ミドルウェアでの依存性注入の動作を学びます。
+## 関連情報
+
+- [インストール](/install) - スケルトレイアウトと `services.php` の場所。
+- [オートローディング](/learn/autoloading) - `App\` 名前空間とフォルダーの**大文字小文字**。
+- [Flightの拡張](/learn/extending) - フレームワークを拡張して独自のクラスに依存性注入を追加する方法を学ぶ。
+- [設定](/learn/configuration) - アプリケーション用にFlightを設定する方法を学ぶ。
+- [ルーティング](/learn/routing) - アプリケーションのルートを定義する方法と、依存性注入がコントローラーとどのように連携するかを学ぶ。
+- [ミドルウェア](/learn/middleware) - アプリケーション用のミドルウェアを作成する方法と、依存性注入がミドルウェアとどのように連携するかを学ぶ。
+- [ユニットテスト](/guides/unit-testing) - コンストラクターインジェクションが `Flight::` グローバルよりも優れている理由。
+- [AIと開発者体験](/learn/ai) - 人間とエージェントのための単一のDIパターン。
+- [SimplePdo](/learn/simple-pdo) - インジェクションに推奨されるデータベースヘルパー。
 
 ## トラブルシューティング
-- コンテナに問題がある場合、コンテナに正しいクラス名を渡していることを確認してください。
+
+- コンテナで問題が発生している場合は、正しいクラス名をコンテナに渡していることを確認してください。
+- `Engine` を型宣言しているのに「空の」アプリが返されるコントローラーがある場合は、**Engineの置き換え**を追加してください（上記参照）。Dice は2つ目の Engine を `new` してはいけません。
+- `App\Controller\…` でクラスが見つからない場合：`app/Controller/` 配下のフォルダー名の大文字小文字を確認してください — [オートローディング](/learn/autoloading) を参照。
+- ハンドラーは `registerContainerHandler` から作成したオブジェクトを**返す**必要があります（`return` なしで `Flight::make()` を呼び出さないでください）。
 
 ## 変更履歴
-- v3.7.0 - Flight に DIC ハンドラを登録する機能を追加。
+
+- ドキュメント – AIフレンドリーなプロジェクト向けに、スケルトンのDice + Engine置き換え、SimplePdo、`App\Controller` レイアウトを文書化。
+- v3.7.0 - FlightにDICハンドラーを登録する機能を追加。

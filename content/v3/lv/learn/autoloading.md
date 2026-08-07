@@ -1,18 +1,82 @@
-# Autoloading
+# Automātiskā ielāde
 
 ## Pārskats
 
-Autoloading ir PHP koncepts, kurā jūs norādāt direktoriju vai direktorijas, no kurām ielādēt klases. Tas ir daudz izdevīgāk nekā izmantot `require` vai `include` klases ielādei. Tas ir arī prasība Composer pakotņu izmantošanai.
+Automatiskā ielāde ir PHP koncepcija, kurā norādāt direktoriju vai direktorijas, no kurām ielādēt klases. Tas ir daudz izdevīgāk nekā izmantot `require` vai `include`, lai ielādētu klases. Tas ir arī priekšnoteikums Composer pakotņu izmantošanai.
 
-## Saprašana
+Pareiza automātiskās ielādes iestatīšana ir svarīga arī [ar AI atbalstītu izstrādi](/learn/ai): aģenti novieto failus tur, kur norāda nosaukumvieta. Ja mapes **reģistrs** un nosaukumvietas reģistrs nesakrīt, Linux sistēmā parādās kļūdas par klases neatrašanu, pat ja lietas "strādāja" uz Mac diska, kur reģistrs netiek nošķirts.
 
-Pēc noklusējuma jebkura `Flight` klase tiek automātiski autoloadēta jums, pateicoties composer. Tomēr, ja vēlaties autoloadēt savas klases, jūs varat izmantot `Flight::path()` metodi, lai norādītu direktoriju, no kura ielādēt klases.
+## Izpratne
 
-Autoloadera izmantošana var palīdzēt ievērojami vienkāršot jūsu kodu. Tā vietā, lai faili sāktos ar daudziem `include` vai `require` paziņojumiem augšpusē, lai uztvertu visas klases, kas tiek izmantotas tajā failā, jūs varat dinamiski izsaukt savas klases, un tās tiks iekļautas automātiski.
+Pēc noklusējuma jebkura `Flight` klase tiek ielādēta automātiski, pateicoties Composer. **Jūsu** lietojumprogrammas klasēm ir divas izplatītas pieejas:
 
-## Pamata izmantošana
+1. **Composer PSR-4** (ko izmanto [oficiālais skeletons](https://github.com/flightphp/skeleton)): kartējiet nosaukumvietas prefiksu uz direktoriju `composer.json` failā, pēc tam izpildiet `composer dump-autoload`.
+2. **`Flight::path()`**: norādiet Flight ielādētājam direktorijas (noderīgi vienkāršām lietotnēm vai ja neizmantojat Composer lietojumprogrammas kodam).
 
-Pieņemsim, ka mums ir direktoriju koka struktūra šāda:
+Automatiskās ielādes izmantošana ievērojami vienkāršo jūsu kodu. Tā vietā, lai katra faila augšpusē būtu vesela siena ar `include` / `require`, klases tiek ielādētas, kad tās pirmo reizi izmantojat.
+
+### Reģistrjutība (izlasiet šo divreiz)
+
+**Nosaukumvietām ir jāatbilst direktoriju struktūrai *un* šo direktoriju burtu reģistram.**
+
+| Strādā | Nedarbojas Linux |
+|-------|-----------------|
+| `App\Controller\HomeController` → `app/Controller/HomeController.php` | `App\Controller\…` ar mapi `app/controllers/` |
+| `app\controllers\MyController` → `app/controllers/MyController.php` | Ja sajauc `App\` ar mazajiem burtiem `controllers` |
+
+PHP nosaukumvietas dažos kontekstos nav reģistrjutīgas, bet **Composer un failu sistēma ir**. Oficiālais skeletons standartizē šādi:
+
+- Composer: `"App\\": "app/"`
+- Mapes: **`Controller`**, **`Middleware`**, **`Model`**, **`Utils`** (PascalCase), nevis `controllers` / `middlewares`
+
+Vecāki dokumenti un kopienas piemēri dažkārt izmantoja mazos burtus `app\controllers`. Tas joprojām darbojas, ja jūsu mapes ir mazajos burtos—bet **jauni skeletona projekti izmanto `App\` + PascalCase mapes**. Izvēlieties vienu konvenciju projektam un pieturieties pie tās, lai cilvēki un AI rīki neizgudrotu otru izkārtojumu.
+
+## Skeletons (ieteicams jauniem projektiem)
+
+Pēc `composer create-project flightphp/skeleton` komandas, lietojumprogrammas kods tiek ielādēts, izmantojot Composer—`Flight::path()` nav nepieciešams `App\` klasēm:
+
+```json
+{
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}
+```
+
+```php
+// app/Controller/HomeController.php
+namespace App\Controller;
+
+use flight\Engine;
+
+class HomeController
+{
+	protected Engine $app;
+
+	public function __construct(Engine $app)
+	{
+		$this->app = $app;
+	}
+
+	public function index(): void
+	{
+		$this->app->render('welcome', ['message' => 'Hello!']);
+	}
+}
+```
+
+```php
+// app/config/routes.php — Dice atrisina App\Controller\… caur konteineru
+$router->get('/', [HomeController::class, 'index']);
+```
+
+Skatiet [Instalācija](/install), lai redzētu pilnu koku, un [AI & izstrādātāju pieredze](/learn/ai), lai uzzinātu, kā `AGENTS.md` dokumentē šo izkārtojumu kodēšanas asistentiem.
+
+## Pamata lietošana (`Flight::path()`)
+
+Pieņemsim, ka mums ir šāds direktoriju koks:
 
 ```text
 # Piemēra ceļš
@@ -20,9 +84,9 @@ Pieņemsim, ka mums ir direktoriju koka struktūra šāda:
 ├── app
 │   ├── cache
 │   ├── config
-│   ├── controllers - satur šī projekta kontrolierus
+│   ├── controllers - satur šī projekta kontrollerus
 │   ├── translations
-│   ├── UTILS - satur klases tikai šai lietojumprogrammai (tas ir visiem lielajiem burtiem mērķtiecīgi piemēram vēlāk)
+│   ├── UTILS - satur klases tikai šai lietojumprogrammai (tas ir ar lielajiem burtiem speciāli, lai vēlāk izmantotu kā piemēru)
 │   └── views
 └── public
     └── css
@@ -30,9 +94,9 @@ Pieņemsim, ka mums ir direktoriju koka struktūra šāda:
 	└── index.php
 ```
 
-Jūs varbūt pamanījāt, ka tā ir tā pati failu struktūra kā šai dokumentācijas vietnei.
+Jūs, iespējams, pamanījāt, ka tas ir līdzīgs tipiskam lietojumprogrammas kokam (pati dokumentācijas vietne izmanto strukturētu izkārtojumu). Mazie burti `controllers` šeit ir derīga *izvēle*—tas vienkārši nav skeletona pašreizējais noklusējums.
 
-Jūs varat norādīt katru direktoriju ielādei šādi:
+Jūs varat norādīt katru direktoriju, no kura ielādēt, šādi:
 
 ```php
 
@@ -40,7 +104,7 @@ Jūs varat norādīt katru direktoriju ielādei šādi:
  * public/index.php
  */
 
-// Pievienot ceļu autoloaderam
+// Pievienojiet ceļu automātiskajai ielādei
 Flight::path(__DIR__.'/../app/controllers/');
 Flight::path(__DIR__.'/../app/utils/');
 
@@ -49,20 +113,20 @@ Flight::path(__DIR__.'/../app/utils/');
  * app/controllers/MyController.php
  */
 
-// nav nepieciešama namespacing
+// nosaukumvieta nav nepieciešama
 
-// Visām autoloadētajām klasēm iesaka būt Pascal Case (katrs vārds ar lielajiem burtiem, bez atstarpēm)
+// Visām automātiski ielādētajām klasēm ieteicams izmantot Pascal Case (katrs vārds ar lielo sākumburtu, bez atstarpēm)
 class MyController {
 
 	public function index() {
-		// izdarīt kaut ko
+		// dariet kaut ko
 	}
 }
 ```
 
-## Namespaces
+## Nosaukumvietas ar `Flight::path()`
 
-Ja jums ir namespaces, tas patiesībā kļūst ļoti viegli īstenojams. Jums vajadzētu izmantot `Flight::path()` metodi, lai norādītu jūsu lietojumprogrammas saknes direktoriju (nevis dokumenta sakni vai `public/` mapi).
+Ja jums ir nosaukumvietas, to faktiski ir ļoti viegli ieviest. Jums vajadzētu izmantot `Flight::path()` metodi, lai norādītu lietojumprogrammas saknes direktoriju (nevis dokumenta sakni vai `public/` mapi).
 
 ```php
 
@@ -70,34 +134,34 @@ Ja jums ir namespaces, tas patiesībā kļūst ļoti viegli īstenojams. Jums va
  * public/index.php
  */
 
-// Pievienot ceļu autoloaderam
+// Pievienojiet ceļu automātiskajai ielādei
 Flight::path(__DIR__.'/../');
 ```
 
-Tagad tā izskatās jūsu kontrolieris. Skatiet piemēru zemāk, bet pievērsiet uzmanību komentāriem svarīgai informācijai.
+Tagad šādi varētu izskatīties jūsu kontrolieris. Apskatiet zemāk esošo piemēru, bet pievērsiet uzmanību komentāriem — tajos ir svarīga informācija.
 
 ```php
 /**
  * app/controllers/MyController.php
  */
 
-// namespaces ir nepieciešami
-// namespaces ir tādi paši kā direktoriju struktūra
-// namespaces jāatbilst tā paša reģistra kā direktoriju struktūrai
-// namespaces un direktorijām nevar būt apakšsvītras (ja vien nav iestatīts Loader::setV2ClassLoading(false))
+// nosaukumvietas ir obligātas
+// nosaukumvietas ir tādas pašas kā direktoriju struktūra
+// nosaukumvietām ir jāievēro tāds pats burtu reģistrs kā direktoriju struktūrai
+// nosaukumvietās un direktorijos nevar būt apakšsvītras (ja vien nav iestatīts Loader::setV2ClassLoading(false))
 namespace app\controllers;
 
-// Visām autoloadētajām klasēm iesaka būt Pascal Case (katrs vārds ar lielajiem burtiem, bez atstarpēm)
-// No 3.7.2 versijas jūs varat izmantot Pascal_Snake_Case saviem klases nosaukumiem, izpildot Loader::setV2ClassLoading(false);
+// Visām automātiski ielādētajām klasēm ieteicams izmantot Pascal Case (katrs vārds ar lielo sākumburtu, bez atstarpēm)
+// Sākot ar 3.7.2, varat izmantot Pascal_Snake_Case savu klašu nosaukumos, izpildot Loader::setV2ClassLoading(false);
 class MyController {
 
 	public function index() {
-		// izdarīt kaut ko
+		// dariet kaut ko
 	}
 }
 ```
 
-Un, ja jūs vēlaties autoloadēt klasi jūsu utils direktorijā, jūs darītu gandrīz to pašu:
+Un, ja vēlaties automātiski ielādēt klasi savā utils direktorijā, jūs darītu pamatā to pašu:
 
 ```php
 
@@ -105,23 +169,38 @@ Un, ja jūs vēlaties autoloadēt klasi jūsu utils direktorijā, jūs darītu g
  * app/UTILS/ArrayHelperUtil.php
  */
 
-// namespace jāatbilst direktoriju struktūrai un reģistram (pamaniet, ka UTILS direktorija ir visi lielie burti
-//     kā failu kokā augstāk)
+// nosaukumvietai ir jāatbilst direktoriju struktūrai un reģistram (ņemiet vērā, ka UTILS direktorijs ir ar lielajiem burtiem
+//     tāpat kā iepriekš redzamajā failu kokā)
 namespace app\UTILS;
 
 class ArrayHelperUtil {
 
 	public function changeArrayCase(array $array) {
-		// izdarīt kaut ko
+		// dariet kaut ko
 	}
 }
 ```
 
-## Apakšsvītras klases nosaukumos
+### Skeletona stila nosaukumvieta (tie paši noteikumi, cits reģistrs)
 
-No 3.7.2 versijas jūs varat izmantot Pascal_Snake_Case saviem klases nosaukumiem, izpildot `Loader::setV2ClassLoading(false);`. 
-Tas ļaus jums izmantot apakšsvītras savos klases nosaukumos. 
-Tas nav ieteicams, bet tas ir pieejams tiem, kam tas ir nepieciešams.
+```php
+/**
+ * app/Controller/MyController.php
+ */
+namespace App\Controller;
+
+class MyController {
+	// ...
+}
+```
+
+Noteikumi nav mainījušies—tikai skeletona izvēlētais mapes/nosaukumvietas reģistrs. **Neatkarīgi no tā, kādu reģistru izmantojat savās mapēs, jūsu `namespace` rindai ir jāatbilst.**
+
+## Apakšsvītras klašu nosaukumos
+
+Sākot ar 3.7.2, varat izmantot Pascal_Snake_Case savu klašu nosaukumos, izpildot `Loader::setV2ClassLoading(false);`. 
+Tas ļaus jums izmantot apakšsvītras klašu nosaukumos. 
+Tas nav ieteicams, bet ir pieejams tiem, kam tas ir nepieciešams.
 
 ```php
 use flight\core\Loader;
@@ -130,7 +209,7 @@ use flight\core\Loader;
  * public/index.php
  */
 
-// Pievienot ceļu autoloaderam
+// Pievienojiet ceļu automātiskajai ielādei
 Flight::path(__DIR__.'/../app/controllers/');
 Flight::path(__DIR__.'/../app/utils/');
 Loader::setV2ClassLoading(false);
@@ -139,66 +218,72 @@ Loader::setV2ClassLoading(false);
  * app/controllers/My_Controller.php
  */
 
-// nav nepieciešama namespacing
+// nosaukumvieta nav nepieciešama
 
 class My_Controller {
 
 	public function index() {
-		// izdarīt kaut ko
+		// dariet kaut ko
 	}
 }
 ```
 
 ## Skatīt arī
-- [Routing](/learn/routing) - Kā kartēt maršrutus uz kontrolieriem un renderēt skatus.
-- [Why a Framework?](/learn/why-frameworks) - Saprastie ietvara kā Flight priekšrocības.
+- [Instalācija](/install) - Skeletona koks un `App\` noklusējumi jauniem projektiem.
+- [Maršrutēšana](/learn/routing) - Kā kartēt maršrutus uz kontrolleriem un renderēt skatus.
+- [Atkarību ievadīšana](/learn/dependency-injection-container) - Kā kontrolleri saņem `Engine` un pakalpojumus.
+- [AI & izstrādātāju pieredze](/learn/ai) - Uzturiet aģentus saskaņotus ar jūsu izkārtojumu, izmantojot `AGENTS.md`.
+- [Kāpēc ietvars?](/learn/why-frameworks) - Izpratne par ieguvumiem, ko sniedz tāda ietvara kā Flight izmantošana.
 
-## Traucējummeklēšana
-- Ja jūs nevarat saprast, kāpēc jūsu namespaced klases netiek atrastas, atcerieties izmantot `Flight::path()` uz jūsu projekta saknes direktoriju, nevis jūsu `app/` vai `src/` direktoriju vai ekvivalentu.
+## Problēmu novēršana
+- Ja nevarat saprast, kāpēc jūsu nosaukumvietu klases netiek atrastas, atcerieties: ar `Flight::path()` norādiet uz **projekta sakni** (vai pareizo bāzi savai nosaukumvietai), nevis tikai uz ligzdotu mapi, kuru aizmirsāt atspoguļot nosaukumvietā.
+- Izmantojot Composer PSR-4, pēc `composer.json` kartējumu maiņas izpildiet `composer dump-autoload`.
+- Linux CI vai ražošanas vidē nepareizs mapes reģistrs ir ļoti izplatīta "manā mašīnā tas strādā" kļūme.
 
-### Klase nav atrasta (autoloading nedarbojas)
+### Klase nav atrasta (automātiskā ielāde nedarbojas)
 
-Šim var būt pāris iemesli. Zemāk ir daži piemēri, bet pārliecinieties, ka jūs arī apskatāt [autoloading](/learn/autoloading) sadaļu.
+Var būt vairāki iemesli, kāpēc tas nenotiek. Zemāk ir daži piemēri.
 
 #### Nepareizs faila nosaukums
-Visbiežākais ir tas, ka klases nosaukums neatbilst faila nosaukumam.
 
-Ja jums ir klase ar nosaukumu `MyClass`, tad failam jābūt nosauktam `MyClass.php`. Ja jums ir klase ar nosaukumu `MyClass` un fails ir nosaukts `myclass.php` 
-tad autoloader nevarēs to atrast.
+Visizplatītākais ir tas, ka klases nosaukums neatbilst faila nosaukumam.
 
-#### Nepareizs Namespace
-Ja jūs izmantojat namespaces, tad namespace jāatbilst direktoriju struktūrai.
+Ja jums ir klase ar nosaukumu `MyClass`, failam ir jābūt nosauktam `MyClass.php`. Ja jums ir klase ar nosaukumu `MyClass` un fails ir nosaukts `myclass.php`, automātiskā ielāde nevarēs to atrast.
+
+#### Nepareiza nosaukumvieta vai mapes reģistrs
+
+Ja izmantojat nosaukumvietas, tad nosaukumvietai ir jāatbilst direktoriju struktūrai **ieskaitot reģistru**.
 
 ```php
-// ...code...
+// ...kods...
 
-// ja jūsu MyController ir app/controllers direktorijā un tas ir namespaced
-// tas nedarbosies.
+// ja jūsu MyController atrodas app/Controller (skeletons) un ir nosaukumvietā App\Controller
+// tas nedarbosies:
 Flight::route('/hello', 'MyController->hello');
 
-// jums jāizvēlas viena no šīm opcijām
-Flight::route('/hello', 'app\controllers\MyController->hello');
-// vai, ja jums ir use paziņojums augšpusē
-
-use app\controllers\MyController;
-
+// Skeletona stils:
+use App\Controller\MyController;
 Flight::route('/hello', [ MyController::class, 'hello' ]);
-// arī var būt rakstīts
-Flight::route('/hello', MyController::class.'->hello');
-// arī...
-Flight::route('/hello', [ 'app\controllers\MyController', 'hello' ]);
+
+// Vecāks izkārtojums ar mazajiem burtiem (tikai tad, ja jūsu mapes patiešām ir app/controllers):
+use app\controllers\MyController;
+Flight::route('/hello', [ MyController::class, 'hello' ]);
+// vai pilnībā kvalificēts:
+Flight::route('/hello', [ 'App\Controller\MyController', 'hello' ]);
 ```
 
-#### `path()` nav definēts
+#### `path()` nav definēts (ne-Composer lietojumprogrammas kods)
 
-Skeletā lietojumprogrammā tas ir definēts `config.php` failā, bet, lai jūsu klases tiktu atrastas, jums jāpārliecinās, ka `path()`
-metode ir definēta (droši vien uz jūsu direktorijas sakni) pirms mēģināt to izmantot.
+Ja paļaujaties uz `Flight::path()` nevis Composer lietojumprogrammas klasēm, definējiet ceļu pirms maršrutiem, kas atsaucas uz šīm klasēm (parasti agri bootstrap / `public/index.php`):
 
 ```php
-// Pievienot ceļu autoloaderam
+// Pievienojiet ceļu automātiskajai ielādei (projekta sakne nosaukumvietu lietotnēm)
 Flight::path(__DIR__.'/../');
 ```
 
-## Changelog
-- v3.7.2 - Jūs varat izmantot Pascal_Snake_Case saviem klases nosaukumiem, izpildot `Loader::setV2ClassLoading(false);`
-- v2.0 - Autoload funkcionalitāte pievienota.
+Oficiālais skeletons galvenokārt izmanto **Composer PSR-4** `App\` klasei, tāpēc parasti jums nebūs nepieciešams `Flight::path()` kontrolleriem un modeļiem.
+
+## Izmaiņu žurnāls
+- Dokumentācija – dokumentēts skeletona `App\` + PascalCase mapju izkārtojums un reģistrjutības nepilnības cilvēkiem un AI rīkiem.
+- v3.7.2 - Varat izmantot Pascal_Snake_Case savu klašu nosaukumos, izpildot `Loader::setV2ClassLoading(false);`
+- v2.0 - Pievienota automātiskās ielādes funkcionalitāte.

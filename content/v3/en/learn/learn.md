@@ -1,9 +1,9 @@
 # Learn About Flight
 
 Flight is a fast, simple, extensible framework for PHP. It is quite versatile and can be used for building any kind of web application. 
-It is built with simplicity in mind and is written in a way that is easy to understand and use.
+It is built with simplicity in mind and is written in a way that is easy to understand and use—by humans and by [AI coding assistants](/learn/ai).
 
-> **Note:** You will see examples that use `Flight::` as a static variable and some that use the `$app->` Engine object. Both work interchangeably with the other. `$app` and `$this->app` in a controller/middleware is the recommended approach from the Flight team.
+> **Note:** You will see examples that use `Flight::` as a static variable and some that use the `$app->` Engine object. Both work interchangeably with the other. `$app` and `$this->app` in a controller/middleware is the recommended approach from the Flight team (and what the official skeleton + `AGENTS.md` standardize on for new projects).
 
 ## Core Components
 
@@ -17,7 +17,7 @@ Learn how to use middleware to filter requests and responses in your application
 
 ### [Autoloading](/learn/autoloading)
 
-Learn how to autoload your own classes in your application.
+Learn how to autoload your own classes. Folder **case** must match your namespaces—the skeleton uses `App\` and PascalCase folders like `app/Controller/`.
 
 ### [Requests](/learn/requests)
 
@@ -29,7 +29,7 @@ Learn how to send responses to your users.
 
 ### [HTML Templates](/learn/templates)
 
-Learn how to use the built-in view engine to render your HTML templates.
+Learn how to render HTML with Twig (skeleton default), Latte, or other engines—not only the built-in PHP views.
 
 ### [Security](/learn/security)
 
@@ -99,7 +99,7 @@ Follow this guide to learn how to unit test your Flight code to be rock solid.
 
 ### [AI & Developer Experience](/learn/ai)
 
-Learn how Flight works with AI tools and modern developer workflows to help you code faster and smarter.
+Flight is built to pair with coding LLMs: `AGENTS.md`, Runway `ai:*` commands, and one clear skeleton layout so agents stay on-pattern.
 
 ### [Migrating v2 -> v3](/learn/migrating-to-v3)
 

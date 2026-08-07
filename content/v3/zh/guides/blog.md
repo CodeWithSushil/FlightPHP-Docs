@@ -1,16 +1,16 @@
-# 使用 Flight PHP 构建简单博客
+# 使用 Flight PHP 构建一个简单的博客
 
-本指南带您通过使用 Flight PHP 框架创建基本博客的过程。您将设置项目，定义路由，使用 JSON 管理帖子，并使用 Latte 模板引擎进行呈现——所有这些都展示了 Flight 的简单性和灵活性。到最后，您将拥有一个功能性博客，包含主页、单独的帖子页面和创建表单。
+本指南将带您使用 Flight PHP 框架创建一个基础博客。您将设置项目、定义路由、使用 JSON 管理文章，并使用 Latte 模板引擎渲染它们——所有这些都展示了 Flight 的简洁性和灵活性。最后，您将拥有一个功能齐全的博客，包含首页、单篇文章页面和一个创建表单。
 
 ## 先决条件
-- **PHP 7.4+**：已安装在您的系统中。
+- **PHP 7.4+**：系统上已安装。
 - **Composer**：用于依赖管理。
 - **文本编辑器**：任何编辑器，如 VS Code 或 PHPStorm。
-- PHP 和 Web 开发的基本知识。
+- 具备 PHP 和 Web 开发的基础知识。
 
-## 第一步：设置您的项目
+## 第一步：设置项目
 
-首先创建一个新的项目目录并通过 Composer 安装 Flight。
+首先创建一个新项目目录，并通过 Composer 安装 Flight。
 
 1. **创建目录**：
    ```bash
@@ -23,35 +23,35 @@
    composer require flightphp/core
    ```
 
-3. **创建公共目录**：
-   Flight 使用单个入口点 (`index.php`)。为其创建 `public/` 文件夹：
+3. **创建 public 目录**：
+   Flight 使用单一入口点（`index.php`）。为其创建一个 `public/` 文件夹：
    ```bash
    mkdir public
    ```
 
-4. **基本的 `index.php`**：
-   创建 `public/index.php`，添加简单的“你好，世界”路由：
+4. **基本 `index.php`**：
+   创建一个简单的 “hello world” 路由的 `public/index.php`：
    ```php
    <?php
    require '../vendor/autoload.php';
 
    Flight::route('/', function () {
-       echo '你好，Flight！';
+       echo 'Hello, Flight!';
    });
 
    Flight::start();
    ```
 
 5. **运行内置服务器**：
-   使用 PHP 的开发服务器测试您的设置：
+   使用 PHP 开发服务器测试您的设置：
    ```bash
    php -S localhost:8000 -t public/
    ```
-   访问 `http://localhost:8000` 查看“你好，Flight！”。
+   访问 `http://localhost:8000` 即可看到 “Hello, Flight!”。
 
-## 第二步：组织您的项目结构
+## 第二步：组织项目结构
 
-为了保持设置整洁，请将项目构建为如下结构：
+为了清晰设置，请按如下结构组织项目：
 
 ```text
 flight-blog/
@@ -65,14 +65,14 @@ flight-blog/
 └── composer.json
 ```
 
-- `app/config/`：配置文件（例如，事件，路由）。
-- `app/views/`：用于呈现页面的模板。
-- `data/`：用于存储博客帖子的 JSON 文件。
-- `public/`：包含 `index.php` 的 Web 根目录。
+- `app/config/`：配置文件（如事件、路由）。
+- `app/views/`：渲染页面的模板。
+- `data/`：用于存储博客文章的 JSON 文件。
+- `public/`：Web 根目录，包含 `index.php`。
 
-## 第三步：安装和配置 Latte
+## 第三步：安装并配置 Latte
 
-Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
+Latte 是一个轻量级模板引擎，与 Flight 集成得很好。
 
 1. **安装 Latte**：
    ```bash
@@ -80,7 +80,7 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
    ```
 
 2. **在 Flight 中配置 Latte**：
-   更新 `public/index.php` 以将 Latte 注册为视图引擎：
+   更新 `public/index.php`，将 Latte 注册为视图引擎：
    ```php
    <?php
    require '../vendor/autoload.php';
@@ -93,13 +93,14 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
    });
 
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => '我的博客']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::start();
    ```
 
-3. **创建布局模板：在 `app/views/layout.latte`**：
+3. **创建布局模板：**  
+在 `app/views/layout.latte` 中：
 ```html
 <!DOCTYPE html>
 <html>
@@ -108,24 +109,24 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
 </head>
 <body>
     <header>
-        <h1>我的博客</h1>
+        <h1>My Blog</h1>
         <nav>
-            <a href="/">首页</a> | 
-            <a href="/create">创建帖子</a>
+            <a href="/">Home</a> | 
+            <a href="/create">Create a Post</a>
         </nav>
     </header>
     <main>
         {block content}{/block}
     </main>
     <footer>
-        <p>&copy; {date('Y')} Flight 博客</p>
+        <p>&copy; {date('Y')} Flight Blog</p>
     </footer>
 </body>
 </html>
 ```
 
 4. **创建首页模板**：
-   在 `app/views/home.latte`：
+   在 `app/views/home.latte` 中：
    ```html
   {extends 'layout.latte'}
 
@@ -138,46 +139,46 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
 		</ul>
 	{/block}
    ```
-   如果退出服务器，请重新启动，并访问 `http://localhost:8000` 查看渲染页面。
+   如果您退出了服务器，请重启并访问 `http://localhost:8000` 查看渲染后的页面。
 
 5. **创建数据文件**：
 
-   使用 JSON 文件模拟数据库以简化操作。
+   为简单起见，使用 JSON 文件模拟数据库。
 
-   在 `data/posts.json`：
+   在 `data/posts.json` 中：
    ```json
    [
        {
            "slug": "first-post",
-           "title": "我的第一篇帖子",
-           "content": "这是我用 Flight PHP 撰写的第一篇博客帖子！"
+           "title": "My First Post",
+           "content": "This is my very first blog post with Flight PHP!"
        }
    ]
    ```
 
 ## 第四步：定义路由
 
-将路由分开到配置文件中，以便更好地组织。
+为了更好的组织，将路由分离到配置文件中。
 
 1. **创建 `routes.php`**：
-   在 `app/config/routes.php`：
+   在 `app/config/routes.php` 中：
    ```php
    <?php
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => '我的博客']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::route('/post/@slug', function ($slug) {
-       Flight::view()->render('post.latte', ['title' => '帖子：' . $slug, 'slug' => $slug]);
+       Flight::view()->render('post.latte', ['title' => 'Post: ' . $slug, 'slug' => $slug]);
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => '创建帖子']);
+       Flight::view()->render('create.latte', ['title' => 'Create a Post']);
    });
    ```
 
 2. **更新 `index.php`**：
-   包含路由文件：
+   引入路由文件：
    ```php
    <?php
    require '../vendor/autoload.php';
@@ -194,12 +195,12 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
    Flight::start();
    ```
 
-## 第五步：存储和检索博客帖子
+## 第五步：存储和检索博客文章
 
-添加加载和保存帖子的功能。
+添加加载和保存文章的方法。
 
-1. **添加帖子方法**：
-   在 `index.php` 中，添加一个加载帖子的的方法：
+1. **添加文章方法**：
+   在 `index.php` 中，添加一个加载文章的方法：
    ```php
    Flight::map('posts', function () {
        $file = __DIR__ . '/../data/posts.json';
@@ -208,13 +209,13 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
    ```
 
 2. **更新路由**：
-   修改 `app/config/routes.php` 以使用帖子：
+   修改 `app/config/routes.php` 以使用文章：
    ```php
    <?php
    Flight::route('/', function () {
        $posts = Flight::posts();
        Flight::view()->render('home.latte', [
-           'title' => '我的博客',
+           'title' => 'My Blog',
            'posts' => $posts
        ]);
    });
@@ -234,15 +235,15 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => '创建帖子']);
+       Flight::view()->render('create.latte', ['title' => 'Create a Post']);
    });
    ```
 
 ## 第六步：创建模板
 
-更新您的模板以显示帖子。
+更新模板以显示文章。
 
-1. **帖子页面 (`app/views/post.latte`)**：
+1. **文章页面（`app/views/post.latte`）**：
    ```html
    {extends 'layout.latte'}
 
@@ -254,11 +255,11 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
 	{/block}
    ```
 
-## 第七步：添加帖子创建功能
+## 第七步：添加文章创建功能
 
-处理表单提交以添加新帖子。
+处理表单提交以添加新文章。
 
-1. **创建表单 (`app/views/create.latte`)**：
+1. **创建表单（`app/views/create.latte`）**：
    ```html
    {extends 'layout.latte'}
 
@@ -266,20 +267,20 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
 		<h2>{$title}</h2>
 		<form method="POST" action="/create">
 			<div class="form-group">
-				<label for="title">标题：</label>
+				<label for="title">Title:</label>
 				<input type="text" name="title" id="title" required>
 			</div>
 			<div class="form-group">
-				<label for="content">内容：</label>
+				<label for="content">Content:</label>
 				<textarea name="content" id="content" required></textarea>
 			</div>
-			<button type="submit">保存帖子</button>
+			<button type="submit">Save Post</button>
 		</form>
 	{/block}
    ```
 
 2. **添加 POST 路由**：
-   在 `app/config/routes.php`：
+   在 `app/config/routes.php` 中：
    ```php
    Flight::route('POST /create', function () {
        $request = Flight::request();
@@ -295,19 +296,19 @@ Latte 是一个轻量级的模板引擎，与 Flight 很好地集成。
    });
    ```
 
-3. **测试它**：
+3. **测试**：
    - 访问 `http://localhost:8000/create`。
-   - 提交新的帖子（例如，“第二篇帖子”，以及一些内容）。
-   - 检查主页以查看其是否已列出。
+   - 提交一篇新文章（例如，带有一些内容的 “Second Post”）。
+   - 检查首页是否显示该文章。
 
-## 第八步：增强错误处理
+## 第八步：通过错误处理增强体验
 
-覆盖 `notFound` 方法以提供更好的 404 体验。
+重写 `notFound` 方法以获得更好的 404 体验。
 
-在 `index.php`：
+在 `index.php` 中：
 ```php
 Flight::map('notFound', function () {
-    Flight::view()->render('404.latte', ['title' => '未找到页面']);
+    Flight::view()->render('404.latte', ['title' => 'Page Not Found']);
 });
 ```
 
@@ -317,16 +318,16 @@ Flight::map('notFound', function () {
 
 {block content}
     <h2>404 - {$title}</h2>
-    <p>抱歉，该页面不存在！</p>
+    <p>Sorry, that page doesn't exist!</p>
 {/block}
 ```
 
 ## 下一步
-- **添加样式**：在您的模板中使用 CSS 以获得更好的外观。
-- **数据库**：使用 `PdoWrapper` 替换 `posts.json` 为数据库，例如 SQLite。
+- **添加样式**：在模板中使用 CSS 以获得更好的外观。
+- **数据库**：使用 [SimplePdo](/learn/simple-pdo) 等数据库替换 `posts.json`。
 - **验证**：添加对重复 slug 或空输入的检查。
-- **中间件**：实施身份验证以进行帖子创建。
+- **中间件**：为文章创建实现身份验证。
 
 ## 结论
 
-您已使用 Flight PHP 构建了一个简单的博客！本指南展示了核心功能，如路由、使用 Latte 进行模板处理和处理表单提交——同时保持轻量化。探索 Flight 的文档以获取更多高级功能以进一步提升您的博客！
+您已经使用 Flight PHP 构建了一个简单的博客！本指南演示了路由、使用 Latte 进行模板渲染以及处理表单提交等核心功能——同时保持了轻量级。探索 Flight 的文档，了解更高级的功能，让您的博客更进一步！

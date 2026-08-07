@@ -1,8 +1,10 @@
 # Runway
 
-Runway is a CLI application that helps you manage your Flight applications. It can generate controllers, display all routes, and more. It is based on the excellent [adhocore/php-cli](https://github.com/adhocore/php-cli) library.
+Runway is a CLI application that helps you manage your Flight applications. It can generate controllers, display all routes, run AI setup helpers, migrations (in the skeleton), and more. It is based on the excellent [adhocore/php-cli](https://github.com/adhocore/php-cli) library.
 
 Click [here](https://github.com/flightphp/runway) to view the code.
+
+Scaffolding commands are intentionally aligned with the [official skeleton](https://github.com/flightphp/skeleton) so [AI coding tools](/learn/ai) and humans get the same paths, namespaces, and constructor-injection style every time.
 
 ## Installation
 
@@ -11,6 +13,8 @@ Install with composer.
 ```bash
 composer require flightphp/runway
 ```
+
+The skeleton already depends on Runway; use `php runway` from the project root.
 
 ## Basic Configuration
 
@@ -23,11 +27,13 @@ return [
     'runway' => [
         'app_root' => 'app/',
 		'public_root' => 'public/',
+		// optional; skeleton also uses index_root for the public entry
+		'index_root' => 'public/index.php',
     ],
 ];
 ```
 
-> **NOTE** - As of **v1.2.0**, `.runway-config.json` is deprecated. Please migrate your configuration to `app/config/config.php`. You can do this easily with the `php runway config:migrate` command.
+> **NOTE** - As of **v1.2.0**, `.runway-config.json` is deprecated in favor of `app/config/config.php`. Migrate with `php runway config:migrate` when upgrading older projects. The skeleton may still write a small `.runway-config.json` on create-project for compatibility; prefer the `runway` key in `config.php` going forward.
 
 ### Project Root Detection
 
@@ -48,71 +54,134 @@ You can view a list of all available commands by running the `php runway` comman
 php runway
 ```
 
+Only rely on commands that actually appear in that list for your install (core Runway commands vs project-specific ones like the skeleton’s `migrate`).
+
 ### Command Help
 
 For any command, you can pass in the `--help` flag to get more information on how to use the command.
 
 ```bash
 php runway routes --help
+php runway make:controller --help
 ```
 
 Here are a few examples:
 
 ### Generate a Controller
 
-Based on the configuration in `runway.app_root`, the location will generate a controller for you in the `app/controllers/` directory.
+`make:controller` scaffolds a controller that matches the official skeleton layout:
+
+| | |
+|--|--|
+| **Path** | `app/Controller/{Name}.php` |
+| **Namespace** | `App\Controller` |
+| **Style** | Constructor injection of `flight\Engine` (no `Flight::` in the class body) |
 
 ```bash
 php runway make:controller MyController
+# → app/Controller/MyController.php
+#   namespace App\Controller;
 ```
 
-### Generate an Active Record Model
-
-First make sure you've installed the [Active Record](/awesome-plugins/active-record) plugin. Based on the configuration in `runway.app_root`, the location will generate a record for you in the `app/records/` directory.
-
-```bash
-php runway make:record users
-```
-
-If for instance you have the `users` table with the following schema: `id`, `name`, `email`, `created_at`, `updated_at`, a file similar to the following will be created in the `app/records/UserRecord.php` file:
+Example of the shape you should expect (simplified):
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace app\records;
+namespace App\Controller;
 
-/**
- * ActiveRecord class for the users table.
- * @link https://docs.flightphp.com/awesome-plugins/active-record
- * 
- * @property int $id
- * @property string $name
- * @property string $email
- * @property string $created_at
- * @property string $updated_at
- * // you could also add relationships here once you define them in the $relations array
- * @property CompanyRecord $company Example of a relationship
- */
-class UserRecord extends \flight\ActiveRecord
+use flight\Engine;
+
+class MyController
 {
-    /**
-     * @var array $relations Set the relationships for the model
-     *   https://docs.flightphp.com/awesome-plugins/active-record#relationships
-     */
-    protected array $relations = [];
+	protected Engine $app;
 
-    /**
-     * Constructor
-     * @param mixed $databaseConnection The connection to the database
-     */
-    public function __construct($databaseConnection)
-    {
-        parent::__construct($databaseConnection, 'users');
-    }
+	public function __construct(Engine $app)
+	{
+		$this->app = $app;
+	}
+
+	public function index(): void
+	{
+		// e.g. $this->app->render('…', […]);
+	}
 }
 ```
+
+Register it with a class callable so Dice can build the controller:
+
+```php
+// app/config/routes.php
+use App\Controller\MyController;
+
+$router->get('/mine', [MyController::class, 'index']);
+```
+
+**Why this layout?** Folder **case** must match the namespace (`Controller` not `controllers`) for Composer PSR-4 on Linux—see [Autoloading](/learn/autoloading). The same path is what root and scoped `AGENTS.md` files tell AI tools to use, so generated and hand-written controllers stay identical.
+
+> Older docs and community projects sometimes used `app/controllers/` and `app\controllers`. That remains valid if *your* tree still uses lowercase folders. **New skeleton projects and current `make:controller` output use `app/Controller/` + `App\Controller`.**
+
+### Generate an Active Record Model
+
+First make sure you've installed the [Active Record](/awesome-plugins/active-record) plugin.
+
+```bash
+php runway make:record users
+```
+
+In the official skeleton, models live under **`app/Model/`** with namespace **`App\Model`**, and the DB connection is **[SimplePdo](/learn/simple-pdo)** (inject it or pass it into the ActiveRecord constructor). Generated file names/namespaces follow Runway’s current defaults and your `runway` config—prefer aligning new models with `App\Model` so they match [autoloading](/learn/autoloading) and `AGENTS.md`.
+
+Example of a model consistent with the skeleton posts demo:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Model;
+
+use flight\ActiveRecord;
+
+/**
+ * @property int $id
+ * @property string $title
+ * // …
+ */
+class Post extends ActiveRecord
+{
+	protected array $relations = [];
+
+	public function __construct($databaseConnection)
+	{
+		parent::__construct($databaseConnection, 'posts');
+	}
+}
+```
+
+If an older generator still emits `app/records` / `app\records`, you can keep that convention in legacy apps or move files into `app/Model/` and update the namespace to match the folder case.
+
+### Migrations (skeleton)
+
+The official skeleton ships a project command (discovered from `app/commands/`) such as:
+
+```bash
+php runway migrate
+```
+
+Migrations are SQL files under `migrations/` (for example `YYYYMMDDHHMMSS_description.sql` for SQLite and `…_description.mysql.sql` for MySQL), selected from your database driver config / env. Exact flags and behavior are defined by that project command—run `php runway migrate --help` in your app.
+
+### AI helpers
+
+Runway exposes AI-oriented commands used with [AI & developer experience](/learn/ai):
+
+```bash
+php runway ai:init
+php runway ai:generate-instructions
+```
+
+These store LLM credentials and generate project instructions (primarily **`AGENTS.md`**). On the skeleton, treat `AGENTS.md` (and scoped copies under `app/`) plus **`SECURITY.md`** as the source of truth for agents.
 
 ### Display All Routes
 
@@ -138,6 +207,8 @@ php runway routes --post
 
 If you are either creating a package for Flight, or want to add your own custom commands into your project, you can do so by creating a `src/commands/`, `flight/commands/`, `app/commands/`, or `commands/` directory for your project/package. If you need further customization, see the section below on Configuration.
 
+In the skeleton, project commands live in **`app/commands/`** with namespace **`App\Command`**. Runway discovers them by path; keep that folder in sync with Composer classmap/PSR-4 as your project already does.
+
 To create a command, you simple extend the `AbstractBaseCommand` class, and implement at a minimum a `__construct` method and an `execute` method.
 
 ```php
@@ -145,7 +216,9 @@ To create a command, you simple extend the `AbstractBaseCommand` class, and impl
 
 declare(strict_types=1);
 
-namespace flight\commands;
+namespace App\Command;
+
+use flight\commands\AbstractBaseCommand;
 
 class ExampleCommand extends AbstractBaseCommand
 {
@@ -183,6 +256,8 @@ See the [adhocore/php-cli Documentation](https://github.com/adhocore/php-cli) fo
 ## Configuration Management
 
 Since configuration has moved to `app/config/config.php` as of `v1.2.0`, there are a few helper commands to manage configuration.
+
+> **Skeleton tip:** Keep `config.php` as **literal** PHP values. Secrets belong in `.env`. Avoid `$_ENV[...]` expressions inside `config.php`—`config:set` rewrites that file as static data and could bake secrets into the file. See [Configuration](/learn/configuration).
 
 ### Migrate Old Config
 
@@ -284,3 +359,12 @@ public function __construct(array $config)
     $this->addOption('name', 'The name of the example', null);
 }
 ```
+
+## See Also
+
+- [Installation](/install) - Skeleton tree and create-project defaults
+- [Autoloading](/learn/autoloading) - `App\` and folder case
+- [Dependency Injection](/learn/dependency-injection-container) - Dice + Engine injection for generated controllers
+- [AI & Developer Experience](/learn/ai) - `ai:init`, `ai:generate-instructions`, `AGENTS.md`
+- [Active Record](/awesome-plugins/active-record) - Models used with `make:record` / skeleton `App\Model`
+- [SimplePdo](/learn/simple-pdo) - DB connection used by skeleton migrations and models

@@ -1,48 +1,48 @@
-# Flight PHP でのユニットテストと PHPUnit
+# Flight PHP と PHPUnit によるユニットテスト
 
-このガイドは、[PHPUnit](https://phpunit.de/) を使用した Flight PHP でのユニットテストの入門を扱います。ユニットテストがなぜ重要かを理解し、実践的に適用したい初心者向けです。テストの焦点は *動作* に置き、アプリケーションが期待通りに動作することを確認します。例えば、メール送信やレコード保存のようなものです。単純な計算ではなく、シンプルな [ルートハンドラー](/learn/routing) から始め、より複雑な [コントローラー](/learn/routing) に進み、[依存性注入](/learn/dependency-injection-container) (DI) とサードパーティサービスのモッキングを組み込みます。
+このガイドでは、[PHPUnit](https://phpunit.de/) を使った Flight PHP のユニットテストを紹介します。*なぜ*ユニットテストが重要なのか、そしてそれを実際にどう適用するのかを理解したい初心者を対象としています。単純な計算ではなく、メールの送信やレコードの保存など、アプリケーションが期待どおりに動作するかという*動作*のテストに焦点を当てます。まずは単純な[ルートハンドラ](/learn/routing)から始めて、[依存性注入](/learn/dependency-injection-container)（DI）とサードパーティサービスのモックを組み込んだ、より複雑な[コントローラ](/learn/routing)へと進みます。
 
-## なぜユニットテストするのか？
+## なぜユニットテストを行うのか？
 
-ユニットテストは、コードが期待通りに動作することを保証し、本番環境にバグが到達する前に検出します。Flight では、軽量なルーティングと柔軟性が複雑な相互作用を引き起こすため、特に価値があります。ソロ開発者やチームにとって、ユニットテストは安全網として機能し、期待される動作を文書化し、後でコードを再訪した際の回帰を防ぎます。また、デザインを改善します：テストしにくいコードは、過度に複雑または密結合なクラスを示すことが多いです。
+ユニットテストは、コードが期待どおりに動作することを保証し、本番環境に到達する前にバグを発見します。特に Flight では、軽量なルーティングと柔軟性により複雑な相互作用が生じる可能性があるため、これは非常に価値があります。個人開発者でもチームでも、ユニットテストはセーフティネットとして機能し、期待される動作を文書化し、後でコードを再訪したときにリグレッションを防ぎます。また、設計の改善にも役立ちます。テストしにくいコードは、クラスが過度に複雑であるか、結合度が高すぎることを示していることがよくあります。
 
-単純な例（例：`x * y = z` のテスト）とは異なり、現実世界の動作、例えば入力検証、データ保存、メールなどのアクションのトリガーに焦点を当てます。テストを親しみやすく意味のあるものにするのが目標です。
+単純な例（例：`x * y = z` のテスト）とは異なり、入力の検証、データの保存、メール送信などのアクションのトリガーといった、実際の世界の動作に焦点を当てます。目標は、テストを身近で有意義なものにすることです。
 
-## 一般的なガイドライン
+## 一般的な指針
 
-1. **実装ではなく動作をテストする**：結果（例：「メール送信済み」や「レコード保存済み」）に焦点を当て、内部詳細ではなく。これにより、リファクタリングに対してテストが頑健になります。
-2. **Flight:: の使用をやめる**：Flight の静的メソッドは非常に便利ですが、テストを難しくします。`$app = Flight::app();` から `$app` 変数を使用する習慣を付けましょう。`$app` は `Flight::` と同じメソッドを持ちます。コントローラーなどで `$app->route()` や `$this->app->json()` を使用できます。また、実際の Flight ルーターを `$router = $app->router();` で使用し、`$router->get()`、`$router->post()`、`$router->group()` などを利用してください。[Routing](/learn/routing) を参照。
-3. **テストを高速に保つ**：高速なテストは頻繁な実行を促します。ユニットテストではデータベース呼び出しのような遅い操作を避けます。テストが遅い場合、それは統合テストを書いているサインで、ユニットテストではありません。統合テストは実際のデータベース、HTTP 呼び出し、メール送信などを含みます。それらは有用ですが、遅く不安定で、未知の理由で失敗することがあります。
-4. **記述的な名前を使用する**：テスト名はテストされる動作を明確に記述すべきです。これにより読みやすさと保守性が向上します。
-5. **グローバル変数を避ける**：`$app->set()` や `$app->get()` の使用を最小限にし、それらはグローバル状態として機能し、すべてのテストでモックを必要とします。DI または DI コンテナ（[Dependency Injection Container](/learn/dependency-injection-container) を参照）を優先してください。`$app->map()` メソッドの使用も技術的には「グローバル」なので、DI を優先して避けます。[flightphp/session](https://github.com/flightphp/session) のようなセッションワイブラリを使用し、テストでセッションオブジェクトをモックできるようにします。コードで [`$_SESSION`](https://www.php.net/manual/en/reserved.variables.session.php) を直接呼び出さないでください。それはグローバル変数を注入し、テストを難しくします。
-6. **依存性注入を使用する**：コントローラーに依存（例：[`PDO`](https://www.php.net/manual/en/class.pdo.php)、メーラー）を注入し、ロジックを分離してモッキングを簡素化します。依存が多すぎるクラスがある場合、[SOLID principles](https://en.wikipedia.org/wiki/SOLID) に従った単一責任の小さなクラスにリファクタリングを検討してください。
-7. **サードパーティサービスをモックする**：データベース、HTTP クライアント（cURL）、メールサービスをモックし、外部呼び出しを避けます。1 つか 2 層深くテストし、コアロジックを実行します。例えば、アプリがテキストメッセージを送信する場合、テストごとに実際のメッセージを送信したくありません（料金がかかり、遅くなります）。代わりにテキストメッセージサービスをモックし、コードが正しいパラメータでサービスを呼び出したかを検証します。
-8. **完全ではなく高いカバレッジを目指す**：100% 行カバレッジは良いですが、コードが正しくテストされていることを意味しません（[PHPUnit でのブランチ/パス カバレッジ](https://localheinz.com/articles/2023/03/22/collecting-line-branch-and-path-coverage-with-phpunit/) を調べてください）。重要な動作（例：ユーザー登録、API レスポンス、失敗レスポンスのキャプチャ）を優先します。
-9. **ルートにコントローラーを使用する**：ルート定義ではクロージャではなくコントローラーを使用します。`flight\Engine $app` はデフォルトでコンストラクタ経由ですべてのコントローラーに注入されます。テストでは `$app = new Flight\Engine();` で Flight をインスタンス化し、コントローラーに注入し、メソッドを直接呼び出します（例：`$controller->register()`）。[Extending Flight](/learn/extending) と [Routing](/learn/routing) を参照。
-10. **モッキングスタイルを選んで一貫させる**：PHPUnit は複数のモッキングスタイル（例：prophecy、内蔵モック）をサポートします。匿名クラスもコード補完やメソッド定義変更時の破損などの利点があります。テスト全体で一貫してください。[PHPUnit Mock Objects](https://docs.phpunit.de/en/12.3/test-doubles.html#test-doubles) を参照。
-11. **サブクラスでテストしたいメソッド/プロパティに `protected` 可視性を付ける**：これにより、公開せずにテストサブクラスでオーバーライドできます。これは匿名クラスモックで特に有用です。
+1. **動作をテストし、実装をテストしない**: 内部の詳細ではなく、結果（例：「メール送信」「レコード保存」）に焦点を当てます。これにより、リファクタリングに対してテストが堅牢になります。
+2. **`Flight::` の使用をやめる**: Flight の静的メソッドは非常に便利ですが、テストを困難にします。`$app = Flight::app();` から取得できる `$app` 変数を使うことに慣れてください。`$app` には `Flight::` と同じメソッドがすべてあります。コントローラ内などで `$app->route()` や `$this->app->json()` を引き続き使用できます。また、実際の Flight ルーターを `$router = $app->router()` で使い、`$router->get()`、`$router->post()`、`$router->group()` などを使用することもできます。[ルーティング](/learn/routing) を参照してください。
+3. **テストを高速に保つ**: テストが高速だと頻繁に実行できます。ユニットテストではデータベース呼び出しなどの低速な操作を避けてください。テストが遅い場合は、ユニットテストではなく統合テストを書いている可能性があります。統合テストとは、実際のデータベース、実際の HTTP 呼び出し、実際のメール送信などを行うテストです。それらには役割がありますが、遅く、不明な理由で失敗することがあるため不安定になる可能性があります。
+4. **説明的な名前を使う**: テスト名は、テスト対象の動作を明確に説明する必要があります。これにより、可読性と保守性が向上します。
+5. **グローバル変数を避ける**: `$app->set()` と `$app->get()` の使用を最小限にしてください。これらはグローバル状態のように機能し、すべてのテストでモックが必要になります。DI または DI コンテナを優先してください（[依存性注入コンテナ](/learn/dependency-injection-container) を参照）。`$app->map()` メソッドの使用も技術的には「グローバル」であり、DI を優先して避けるべきです。テストでセッションオブジェクトをモックできるように、[flightphp/session](https://github.com/flightphp/session) などのセッションライブラリを使用してください。コード内で直接 [`$_SESSION`](https://www.php.net/manual/en/reserved.variables.session.php) を呼び出さないでください。グローバル変数をコードに注入することになり、テストが困難になります。
+6. **依存性注入を使用する**: 依存関係（例：[`PDO`](https://www.php.net/manual/en/class.pdo.php)、メーラー）をコントローラに注入して、ロジックを分離し、モックを簡単にします。依存関係が多すぎるクラスがある場合は、[SOLID 原則](https://en.wikipedia.org/wiki/SOLID)に従って、それぞれが単一の責任を持つ小さなクラスにリファクタリングすることを検討してください。
+7. **サードパーティサービスをモックする**: データベース、HTTP クライアント（cURL）、メールサービスなどをモックして、外部呼び出しを避けます。1〜2層の深さをテストしますが、コアロジックは実行させてください。たとえば、アプリがテキストメッセージを送信する場合、テストを実行するたびに実際にテキストメッセージを送信したくはないはずです（コストがかさみ、遅くなるため）。代わりに、テキストメッセージサービスをモックし、コードが正しいパラメータでテキストメッセージサービスを呼び出したことを検証するだけにします。
+8. **高いカバレッジを目指すが、完璧を求めない**: 100% の行カバレッジは良いことですが、コード内のすべてが期待どおりにテストされているとは限りません（[PHPUnit での分岐・パスカバレッジ](https://localheinz.com/articles/2023/03/22/collecting-line-branch-and-path-coverage-with-phpunit/) を調べてみてください）。重要な動作（例：ユーザー登録、API レスポンス、失敗したレスポンスの取得）を優先してください。
+9. **ルートにはコントローラを使用する**: ルート定義では、クロージャではなくコントローラを使用してください。`flight\Engine $app` はデフォルトでコンストラクタを介してすべてのコントローラに注入されます。テストでは、`$app = new Flight\Engine()` を使用してテスト内で Flight をインスタンス化し、コントローラに注入して、メソッドを直接呼び出します（例：`$controller->register()`）。[Flight の拡張](/learn/extending) と [ルーティング](/learn/routing) を参照してください。
+10. **モックのスタイルを選んで一貫させる**: PHPUnit はいくつかのモックスタイル（例：prophecy、組み込みモック）をサポートしています。または、コード補完やメソッド定義を変更した場合に壊れるなどの利点がある匿名クラスを使用することもできます。テスト全体で一貫させてください。[PHPUnit モックオブジェクト](https://docs.phpunit.de/en/12.3/test-doubles.html#test-doubles) を参照してください。
+11. **サブクラスでテストしたいメソッドやプロパティには `protected` 可視性を使用する**: これにより、パブリックにせずにテスト用サブクラスでオーバーライドできます。これは特に匿名クラスモックに役立ちます。
 
 ## PHPUnit のセットアップ
 
-まず、Composer を使用して Flight PHP プロジェクトに [PHPUnit](https://phpunit.de/) をセットアップします。簡単なテストのために。[PHPUnit Getting Started guide](https://phpunit.readthedocs.io/en/12.3/installation.html) で詳細を確認してください。
+まず、Composer を使用して Flight PHP プロジェクトに [PHPUnit](https://phpunit.de/) をセットアップします。詳細は [PHPUnit 入門ガイド](https://phpunit.readthedocs.io/en/12.3/installation.html) を参照してください。
 
-1. プロジェクトディレクトリで実行：
+1. プロジェクトディレクトリで次のコマンドを実行します:
    ```bash
    composer require --dev phpunit/phpunit
    ```
-   これで最新の PHPUnit が開発依存としてインストールされます。
+   これにより、最新の PHPUnit が開発依存関係としてインストールされます。
 
-2. プロジェクトルートに `tests` ディレクトリを作成し、テストファイルを置きます。
+2. プロジェクトのルートにテストファイル用の `tests` ディレクトリを作成します。
 
-3. `composer.json` にテストスクリプトを追加して便利に：
+3. 利便性のために `composer.json` にテストスクリプトを追加します:
    ```json
-   // other composer.json content
+   // composer.json の他の内容
    "scripts": {
        "test": "phpunit --configuration phpunit.xml"
    }
    ```
 
-4. ルートに `phpunit.xml` ファイルを作成：
+4. ルートに `phpunit.xml` ファイルを作成します:
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
    <phpunit bootstrap="vendor/autoload.php">
@@ -54,11 +54,11 @@
    </phpunit>
    ```
 
-これでテストが構築されたら、`composer test` でテストを実行できます。
+これで、テストが構築されたら、`composer test` を実行してテストを実行できます。
 
-## シンプルなルートハンドラーのテスト
+## 単純なルートハンドラのテスト
 
-基本的な [ルート](/learn/routing) から始めましょう。ユーザーのメール入力を検証するものです。動作をテスト：有効なメールには成功メッセージ、無効なものにはエラーを返します。メール検証には [`filter_var`](https://www.php.net/manual/en/function.filter-var.php) を使用します。
+まず、ユーザーのメール入力を受け取る基本的な[ルート](/learn/routing)から始めましょう。その動作、つまり有効なメールには成功メッセージを返し、無効なメールにはエラーを返すことをテストします。メール検証には、[`filter_var`](https://www.php.net/manual/en/function.filter-var.php) を使用します。
 
 ```php
 // index.php
@@ -86,7 +86,7 @@ class UserController {
 }
 ```
 
-これをテストするために、テストファイルを作成します。テストの構造については [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) を参照：
+これをテストするには、テストファイルを作成します。テストの構造については、[ユニットテストと SOLID 原則](/learn/unit-testing-and-solid-principles) を参照してください:
 
 ```php
 // tests/UserControllerTest.php
@@ -99,7 +99,7 @@ class UserControllerTest extends TestCase {
     public function testValidEmailReturnsSuccess() {
 		$app = new Engine();
 		$request = $app->request();
-		$request->data->email = 'test@example.com'; // Simulate POST data
+		$request->data->email = 'test@example.com'; // POST データをシミュレート
 		$UserController = new UserController($app);
 		$UserController->register($request->data->email);
         $response = $app->response()->getBody();
@@ -111,7 +111,7 @@ class UserControllerTest extends TestCase {
     public function testInvalidEmailReturnsError() {
 		$app = new Engine();
 		$request = $app->request();
-		$request->data->email = 'invalid-email'; // Simulate POST data
+		$request->data->email = 'invalid-email'; // POST データをシミュレート
 		$UserController = new UserController($app);
 		$UserController->register($request->data->email);
 		$response = $app->response()->getBody();
@@ -122,31 +122,31 @@ class UserControllerTest extends TestCase {
 }
 ```
 
-**主なポイント**：
-- リクエストクラスを使用して POST データをシミュレートします。`$_POST`、`$_GET` などのグローバルを使用しないでください。それらはテストを複雑にし、値をリセットしないと他のテストが失敗する可能性があります。
-- すべてのコントローラーは DIC コンテナを設定せずに、デフォルトで `flight\Engine` インスタンスが注入されます。これによりコントローラーを直接テストしやすくなります。
-- `Flight::` の使用が一切なく、コードをテストしやすくします。
-- テストは動作を検証：有効/無効なメールに対する正しいステータスとメッセージ。
+**重要なポイント**:
+- リクエストクラスを使用して POST データをシミュレートします。`$_POST` や `$_GET` などのグローバルを使用しないでください。テストがより複雑になるためです（それらの値を常にリセットする必要があり、他のテストが失敗する可能性があります）。
+- デフォルトでは、すべてのコントローラに `flight\Engine` インスタンスが注入されます（DIC コンテナを設定しなくても）。これにより、コントローラを直接テストするのがはるかに簡単になります。
+- `Flight::` の使用は一切なく、コードをテストしやすくしています。
+- テストは、有効/無効なメールに対する正しいステータスとメッセージという動作を検証します。
 
-`composer test` を実行して、ルートが期待通りに動作することを確認してください。Flight の [requests](/learn/requests) と [responses](/learn/responses) については関連ドキュメントを参照。
+`composer test` を実行して、ルートが期待どおりに動作することを確認します。Flight の[リクエスト](/learn/requests)と[レスポンス](/learn/responses)の詳細については、関連ドキュメントを参照してください。
 
-## テスト可能なコントローラーへの依存性注入の使用
+## 依存性注入を使用したテスト可能なコントローラ
 
-より複雑なシナリオでは、[依存性注入](/learn/dependency-injection-container) (DI) を使用してコントローラーをテスト可能にします。Flight のグローバル（例：`Flight::set()`、`Flight::map()`、`Flight::register()`）を避け、それらはグローバル状態として機能し、すべてのテストでモックを必要とします。代わりに、Flight の DI コンテナ、[DICE](https://github.com/Level-2/Dice)、[PHP-DI](https://php-di.org/)、または手動 DI を使用します。
+より複雑なシナリオでは、[依存性注入](/learn/dependency-injection-container)（DI）を使用してコントローラをテスト可能にします。Flight のグローバル（例：`Flight::set()`、`Flight::map()`、`Flight::register()`）は、グローバル状態のように機能し、すべてのテストでモックが必要になるため避けてください。代わりに、Flight の DI コンテナ、[DICE](https://github.com/Level-2/Dice)、[PHP-DI](https://php-di.org/)、または手動 DI を使用してください。
 
-生の PDO の代わりに [`flight\database\PdoWrapper`](/learn/pdo-wrapper) を使用しましょう。このラッパーはモックとユニットテストがはるかに簡単です！
+生の PDO の代わりに [`flight\database\SimplePdo`](/learn/simple-pdo) を使用しましょう。このヘルパーはモックやユニットテストがはるかに簡単です（そして非推奨の `PdoWrapper` よりも推奨されます）。
 
-データベースにユーザーを保存し、ウェルカムメールを送信するコントローラー：
+ユーザーをデータベースに保存し、ウェルカムメールを送信するコントローラは次のとおりです:
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
     protected $db;
     protected $mailer;
 
-    public function __construct(Engine $app, PdoWrapper $db, MailerInterface $mailer) {
+    public function __construct(Engine $app, SimplePdo $db, MailerInterface $mailer) {
         $this->app = $app;
         $this->db = $db;
         $this->mailer = $mailer;
@@ -155,7 +155,7 @@ class UserController {
     public function register() {
 		$email = $this->app->request()->data->email;
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			// adding the return here helps unit testing to stop execution
+			// return を置くことで、ユニットテストの実行を停止するのに役立ちます
 			return $this->app->jsonHalt(['status' => 'error', 'message' => 'Invalid email']);
 		}
 
@@ -167,34 +167,35 @@ class UserController {
 }
 ```
 
-**主なポイント**：
-- コントローラーは [`PdoWrapper`](/learn/pdo-wrapper) インスタンスと `MailerInterface` （架空のサードパーティメールサービス）に依存します。
-- 依存はコンストラクタ経由で注入され、グローバルを使用しません。
+**重要なポイント**:
+- コントローラは、[`SimplePdo`](/learn/simple-pdo) インスタンスと `MailerInterface`（想定上のサードパーティメールサービス）に依存します。
+- 依存関係はコンストラクタを介して注入され、グローバルを避けます。
 
-### モックを使用したコントローラーのテスト
+### モックを使ったコントローラのテスト
 
-次に、`UserController` の動作をテスト：メール検証、データベース保存、メール送信。コントローラーを分離するためにデータベースとメーラーをモックします。
+次に、`UserController` の動作をテストしましょう。メールの検証、データベースへの保存、メールの送信です。コントローラを分離するために、データベースとメーラーをモックします。
 
 ```php
 // tests/UserControllerDICTest.php
+use flight\database\SimplePdo;
 use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
 
-		// Sometimes mixing mocking styles is necessary
-		// Here we use PHPUnit's built-in mock for PDOStatement
+		// モックスタイルを混在させなければならない場合があります
+		// ここでは PHPUnit の組み込みモックを PDOStatement に使用します
 		$statementMock = $this->createMock(PDOStatement::class);
 		$statementMock->method('execute')->willReturn(true);
-		// Using an anonymous class to mock PdoWrapper
-        $mockDb = new class($statementMock) extends PdoWrapper {
+		// SimplePdo をモックするための匿名クラスを使用
+        $mockDb = new class($statementMock) extends SimplePdo {
 			protected $statementMock;
 			public function __construct($statementMock) {
 				$this->statementMock = $statementMock;
 			}
 
-			// When we mock it this way, we are not really making a database call.
-			// We can further setup this to alter the PDOStatement mock to simulate failures, etc.
+			// この方法でモックすると、実際のデータベース呼び出しは行われません。
+			// さらに、これを設定して PDOStatement モックを変更し、障害などをシミュレートすることもできます。
             public function runQuery(string $sql, array $params = []): PDOStatement {
                 return $this->statementMock;
             }
@@ -218,8 +219,8 @@ class UserControllerDICTest extends TestCase {
     }
 
     public function testInvalidEmailSkipsSaveAndEmail() {
-		 $mockDb = new class() extends PdoWrapper {
-			// An empty constructor bypasses the parent constructor
+		 $mockDb = new class() extends SimplePdo {
+			// 空のコンストラクタは親コンストラクタをバイパスします
 			public function __construct() {}
             public function runQuery(string $sql, array $params = []): PDOStatement {
                 throw new Exception('Should not be called');
@@ -234,7 +235,7 @@ class UserControllerDICTest extends TestCase {
 		$app = new Engine();
 		$app->request()->data->email = 'invalid-email';
 
-		// Need to map jsonHalt to avoid exiting
+		// 終了を避けるために jsonHalt をマップする必要があります
 		$app->map('jsonHalt', function($data) use ($app) {
 			$app->json($data, 400);
 		});
@@ -248,17 +249,17 @@ class UserControllerDICTest extends TestCase {
 }
 ```
 
-**主なポイント**：
-- `PdoWrapper` と `MailerInterface` をモックして、実際のデータベースやメール呼び出しを避けます。
-- テストは動作を検証：有効なメールはデータベース挿入とメール送信をトリガー、無効なメールは両方をスキップ。
-- サードパーティ依存（例：`PdoWrapper`、`MailerInterface`）をモックし、コントローラーのロジックを実行します。
+**重要なポイント**:
+- `SimplePdo` と `MailerInterface` をモックして、実際のデータベースやメール呼び出しを避けます。
+- テストは動作を検証します。有効なメールはデータベース挿入とメール送信をトリガーし、無効なメールは両方をスキップします。
+- サードパーティの依存関係（例：`SimplePdo`、`MailerInterface`）をモックし、コントローラのロジックを実行させます。
 
-### 過度なモッキング
+### モックしすぎる
 
-コードを過度にモックしないように注意してください。以下に、`UserController` を使用した例を示します。これが悪い理由です。チェックを `isEmailValid` メソッド（`filter_var` を使用）に変更し、他の新しい追加を `registerUser` という別メソッドにします。
+コードをモックしすぎないように注意してください。私たちの `UserController` を使って、これがなぜ良くないのかの例を以下に示します。そのチェックを `isEmailValid`（`filter_var` を使用）というメソッドに変更し、他の新しい追加を `registerUser` という別のメソッドに変更します。
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 use flight\Engine;
 
 // UserControllerDICV2.php
@@ -267,7 +268,7 @@ class UserControllerDICV2 {
     protected $db;
     protected $mailer;
 
-    public function __construct(Engine $app, PdoWrapper $db, MailerInterface $mailer) {
+    public function __construct(Engine $app, SimplePdo $db, MailerInterface $mailer) {
         $this->app = $app;
         $this->db = $db;
         $this->mailer = $mailer;
@@ -276,7 +277,7 @@ class UserControllerDICV2 {
     public function register() {
 		$email = $this->app->request()->data->email;
 		if (!$this->isEmailValid($email)) {
-			// adding the return here helps unit testing to stop execution
+			// return を置くことで、ユニットテストの実行を停止するのに役立ちます
 			return $this->app->jsonHalt(['status' => 'error', 'message' => 'Invalid email']);
 		}
 
@@ -296,7 +297,7 @@ class UserControllerDICV2 {
 }
 ```
 
-そして、何も実際にはテストしない過度にモックされたユニットテスト：
+そして今度は、実際には何もテストしていない過剰にモックされたユニットテストです:
 
 ```php
 use PHPUnit\Framework\TestCase;
@@ -305,20 +306,20 @@ class UserControllerTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
 		$app = new Engine();
 		$app->request()->data->email = 'test@example.com';
-		// we are skipping the extra dependency injection here cause it's "easy"
+		// ここでは「簡単」だからという理由で追加の依存性注入を省略しています
         $controller = new class($app) extends UserControllerDICV2 {
 			protected $app;
-			// Bypass the deps in the construct
+			// コンストラクタの依存関係をバイパス
 			public function __construct($app) {
 				$this->app = $app;
 			}
 
-			// We'll just force this to be valid.
+			// これを強制的に有効にします。
 			protected function isEmailValid($email) {
-				return true; // Always return true, bypassing real validation
+				return true; // 常に true を返し、実際の検証をバイパス
 			}
 
-			// Bypass the actual DB and mailer calls
+			// 実際の DB とメーラーの呼び出しをバイパス
 			protected function registerUser($email) {
 				return false;
 			}
@@ -332,41 +333,40 @@ class UserControllerTest extends TestCase {
 }
 ```
 
-おめでとう、ユニットテストがあり、パスしています！しかし、`isEmailValid` や `registerUser` の内部動作を変更したらどうなるでしょうか？テストはすべての機能性をモックしたため、まだパスします。それが何を意味するかを示します。
+やった、ユニットテストがあって、それらはパスしています！でも待ってください。`isEmailValid` や `registerUser` の内部動作を実際に変更したらどうなるでしょうか？すべての機能をモックしてしまったので、テストはまだパスします。どういうことかお見せしましょう。
 
 ```php
 // UserControllerDICV2.php
 class UserControllerDICV2 {
 
-	// ... other methods ...
+	// ... 他のメソッド ...
 
 	protected function isEmailValid($email) {
-		// Changed logic
+		// 変更されたロジック
 		$validEmail = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
-		// Now it should only have a specific domain
+		// これで特定のドメインのみ許可されるようになりました
 		$validDomain = strpos($email, '@example.com') !== false; 
 		return $validEmail && $validDomain;
 	}
 }
 ```
 
-上記のユニットテストを実行しても、まだパスします！しかし、動作をテストしていなかった（コードの一部を実行させなかった）ため、本番でバグが発生する可能性があります。テストは新しい動作を考慮して修正し、期待しない動作の反対も含めるべきです。
+上記のユニットテストを実行すると、それでもパスします！しかし、動作をテストしていなかった（コードの一部を実際に実行させていなかった）ため、本番環境で発生するバグをコードに埋め込んだ可能性があります。テストは新しい動作を考慮して修正する必要があり、また動作が期待どおりでない場合の逆のケースも考慮する必要があります。
 
 ## 完全な例
 
-Flight PHP プロジェクトのユニットテストの完全な例は GitHub で見つかります：[n0nag0n/flight-unit-tests-guide](https://github.com/n0nag0n/flight-unit-tests-guide)。
-より深い理解のために、[Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) を参照。
+ユニットテストを含む Flight PHP プロジェクトの完全な例は、GitHub にあります: [n0nag0n/flight-unit-tests-guide](https://github.com/n0nag0n/flight-unit-tests-guide)。より深く理解するには、[ユニットテストと SOLID 原則](/learn/unit-testing-and-solid-principles) を参照してください。
 
-## 一般的な落とし穴
+## よくある落とし穴
 
-- **過度なモッキング**：すべての依存をモックせず、一部のロジック（例：コントローラー検証）を実行して実際の動作をテストします。[Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) を参照。
-- **グローバル状態**：グローバル PHP 変数（例：[`$_SESSION`](https://www.php.net/manual/en/reserved.variables.session.php)、[`$_COOKIE`](https://www.php.net/manual/en/reserved.variables.cookie.php)）の多用はテストを脆弱にします。`Flight::` も同様です。依存を明示的に渡すようリファクタリング。
-- **複雑なセットアップ**：テストセットアップが面倒な場合、クラスが [SOLID principles](/learn/unit-testing-and-solid-principles) に違反して依存や責任が多すぎる可能性があります。
+- **過剰なモック**: すべての依存関係をモックしないでください。実際の動作をテストするために、一部のロジック（例：コントローラの検証）は実行させてください。[ユニットテストと SOLID 原則](/learn/unit-testing-and-solid-principles) を参照してください。
+- **グローバル状態**: PHP のグローバル変数（例：[`$_SESSION`](https://www.php.net/manual/en/reserved.variables.session.php)、[`$_COOKIE`](https://www.php.net/manual/en/reserved.variables.cookie.php)）を多用すると、テストが壊れやすくなります。`Flight::` も同様です。依存関係を明示的に渡すようにリファクタリングしてください。
+- **複雑なセットアップ**: テストのセットアップが面倒な場合、クラスに依存関係や責任が多すぎて、[SOLID 原則](/learn/unit-testing-and-solid-principles)に違反している可能性があります。
 
-## ユニットテストによるスケーリング
+## ユニットテストのスケーリング
 
-ユニットテストは大規模プロジェクトや数ヶ月後のコード再訪で輝きます。動作を文書化し、回帰を検出してアプリの再学習を防ぎます。ソロ開発者には重要なパス（例：ユーザー登録、支払い処理）をテスト。チームには貢献間の動作の一貫性を確保。フレームワークとテストの利点については [Why Frameworks?](/learn/why-frameworks) を参照。
+ユニットテストは、大規模なプロジェクトや数か月後にコードを再訪する際に力を発揮します。動作を文書化し、リグレッションを検出して、アプリを再学習する手間を省きます。個人開発者の場合は、重要なパス（例：ユーザー登録、支払い処理）をテストしてください。チームの場合は、テストによって貢献全体で一貫した動作が保証されます。フレームワークとテストを使用する利点の詳細については、[フレームワークを使う理由は？](/learn/why-frameworks) を参照してください。
 
-Flight PHP ドキュメントリポジトリに自分のテストのヒントを貢献してください！
+Flight PHP ドキュメントリポジトリにあなた自身のテストのヒントを貢献してください！
 
-_Written by [n0nag0n](https://github.com/n0nag0n) 2025_
+_執筆: [n0nag0n](https://github.com/n0nag0n) 2025_

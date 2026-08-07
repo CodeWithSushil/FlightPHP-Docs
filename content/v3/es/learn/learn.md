@@ -1,106 +1,106 @@
-# Aprende Sobre Flight
+# Aprende sobre Flight
 
-Flight es un framework rápido, simple y extensible para PHP. Es bastante versátil y se puede usar para construir cualquier tipo de aplicación web. 
-Está construido con la simplicidad en mente y está escrito de una manera que es fácil de entender y usar.
+Flight es un framework para PHP rápido, simple y extensible. Es bastante versátil y puede usarse para construir cualquier tipo de aplicación web.
+Está creado pensando en la simplicidad y está escrito de una manera fácil de entender y usar, tanto por humanos como por [asistentes de codificación con IA](/learn/ai).
 
-> **Nota:** Verás ejemplos que usan `Flight::` como una variable estática y algunos que usan el objeto Engine `$app->`. Ambos funcionan de manera intercambiable con el otro. `$app` y `$this->app` en un controlador/intermediario es el enfoque recomendado por el equipo de Flight.
+> **Nota:** Verás ejemplos que usan `Flight::` como variable estática y otros que usan el objeto Engine `$app->`. Ambos funcionan de manera intercambiable. `$app` y `$this->app` en un controlador/middleware es el enfoque recomendado por el equipo de Flight (y lo que el esqueleto oficial y `AGENTS.md` estandarizan para proyectos nuevos).
 
-## Componentes Principales
+## Componentes principales
 
-### [Routing](/learn/routing)
+### [Enrutamiento](/learn/routing)
 
-Aprende cómo gestionar rutas para tu aplicación web. Esto también incluye agrupar rutas, parámetros de ruta e intermediarios.
+Aprende cómo gestionar las rutas de tu aplicación web. Esto también incluye agrupación de rutas, parámetros de ruta y middleware.
 
 ### [Middleware](/learn/middleware)
 
-Aprende cómo usar intermediarios para filtrar solicitudes y respuestas en tu aplicación.
+Aprende cómo usar middleware para filtrar solicitudes y respuestas en tu aplicación.
 
-### [Autoloading](/learn/autoloading)
+### [Autocarga](/learn/autoloading)
 
-Aprende cómo cargar automáticamente tus propias clases en tu aplicación.
+Aprende cómo autocargar tus propias clases. La **capitalización** de las carpetas debe coincidir con tus espacios de nombres; el esqueleto usa `App\` y carpetas en PascalCase como `app/Controller/`.
 
-### [Requests](/learn/requests)
+### [Peticiones](/learn/requests)
 
 Aprende cómo manejar solicitudes y respuestas en tu aplicación.
 
-### [Responses](/learn/responses)
+### [Respuestas](/learn/responses)
 
 Aprende cómo enviar respuestas a tus usuarios.
 
-### [HTML Templates](/learn/templates)
+### [Plantillas HTML](/learn/templates)
 
-Aprende cómo usar el motor de vistas integrado para renderizar tus plantillas HTML.
+Aprende cómo renderizar HTML con Twig (predeterminado del esqueleto), Latte u otros motores, no solo las vistas PHP integradas.
 
-### [Security](/learn/security)
+### [Seguridad](/learn/security)
 
-Aprende cómo asegurar tu aplicación contra amenazas de seguridad comunes.
+Aprende cómo proteger tu aplicación de amenazas de seguridad comunes.
 
-### [Configuration](/learn/configuration)
+### [Configuración](/learn/configuration)
 
 Aprende cómo configurar el framework para tu aplicación.
 
-### [Event Manager](/learn/events)
+### [Administrador de eventos](/learn/events)
 
 Aprende cómo usar el sistema de eventos para agregar eventos personalizados a tu aplicación.
 
-### [Extending Flight](/learn/extending)
+### [Extender Flight](/learn/extending)
 
 Aprende cómo extender el framework agregando tus propios métodos y clases.
 
-### [Method Hooks and Filtering](/learn/filtering)
+### [Hooks de métodos y filtrado](/learn/filtering)
 
-Aprende cómo agregar ganchos de eventos a tus métodos y métodos internos del framework.
+Aprende cómo agregar hooks de eventos a tus métodos y a los métodos internos del framework.
 
-### [Dependency Injection Container (DIC)](/learn/dependency-injection-container)
+### [Contenedor de inyección de dependencias (DIC)](/learn/dependency-injection-container)
 
 Aprende cómo usar contenedores de inyección de dependencias (DIC) para gestionar las dependencias de tu aplicación.
 
-## Clases de Utilidad
+## Clases de utilidad
 
 ### [Collections](/learn/collections)
 
-Las colecciones se usan para mantener datos y ser accesibles como un array o como un objeto para facilitar su uso.
+Las colecciones se usan para almacenar datos y permitir acceder a ellos como un array o como un objeto para facilitar su uso.
 
 ### [JSON Wrapper](/learn/json)
 
-Esto tiene unas pocas funciones simples para hacer que la codificación y decodificación de tu JSON sea consistente.
+Tiene algunas funciones simples para que la codificación y decodificación de tu JSON sea consistente.
 
 ### [SimplePdo](/learn/simple-pdo)
 
-PDO a veces puede agregar más dolores de cabeza de los necesarios. SimplePdo es una clase auxiliar moderna para PDO con métodos convenientes como `insert()`, `update()`, `delete()` y `transaction()` para hacer las operaciones de base de datos mucho más fáciles.
+PDO a veces puede causar más dolores de cabeza de lo necesario. SimplePdo es una clase auxiliar moderna de PDO con métodos convenientes como `insert()`, `update()`, `delete()` y `transaction()` para facilitar las operaciones de base de datos.
 
-### [PdoWrapper](/learn/pdo-wrapper) (Deprecated)
+### [PdoWrapper](/learn/pdo-wrapper) (Obsoleto)
 
-El envoltorio original de PDO está obsoleto a partir de v3.18.0. Por favor, usa [SimplePdo](/learn/simple-pdo) en su lugar.
+El wrapper original de PDO está obsoleto a partir de la versión v3.18.0. Por favor, usa [SimplePdo](/learn/simple-pdo) en su lugar.
 
-### [Uploaded File Handler](/learn/uploaded-file)
+### [Manejador de archivos subidos](/learn/uploaded-file)
 
 Una clase simple para ayudar a gestionar archivos subidos y moverlos a una ubicación permanente.
 
-## Conceptos Importantes
+## Conceptos importantes
 
-### [Why a Framework?](/learn/why-frameworks)
+### [¿Por qué un framework?](/learn/why-frameworks)
 
-Aquí hay un artículo corto sobre por qué deberías usar un framework. Es una buena idea entender los beneficios de usar un framework antes de comenzar a usarlo.
+Aquí hay un artículo corto sobre por qué deberías usar un framework. Es buena idea entender los beneficios de usar un framework antes de empezar a usar uno.
 
-Además, se ha creado un excelente tutorial por [@lubiana](https://git.php.fail/lubiana). Aunque no entra en gran detalle sobre Flight específicamente, 
-esta guía te ayudará a entender algunos de los conceptos principales que rodean a un framework y por qué son beneficiosos de usar. 
+Además, un excelente tutorial ha sido creado por [@lubiana](https://git.php.fail/lubiana). Aunque no entra en gran detalle sobre Flight específicamente,
+esta guía te ayudará a entender algunos de los conceptos principales que rodean a un framework y por qué son beneficiosos de usar.
 Puedes encontrar el tutorial [aquí](https://git.php.fail/lubiana/no-framework-tutorial/src/branch/master/README.md).
 
-### [Flight Compared to Other Frameworks](/learn/flight-vs-another-framework)
+### [Flight comparado con otros frameworks](/learn/flight-vs-another-framework)
 
-Si estás migrando desde otro framework como Laravel, Slim, Fat-Free o Symfony a Flight, esta página te ayudará a entender las diferencias entre los dos.
+Si estás migrando desde otro framework como Laravel, Slim, Fat-Free o Symfony a Flight, esta página te ayudará a entender las diferencias entre ambos.
 
-## Otros Temas
+## Otros temas
 
-### [Unit Testing](/learn/unit-testing)
+### [Pruebas unitarias](/learn/unit-testing)
 
-Sigue esta guía para aprender cómo probar unidades tu código de Flight para que sea sólido como una roca.
+Sigue esta guía para aprender cómo probar unitariamente tu código de Flight para que sea sólido como una roca.
 
-### [AI & Developer Experience](/learn/ai)
+### [IA y experiencia de desarrollo](/learn/ai)
 
-Aprende cómo Flight funciona con herramientas de IA y flujos de trabajo modernos de desarrolladores para ayudarte a codificar más rápido y de manera más inteligente.
+Flight está diseñado para combinarse con LLMs de codificación: `AGENTS.md`, comandos `ai:*` de Runway y un diseño de esqueleto claro para que los agentes mantengan el patrón.
 
-### [Migrating v2 -> v3](/learn/migrating-to-v3)
+### [Migración de v2 a v3](/learn/migrating-to-v3)
 
-La compatibilidad hacia atrás se ha mantenido en su mayor parte, pero hay algunos cambios de los que debes estar al tanto al migrar de v2 a v3.
+La compatibilidad hacia atrás se ha mantenido en su mayor parte, pero hay algunos cambios que debes tener en cuenta al migrar de v2 a v3.

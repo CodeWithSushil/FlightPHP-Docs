@@ -1,42 +1,42 @@
-# Flight vs Fat-Free
+# FlightとFat-Freeの比較
 
-## Fat-Free とは？
-[Fat-Free](https://fatfreeframework.com)（愛情を込めて **F3** と呼ばれる）は、動的で堅牢なウェブアプリケーションを迅速に構築するための強力で使いやすい PHP マイクロフレームワークです。
+## Fat-Freeとは？
+[Fat-Free](https://fatfreeframework.com)（通称 **F3**）は、動的で堅牢なWebアプリケーションを迅速に構築するために設計された、強力でありながら使いやすいPHPマイクロフレームワークです。
 
-Flight は Fat-Free と多くの点で比較でき、機能とシンプルさの点で最も近い親戚です。Fat-Free には Flight にない機能がたくさんありますが、Flight にもある機能もたくさんあります。Fat-Free は古さを見せ始め、かつてほど人気はありません。
+Flightは、多くの点でFat-Freeと比較でき、おそらく機能とシンプルさの面で最も近い親戚です。Fat-FreeにはFlightにはない機能が多くありますが、Flightにある機能も多く持っています。Fat-Freeは時代を感じさせ始めており、かつてほど人気はありません。
 
-更新は徐々に少なくなり、コミュニティもかつてほど活発ではありません。コードは十分にシンプルですが、文法の規律の欠如が読みにくく理解しにくくすることがあります。PHP 8.3 で動作しますが、コード自体はまだ PHP 5.3 に住んでいるように見えます。
+アップデートの頻度は減り、コミュニティも以前ほど活発ではありません。コード自体はシンプルですが、構文の規律に欠けるため、読み解くのが難しいこともあります。PHP 8.3では動作しますが、コード自体はまだPHP 5.3時代のものに見えます。
 
-## Flight との Pros
+## Flightと比較した場合の利点
 
-- Fat-Free は GitHub で Flight より少し多くのスターを持っています。
-- Fat-Free にはまともなドキュメントがありますが、一部の領域で明確さに欠けます。
-- Fat-Free には YouTube チュートリアルやオンライン記事などのまばらなリソースがあり、フレームワークを学ぶのに使えます。
-- Fat-Free には [いくつかの役立つプラグイン](https://fatfreeframework.com/3.8/api-reference) が組み込まれており、時には役立ちます。
-- Fat-Free にはデータベースとやり取りするための組み込み ORM である Mapper があります。Flight には [active-record](/awesome-plugins/active-record) があります。
-- Fat-Free には Sessions、Caching、localization が組み込まれています。Flight ではサードパーティライブラリを使用する必要がありますが、[ドキュメント](/awesome-plugins) でカバーされています。
-- Fat-Free にはフレームワークを拡張するための [コミュニティ作成のプラグイン](https://fatfreeframework.com/3.8/development#Community) の小さなグループがあります。Flight には [ドキュメント](/awesome-plugins) および [examples](/examples) ページでカバーされているものがあります。
-- Fat-Free は Flight と同じく依存関係がありません。
-- Fat-Free は Flight と同じく、開発者にアプリケーションの制御とシンプルな開発体験を与えることを目指しています。
-- Fat-Free は Flight と同じく後方互換性を維持しています（部分的に更新が [少なく](https://github.com/bcosca/fatfree/releases) なっているため）。
-- Fat-Free は Flight と同じく、フレームワークの世界に初めて足を踏み入れる開発者向けです。
-- Fat-Free には Flight のテンプレートエンジンより堅牢な組み込みテンプレートエンジンがあります。Flight ではこれを達成するために [Latte](/awesome-plugins/latte) を推奨します。
-- Fat-Free にはユニークな CLI タイプの "route" コマンドがあり、Fat-Free 内で CLI アプリを構築でき、`GET` リクエストのように扱えます。Flight では [runway](/awesome-plugins/runway) でこれを実現します。
+- Fat-FreeはGitHubでFlightよりも少し多くのスターを獲得しています。
+- Fat-Freeにはそれなりのドキュメントがありますが、明確さに欠ける部分がいくつかあります。
+- Fat-Freeには、フレームワークを学ぶために利用できるYouTubeチュートリアルやオンライン記事などの資料がいくつかあります。
+- Fat-Freeには、役立つことがある[プラグイン](https://fatfreeframework.com/3.8/api-reference)が組み込まれています。
+- Fat-Freeには、データベースと対話するために使用できるMapperと呼ばれるORMが組み込まれています。Flightには[active-record](/awesome-plugins/active-record)があります。
+- Fat-Freeには、セッション、キャッシュ、ローカライゼーションが組み込まれています。Flightではサードパーティライブラリが必要ですが、[ドキュメント](/awesome-plugins)でカバーされています。
+- Fat-Freeには、フレームワークを拡張するために使用できる[コミュニティ作成プラグイン](https://fatfreeframework.com/3.8/development#Community)の小さなグループがあります。Flightには[ドキュメント](/awesome-plugins)と[例](/examples)のページでカバーされているものがあります。
+- Fat-FreeはFlightと同様に依存関係がありません。
+- Fat-FreeはFlightと同様に、開発者にアプリケーションの制御を委ね、シンプルな開発者体験を提供することに重点を置いています。
+- Fat-FreeはFlightと同様に後方互換性を維持しています（部分的にはアップデートが[頻度が減っている](https://github.com/bcosca/fatfree/releases)ためです）。
+- Fat-FreeはFlightと同様に、初めてフレームワークの世界に足を踏み入れる開発者を対象としています。
+- Fat-Freeには、Flightのテンプレートエンジンよりも堅牢な組み込みテンプレートエンジンがあります。Flightではこれを実現するために[Latte](/awesome-plugins/latte)を推奨しています。
+- Fat-Freeには独自のCLIタイプの「ルート」コマンドがあり、Fat-Free自体の中でCLIアプリケーションを構築し、それを`GET`リクエストのように扱うことができます。Flightはこれを[runway](/awesome-plugins/runway)で実現しています。
 
-## Flight との Cons
+## Flightと比較した場合の欠点
 
-- Fat-Free にはいくつかの実装テストがあり、独自の [test](https://fatfreeframework.com/3.8/test) クラスもありますが、それは非常に基本的なものです。しかし、
-  Flight のように 100% ユニットテストされていません。 
-- ドキュメントサイトを実際に検索するには Google などの検索エンジンを使用する必要があります。
-- Flight のドキュメントサイトにはダークモードがあります。（mic drop）
-- Fat-Free にはひどくメンテナンスされていないモジュールがいくつかあります。
-- Flight には [PdoWrapper](/learn/pdo-wrapper) があり、Fat-Free の組み込み `DB\SQL` クラスより少しシンプルです。
-- Flight にはアプリケーションをセキュアにするための [permissions plugin](/awesome-plugins/permissions) があります。Fat Free ではサードパーティライブラリを使用する必要があります。
-- Flight には [active-record](/awesome-plugins/active-record) という ORM があり、Fat-Free の Mapper より ORM のように感じます。
-  `active-record` の追加の利点は、レコード間の関係を定義して自動ジョインが可能で、Fat-Free の Mapper では [SQL views](https://fatfreeframework.com/3.8/databases#ProsandCons) を作成する必要があります。
-- 驚くべきことに、Fat-Free にはルート名前空間がありません。Flight は自分のコードと衝突しないようにすべて名前空間化されています。
-  `Cache` クラスがここで最大の違反者です。
-- Fat-Free にはミドルウェアがありません。代わりに、コントローラーでリクエストとレスポンスをフィルタリングするための `beforeroute` と `afterroute` フックがあります。
-- Fat-Free はルートをグループ化できません。
-- Fat-Free には依存性注入コンテナハンドラーがありますが、使い方のドキュメントは非常にまばらです。
-- デバッグは少しトリッキーになることがあり、基本的にすべてが [`HIVE`](https://fatfreeframework.com/3.8/quick-reference) と呼ばれるものに保存されているためです。
+- Fat-Freeにはいくつかの実装テストがあり、非常に基本的な独自の[テスト](https://fatfreeframework.com/3.8/test)クラスもあります。しかし、Flightのように100%ユニットテストされているわけではありません。
+- ドキュメントサイトを実際に検索するには、Googleなどの検索エンジンを使う必要があります。
+- Flightのドキュメントサイトにはダークモードがあります。（マイクドロップ）
+- Fat-Freeには、残念ながらメンテナンスされていないモジュールがいくつかあります。
+- Flightにはデータベースアクセスのための[SimplePdo](/learn/simple-pdo)があり、Fat-Freeの組み込み`DB\SQL`クラスよりも少しシンプルです（そして非推奨のPdoWrapperよりも推奨されます）。
+- Flightには、アプリケーションを保護するために使用できる[権限プラグイン](/awesome-plugins/permissions)があります。Fat-Freeではサードパーティライブラリを使用する必要があります。
+- Flightには[active-record](/awesome-plugins/active-record)と呼ばれるORMがあり、Fat-FreeのMapperよりもORMらしく感じられます。
+  `active-record`の追加の利点は、レコード間のリレーションシップを定義して自動的に結合できることです。一方、Fat-FreeのMapperでは
+  [SQLビュー](https://fatfreeframework.com/3.8/databases#ProsandCons)を作成する必要があります。
+- 驚くべきことに、Fat-Freeにはルート名前空間がありません。Flightは独自のコードと衝突しないように、完全に名前空間が設定されています。
+  ここで最大の問題は`Cache`クラスです。
+- Fat-Freeにはミドルウェアがありません。代わりに、コントローラーでリクエストとレスポンスをフィルタリングするために使用できる`beforeroute`と`afterroute`フックがあります。
+- Fat-Freeはルートをグループ化できません。
+- Fat-Freeには依存性注入コンテナのハンドラーがありますが、その使用方法に関するドキュメントは非常に乏しいです。
+- 基本的にすべてが[`HIVE`](https://fatfreeframework.com/3.8/quick-reference)と呼ばれるものに格納されるため、デバッグが少し難しくなることがあります。

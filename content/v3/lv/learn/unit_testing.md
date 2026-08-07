@@ -1,20 +1,20 @@
-# Vienības testēšana
+# Vienību testēšana
 
 ## Pārskats
 
-Vienības testēšana Flight palīdz nodrošināt, ka jūsu lietojumprogramma darbojas kā paredzēts, agrīnā stadijā uztver kļūdas un padara jūsu koda bāzi vieglāk uzturamu. Flight ir izstrādāts, lai gludi darbotos ar [PHPUnit](https://phpunit.de/), populārāko PHP testēšanas ietvaru.
+Vienību testēšana Flight lietotnē palīdz nodrošināt, ka jūsu lietotne darbojas, kā paredzēts, agri atklāt kļūdas un padarīt koda bāzi vieglāk uzturējamu. Flight ir izstrādāts, lai nevainojami sadarbotos ar [PHPUnit](https://phpunit.de/), kas ir populārākais PHP testēšanas ietvars.
 
-## Saprašana
+## Izpratne
 
-Vienības testi pārbauda jūsu lietojumprogrammas mazo daļu uzvedību (piemēram, kontrolierus vai servisus) izolēti. Flight tas nozīmē testēšanu, kā jūsu maršruti, kontrolieri un loģika reaģē uz dažādām ievadēm — bez paļaušanās uz globālo stāvokli vai reāliem ārējiem servisiem.
+Vienību testi pārbauda atsevišķu jūsu lietotnes daļu (piemēram, kontrolleru vai pakalpojumu) uzvedību izolēti. Flight kontekstā tas nozīmē pārbaudīt, kā jūsu maršruti, kontrolleri un loģika reaģē uz dažādiem ievaddatiem, nepaļaujoties uz globālo stāvokli vai reāliem ārējiem pakalpojumiem.
 
 Galvenie principi:
-- **Testējiet uzvedību, nevis ieviešanu:** Koncentrējieties uz to, ko jūsu kods dara, nevis kā tas to dara.
-- **Izvairieties no globālā stāvokļa:** Izmantojiet atkarību injekciju vietā `Flight::set()` vai `Flight::get()`.
-- **Mock ārējos servisus:** Aizstājiet tādas lietas kā datubāzes vai pasta sūtītājus ar testa dubultiem.
-- **Turiet testus ātrus un fokusētus:** Vienības testi nedrīkst pieskarties reālām datubāzēm vai API.
+- **Testējiet uzvedību, nevis ieviešanu:** Koncentrējieties uz to, ko jūsu kods dara, nevis to, kā tas to dara.
+- **Izvairieties no globālā stāvokļa:** Izmantojiet atkarību injekciju, nevis `Flight::set()` vai `Flight::get()`.
+- **Mockojiet ārējos pakalpojumus:** Aizstājiet tādas lietas kā datu bāzes vai e-pasta sūtītājus ar testa aizstājējiem.
+- **Saglabājiet testus ātrus un fokusētus:** Vienību testiem nevajadzētu pieskarties reālām datu bāzēm vai API.
 
-## Pamata izmantošana
+## Pamata lietošana
 
 ### PHPUnit iestatīšana
 
@@ -22,8 +22,8 @@ Galvenie principi:
    ```bash
    composer require --dev phpunit/phpunit
    ```
-2. Izveidojiet `tests` direktoriju jūsu projekta saknes mapē.
-3. Pievienojiet testa skriptu jūsu `composer.json`:
+2. Izveidojiet `tests` direktoriju jūsu projekta saknē.
+3. Pievienojiet testa skriptu savam `composer.json`:
    ```json
    "scripts": {
        "test": "phpunit --configuration phpunit.xml"
@@ -41,11 +41,11 @@ Galvenie principi:
    </phpunit>
    ```
 
-Tagad jūs varat palaist savus testus ar `composer test`.
+Tagad varat palaist savus testus ar `composer test`.
 
 ### Vienkārša maršruta apstrādātāja testēšana
 
-Pieņemsim, ka jums ir maršruts, kas validē e-pastu:
+Pieņemsim, ka jums ir maršruts, kas validē e-pasta adresi:
 
 ```php
 // index.php
@@ -67,7 +67,7 @@ class UserController {
 }
 ```
 
-Vienkāršs tests šim kontrolierim:
+Vienkāršs tests šim kontrollerim:
 
 ```php
 use PHPUnit\Framework\TestCase;
@@ -99,15 +99,15 @@ class UserControllerTest extends TestCase {
 ```
 
 **Padomi:**
-- Simulējiet POST datus, izmantojot `$app->request()->data`.
-- Izvairieties no `Flight::` statiskām metodēm savos testos — izmantojiet `$app` экземпlāru.
+- Imitējiet POST datus, izmantojot `$app->request()->data`.
+- Izvairieties izmantot `Flight::` statiskos elementus savos testos — izmantojiet `$app` instanci.
 
-### Atkarību injekcijas izmantošana testējamu kontrolieru gadījumā
+### Atkarību injekcijas izmantošana testējamiem kontrolleriem
 
-Injicējiet atkarības (piemēram, datubāzi vai pasta sūtītāju) savos kontrolieros, lai tos būtu viegli mock testos:
+Ievadiet atkarības (piemēram, datu bāzi vai e-pasta sūtītāju) savos kontrolleros, lai tos būtu viegli mockot testos:
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
@@ -130,14 +130,14 @@ class UserController {
 }
 ```
 
-Un tests ar mock:
+Un tests ar mock objektiem:
 
 ```php
 use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
-        $mockDb = $this->createMock(flight\database\PdoWrapper::class);
+        $mockDb = $this->createMock(flight\database\SimplePdo::class);
         $mockDb->method('runQuery')->willReturn(true);
         $mockMailer = new class {
             public $sentEmail = null;
@@ -156,28 +156,28 @@ class UserControllerDICTest extends TestCase {
 }
 ```
 
-## Uzlabota izmantošana
+## Papildu lietošana
 
-- **Mocking:** Izmantojiet PHPUnit iebūvētos mock vai anonīmas klases, lai aizstātu atkarības.
-- **Tieša kontrolieru testēšana:** Instantējiet kontrolierus ar jaunu `Engine` un mock atkarības.
-- **Izvairieties no pārmērīga mocking:** Ļaujiet reālajai loģikai darboties, kur iespējams; mock tikai ārējos servisus.
+- **Mockošana:** Izmantojiet PHPUnit iebūvētos mock objektus vai anonīmas klases, lai aizstātu atkarības.
+- **Kontrolleru tieša testēšana:** Izveidojiet kontrolleru instanci ar jaunu `Engine` un mockojiet atkarības.
+- **Izvairieties no pārmērīgas mockošanas:** Ļaujiet reālajai loģikai darboties, kur iespējams; mockojiet tikai ārējos pakalpojumus.
 
 ## Skatīt arī
 
-- [Unit Testing Guide](/guides/unit-testing) - Visaptverošs ceļvedis par vienības testēšanas labākajām praksēm.
-- [Dependency Injection Container](/learn/dependency-injection-container) - Kā izmantot DIC, lai pārvaldītu atkarības un uzlabotu testējamību.
-- [Extending](/learn/extending) - Kā pievienot savus palīglīdzekļus vai pārrakstīt kodola klases.
-- [PDO Wrapper](/learn/pdo-wrapper) - Vienkāršo datubāzes mijiedarbību un ir vieglāk mock testos.
-- [Requests](/learn/requests) - HTTP pieprasījumu apstrāde Flight.
-- [Responses](/learn/responses) - Atbilžu sūtīšana lietotājiem.
-- [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) - Uzziniet, kā SOLID principi var uzlabot jūsu vienības testus.
+- [Vienību testēšanas ceļvedis](/guides/unit-testing) - Visaptverošs ceļvedis par vienību testēšanas labāko praksi.
+- [Atkarību injekcijas konteiners](/learn/dependency-injection-container) - Kā izmantot DIC, lai pārvaldītu atkarības un uzlabotu testējamību.
+- [Paplašināšana](/learn/extending) - Kā pievienot savus palīgus vai pārdefinēt pamata klases.
+- [SimplePdo](/learn/simple-pdo) - Vienkāršo datu bāzes mijiedarbību un ir vieglāk mockojams testos.
+- [Pieprasījumi](/learn/requests) - HTTP pieprasījumu apstrāde Flight.
+- [Atbildes](/learn/responses) - Atbilžu sūtīšana lietotājiem.
+- [Vienību testēšana un SOLID principi](/learn/unit-testing-and-solid-principles) - Uzziniet, kā SOLID principi var uzlabot jūsu vienību testus.
 
-## Traucējumu novēršana
+## Problēmu novēršana
 
 - Izvairieties no globālā stāvokļa (`Flight::set()`, `$_SESSION` utt.) izmantošanas savā kodā un testos.
-- Ja jūsu testi ir lēni, iespējams, jūs rakstāt integrācijas testus — mock ārējos servisus, lai vienības testi paliktu ātri.
-- Ja testa iestatīšana ir sarežģīta, apsveriet sava koda refaktoringu, lai izmantotu atkarību injekciju.
+- Ja jūsu testi ir lēni, iespējams, rakstāt integrācijas testus — mockojiet ārējos pakalpojumus, lai vienību testi būtu ātri.
+- Ja testu iestatīšana ir sarežģīta, apsveriet iespēju refaktorēt savu kodu, lai izmantotu atkarību injekciju.
 
 ## Izmaiņu žurnāls
 
-- v3.15.0 - Pievienoti piemēri atkarību injekcijai un mocking.
+- v3.15.0 - Pievienoti piemēri atkarību injekcijai un mockošanai.

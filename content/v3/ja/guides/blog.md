@@ -1,57 +1,57 @@
-# Flight PHPを使ったシンプルなブログの構築
+# Flight PHPでシンプルなブログを構築する
 
-このガイドでは、Flight PHPフレームワークを使用して基本的なブログを作成する方法を説明します。プロジェクトをセットアップし、ルートを定義し、JSONを使用して投稿を管理し、Latteテンプレーティングエンジンでレンダリングします。すべてがFlightのシンプルさと柔軟性を示しています。最後には、ホームページ、個別の投稿ページ、および作成フォームを持つ機能的なブログが完成します。
+このガイドでは、Flight PHPフレームワークを使って基本的なブログを作成する手順を説明します。プロジェクトのセットアップ、ルートの定義、JSONでの投稿管理、Latteテンプレートエンジンでのレンダリングを行い、Flightのシンプルさと柔軟性を示します。最後には、ホームページ、個別投稿ページ、作成フォームを備えた機能的なブログが完成します。
 
 ## 前提条件
 - **PHP 7.4+**: システムにインストールされていること。
-- **Composer**: 依存関係管理用。
+- **Composer**: 依存関係の管理用。
 - **テキストエディタ**: VS CodeやPHPStormなどの任意のエディタ。
-- PHPとWeb開発の基本知識。
+- PHPとWeb開発の基本的な知識。
 
-## ステップ1: プロジェクトのセットアップ
+## ステップ 1: プロジェクトのセットアップ
 
-新しいプロジェクトディレクトリを作成し、Composerを介してFlightをインストールします。
+まず、新しいプロジェクトディレクトリを作成し、Composerを使ってFlightをインストールします。
 
-1. **ディレクトリの作成**:
+1. **ディレクトリを作成**:
    ```bash
    mkdir flight-blog
    cd flight-blog
    ```
 
-2. **Flightのインストール**:
+2. **Flightをインストール**:
    ```bash
    composer require flightphp/core
    ```
 
-3. **パブリックディレクトリの作成**:
-   Flightは単一のエントリーポイント（`index.php`）を使用します。それ用に`public/`フォルダを作成します:
+3. **publicディレクトリを作成**:
+   Flightは単一のエントリポイント（`index.php`）を使用します。そのための`public/`フォルダを作成します:
    ```bash
    mkdir public
    ```
 
 4. **基本的な`index.php`**:
-   シンプルな「Hello World」ルートを持つ`public/index.php`を作成します:
+   `public/index.php`にシンプルな「Hello World」ルートを作成します:
    ```php
    <?php
    require '../vendor/autoload.php';
 
    Flight::route('/', function () {
-       echo 'こんにちは、Flight！';
+       echo 'Hello, Flight!';
    });
 
    Flight::start();
    ```
 
-5. **組み込みサーバーの起動**:
-   PHPの開発サーバーを使用してセットアップをテストします:
+5. **ビルトインサーバーを実行**:
+   PHPの開発サーバーでセットアップをテストします:
    ```bash
    php -S localhost:8000 -t public/
    ```
-   `http://localhost:8000`にアクセスして「こんにちは、Flight！」を見ることができます。
+   `http://localhost:8000`にアクセスして「Hello, Flight!」が表示されることを確認します。
 
-## ステップ2: プロジェクト構造の整理
+## ステップ 2: プロジェクト構造を整理する
 
-クリーンなセットアップのために、プロジェクトを以下のように構成します:
+クリーンなセットアップのために、プロジェクトを次のように構成します:
 
 ```text
 flight-blog/
@@ -65,22 +65,22 @@ flight-blog/
 └── composer.json
 ```
 
-- `app/config/`: 設定ファイル（例：イベント、ルート）。
+- `app/config/`: 設定ファイル（例: イベント、ルート）。
 - `app/views/`: ページをレンダリングするためのテンプレート。
-- `data/`: ブログ投稿を保存するためのJSONファイル。
+- `data/`: ブログ投稿を保存するJSONファイル。
 - `public/`: `index.php`を含むWebルート。
 
-## ステップ3: Latteのインストールと設定
+## ステップ 3: Latteのインストールと設定
 
-Latteは、Flightとよく統合される軽量なテンプレーティングエンジンです。
+Latteは、Flightとよく統合する軽量なテンプレートエンジンです。
 
-1. **Latteのインストール**:
+1. **Latteをインストール**:
    ```bash
    composer require latte/latte
    ```
 
-2. **FlightでのLatteの設定**:
-   `public/index.php`を更新してLatteをビューエンジンとして登録します:
+2. **FlightでLatteを設定**:
+   `public/index.php`を更新して、Latteをビューエンジンとして登録します:
    ```php
    <?php
    require '../vendor/autoload.php';
@@ -93,14 +93,14 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
    });
 
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => '私のブログ']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::start();
    ```
 
-3. **レイアウトテンプレートを作成する:
-`app/views/layout.latte`で**:
+3. **レイアウトテンプレートを作成: 
+`app/views/layout.latte`**:
 ```html
 <!DOCTYPE html>
 <html>
@@ -109,24 +109,24 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
 </head>
 <body>
     <header>
-        <h1>私のブログ</h1>
+        <h1>My Blog</h1>
         <nav>
-            <a href="/">ホーム</a> | 
-            <a href="/create">投稿を作成</a>
+            <a href="/">Home</a> | 
+            <a href="/create">Create a Post</a>
         </nav>
     </header>
     <main>
         {block content}{/block}
     </main>
     <footer>
-        <p>&copy; {date('Y')} Flightブログ</p>
+        <p>&copy; {date('Y')} Flight Blog</p>
     </footer>
 </body>
 </html>
 ```
 
 4. **ホームテンプレートを作成**:
-   `app/views/home.latte`で:
+   `app/views/home.latte`:
    ```html
   {extends 'layout.latte'}
 
@@ -139,46 +139,46 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
 		</ul>
 	{/block}
    ```
-   サーバーを再起動して、`http://localhost:8000`にアクセスしてレンダリングされたページを確認してください。
+   サーバーを終了した場合は再起動し、`http://localhost:8000`にアクセスしてレンダリングされたページを確認します。
 
 5. **データファイルを作成**:
 
-   簡単のためにデータベースのシミュレーションとしてJSONファイルを使用します。
+   簡単にするために、JSONファイルでデータベースをシミュレートします。
 
-   `data/posts.json`で:
+   `data/posts.json`:
    ```json
    [
        {
            "slug": "first-post",
-           "title": "私の最初の投稿",
-           "content": "これはFlight PHPを使用した私の初めてのブログ投稿です！"
+           "title": "My First Post",
+           "content": "This is my very first blog post with Flight PHP!"
        }
    ]
    ```
 
-## ステップ4: ルートの定義
+## ステップ 4: ルートを定義する
 
-ルートを構成ファイルに分けることで、整理を良くしましょう。
+整理しやすくするために、ルートを設定ファイルに分離します。
 
 1. **`routes.php`を作成**:
-   `app/config/routes.php`で:
+   `app/config/routes.php`:
    ```php
    <?php
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => '私のブログ']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::route('/post/@slug', function ($slug) {
-       Flight::view()->render('post.latte', ['title' => '投稿: ' . $slug, 'slug' => $slug]);
+       Flight::view()->render('post.latte', ['title' => 'Post: ' . $slug, 'slug' => $slug]);
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => '投稿を作成']);
+       Flight::view()->render('create.latte', ['title' => 'Create a Post']);
    });
    ```
 
 2. **`index.php`を更新**:
-   ルートファイルを含める:
+   ルートファイルを読み込みます:
    ```php
    <?php
    require '../vendor/autoload.php';
@@ -195,9 +195,9 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
    Flight::start();
    ```
 
-## ステップ5: ブログ投稿の保存と取得
+## ステップ 5: ブログ投稿の保存と取得
 
-投稿を読み込み、保存するメソッドを追加します。
+投稿を読み込んで保存するメソッドを追加します。
 
 1. **投稿メソッドを追加**:
    `index.php`で、投稿を読み込むメソッドを追加します:
@@ -208,14 +208,14 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
    });
    ```
 
-2. **ルートの更新**:
-   `app/config/routes.php`を修正し、投稿を使用するようにします:
+2. **ルートを更新**:
+   `app/config/routes.php`を変更して投稿を使用します:
    ```php
    <?php
    Flight::route('/', function () {
        $posts = Flight::posts();
        Flight::view()->render('home.latte', [
-           'title' => '私のブログ',
+           'title' => 'My Blog',
            'posts' => $posts
        ]);
    });
@@ -235,13 +235,13 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => '投稿を作成']);
+       Flight::view()->render('create.latte', ['title' => 'Create a Post']);
    });
    ```
 
-## ステップ6: テンプレートの作成
+## ステップ 6: テンプレートを作成する
 
-投稿を表示するためにテンプレートを更新します。
+投稿を表示するようにテンプレートを更新します。
 
 1. **投稿ページ（`app/views/post.latte`）**:
    ```html
@@ -255,11 +255,11 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
 	{/block}
    ```
 
-## ステップ7: 投稿作成の追加
+## ステップ 7: 投稿作成機能を追加する
 
-新しい投稿を追加するためのフォーム送信を処理します。
+フォーム送信を処理して新しい投稿を追加します。
 
-1. **フォーム（`app/views/create.latte`）**:
+1. **フォームを作成（`app/views/create.latte`）**:
    ```html
    {extends 'layout.latte'}
 
@@ -267,20 +267,20 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
 		<h2>{$title}</h2>
 		<form method="POST" action="/create">
 			<div class="form-group">
-				<label for="title">タイトル:</label>
+				<label for="title">Title:</label>
 				<input type="text" name="title" id="title" required>
 			</div>
 			<div class="form-group">
-				<label for="content">コンテンツ:</label>
+				<label for="content">Content:</label>
 				<textarea name="content" id="content" required></textarea>
 			</div>
-			<button type="submit">投稿を保存</button>
+			<button type="submit">Save Post</button>
 		</form>
 	{/block}
    ```
 
 2. **POSTルートを追加**:
-   `app/config/routes.php`で:
+   `app/config/routes.php`:
    ```php
    Flight::route('POST /create', function () {
        $request = Flight::request();
@@ -297,37 +297,37 @@ Latteは、Flightとよく統合される軽量なテンプレーティングエ
    ```
 
 3. **テストする**:
-   - `http://localhost:8000/create`を訪問します。
-   - 新しい投稿（例：「第二の投稿」とその内容）を送信します。
-   - ホームページでそれがリストされているのを確認します。
+   - `http://localhost:8000/create`にアクセスします。
+   - 新しい投稿を送信します（例: 「Second Post」とコンテンツ）。
+   - ホームページにそれが一覧表示されることを確認します。
 
-## ステップ8: エラーハンドリングの強化
+## ステップ 8: エラーハンドリングを強化する
 
-より良い404エクスペリエンスのために`notFound`メソッドをオーバーライドします。
+`notFound`メソッドをオーバーライドして、より良い404エラーページを提供します。
 
-`index.php`で:
+`index.php`:
 ```php
 Flight::map('notFound', function () {
-    Flight::view()->render('404.latte', ['title' => 'ページが見つかりません']);
+    Flight::view()->render('404.latte', ['title' => 'Page Not Found']);
 });
 ```
 
-`app/views/404.latte`を作成します:
+`app/views/404.latte`を作成:
 ```html
 {extends 'layout.latte'}
 
 {block content}
     <h2>404 - {$title}</h2>
-    <p>申し訳ありませんが、そのページは存在しません！</p>
+    <p>Sorry, that page doesn't exist!</p>
 {/block}
 ```
 
 ## 次のステップ
-- **スタイリングの追加**: より良い見た目のためにテンプレートにCSSを使用します。
-- **データベース**: `posts.json`をSQLiteなどのデータベースに置き換えます。
-- **バリデーション**: 重複スラッグや空の入力のチェックを追加します。
+- **スタイリングを追加**: テンプレートにCSSを使用して見た目を良くします。
+- **データベース**: [SimplePdo](/learn/simple-pdo)を使用して`posts.json`をSQLiteなどのデータベースに置き換えます。
+- **バリデーション**: 重複したスラッグや空の入力をチェックする機能を追加します。
 - **ミドルウェア**: 投稿作成のための認証を実装します。
 
 ## 結論
 
-Flight PHPを使ってシンプルなブログを構築しました！ このガイドでは、ルーティング、Latteによるテンプレーティング、およびフォーム送信の処理などのコア機能を示しました。すべてを軽量に保ちながら実施しています。さらにブログを進化させるためにFlightのドキュメントを探求してください！
+Flight PHPでシンプルなブログを構築できました！このガイドでは、ルーティング、Latteを使ったテンプレート、フォーム送信の処理など、Flightのコア機能を軽量なまま保ちながら紹介しました。Flightのドキュメントを参照して、さらに高度な機能を使い、ブログをさらに発展させましょう！

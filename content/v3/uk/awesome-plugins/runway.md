@@ -1,8 +1,10 @@
-# Пасовиця
+# Runway
 
-Пасовиця — це додаток командного рядка, який допомагає керувати вашими додатками Flight. Він може генерувати контролери, відображати всі маршрути та багато іншого. Він базується на чудовій бібліотеці [adhocore/php-cli](https://github.com/adhocore/php-cli).
+Runway — це CLI-додаток, який допомагає керувати вашими Flight додатками. Він може генерувати контролери, відображати всі маршрути, запускати AI-помічники налаштування, міграції (у скелеті) та інше. Він базується на чудовій бібліотеці [adhocore/php-cli](https://github.com/adhocore/php-cli).
 
 Натисніть [тут](https://github.com/flightphp/runway), щоб переглянути код.
+
+Команди скафолдингу навмисно узгоджені з [офіційним скелетом](https://github.com/flightphp/skeleton), щоб [AI-інструменти кодування](/learn/ai) та люди отримували однакові шляхи, простори імен та стиль конструктор-ін'єкції кожного разу.
 
 ## Встановлення
 
@@ -12,9 +14,11 @@
 composer require flightphp/runway
 ```
 
-## Базова Конфігурація
+Скелет вже залежить від Runway; використовуйте `php runway` з кореня проекту.
 
-Вперше запустивши Пасовицю, вона спробує знайти конфігурацію `runway` у `app/config/config.php` через ключ `'runway'`.
+## Базова конфігурація
+
+При першому запуску Runway спробує знайти конфігурацію `runway` у `app/config/config.php` через ключ `'runway'`.
 
 ```php
 <?php
@@ -23,145 +27,214 @@ return [
     'runway' => [
         'app_root' => 'app/',
 		'public_root' => 'public/',
+		// optional; skeleton also uses index_root for the public entry
+		'index_root' => 'public/index.php',
     ],
 ];
 ```
 
-> **ПРИМІТКА** - Починаючи з **v1.2.0**, `.runway-config.json` є застарілим. Будь ласка, мігруйте вашу конфігурацію до `app/config/config.php`. Ви можете легко зробити це за допомогою команди `php runway config:migrate`.
+> **ПРИМІТКА** - Станом на **v1.2.0**, `.runway-config.json` застарів на користь `app/config/config.php`. Міграціюйте за допомогою `php runway config:migrate` при оновленні старих проектів. Скелет все ще може записувати невеликий `.runway-config.json` при create-project для сумісності; віддавайте перевагу ключу `runway` у `config.php` надалі.
 
-### Виявлення Кореня Проекту
+### Визначення кореня проекту
 
-Пасовиця достатньо розумна, щоб виявити корінь вашого проекту, навіть якщо ви запускаєте її з підкаталогу. Вона шукає індикатори, такі як `composer.json`, `.git` або `app/config/config.php`, щоб визначити, де знаходиться корінь проекту. Це означає, що ви можете запускати команди Пасовиці з будь-якого місця у вашому проекті! 
+Runway достатньо розумний, щоб визначити корінь вашого проекту, навіть якщо ви запускаєте його з підкаталогу. Він шукає індикатори типу `composer.json`, `.git` або `app/config/config.php`, щоб визначити, де знаходиться корінь проекту. Це означає, що ви можете запускати команди Runway з будь-якого місця у вашому проекті!
 
 ## Використання
 
-Пасовиця має низку команд, які ви можете використовувати для керування вашим додатком Flight. Є два простих способи використовувати Пасовицю.
+Runway має ряд команд, які ви можете використовувати для керування вашим Flight додатком. Є два простих способи використання Runway.
 
-1. Якщо ви використовуєте скелетний проект, ви можете запускати `php runway [command]` з кореня вашого проекту.
-1. Якщо ви використовуєте Пасовицю як пакет, встановлений через composer, ви можете запускати `vendor/bin/runway [command]` з кореня вашого проекту.
+1. Якщо ви використовуєте проект-скелет, ви можете запустити `php runway [команда]` з кореня вашого проекту.
+1. Якщо ви використовуєте Runway як пакет, встановлений через composer, ви можете запустити `vendor/bin/runway [команда]` з кореня вашого проекту.
 
-### Список Команд
+### Список команд
 
-Ви можете переглянути список усіх доступних команд, запустивши команду `php runway`.
+Ви можете переглянути список усіх доступних команд, виконавши команду `php runway`.
 
 ```bash
 php runway
 ```
 
-### Довідка по Командах
+Покладайтеся лише на команди, які дійсно з'являються у цьому списку для вашої установки (основні команди Runway проти специфічних для проекту, таких як `migrate` скелета).
+
+### Довідка по команді
 
 Для будь-якої команди ви можете передати прапорець `--help`, щоб отримати більше інформації про те, як використовувати команду.
 
 ```bash
 php runway routes --help
+php runway make:controller --help
 ```
 
 Ось кілька прикладів:
 
-### Генерація Контролера
+### Генерація контролера
 
-На основі конфігурації в `runway.app_root`, локація згенерує контролер для вас у директорії `app/controllers/`.
+`make:controller` створює скафолдинг контролера, який відповідає макету офіційного скелета:
+
+| | |
+|--|--|
+| **Шлях** | `app/Controller/{Name}.php` |
+| **Простір імен** | `App\Controller` |
+| **Стиль** | Ін'єкція конструктора `flight\Engine` (без `Flight::` у тілі класу) |
 
 ```bash
 php runway make:controller MyController
+# → app/Controller/MyController.php
+#   namespace App\Controller;
 ```
 
-### Генерація Моделі Active Record
+Приклад форми, яку ви повинні очікувати (спрощено):
 
-Спочатку переконайтеся, що ви встановили плагін [Active Record](/awesome-plugins/active-record). На основі конфігурації в `runway.app_root`, локація згенерує запис для вас у директорії `app/records/`.
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controller;
+
+use flight\Engine;
+
+class MyController
+{
+	protected Engine $app;
+
+	public function __construct(Engine $app)
+	{
+		$this->app = $app;
+	}
+
+	public function index(): void
+	{
+		// e.g. $this->app->render('…', […]);
+	}
+}
+```
+
+Зареєструйте його з class callable, щоб Dice міг побудувати контролер:
+
+```php
+// app/config/routes.php
+use App\Controller\MyController;
+
+$router->get('/mine', [MyController::class, 'index']);
+```
+
+**Чому саме такий макет?** Регістр **папки** повинен відповідати простору імен (`Controller` не `controllers`) для Composer PSR-4 на Linux—див. [Автозавантаження](/learn/autoloading). Той самий шлях — це те, що кореневі та scoped файли `AGENTS.md` вказують AI-інструментам використовувати, тому згенеровані та написані вручну контролери залишаються ідентичними.
+
+> Старіша документація та спільнотні проекти іноді використовували `app/controllers/` та `app\controllers`. Це залишається дійсним, якщо *ваше* дерево все ще використовує папки з малими літерами. **Нові проекти скелета та поточний вивід `make:controller` використовують `app/Controller/` + `App\Controller`.**
+
+### Генерація моделі Active Record
+
+Спочатку переконайтеся, що ви встановили плагін [Active Record](/awesome-plugins/active-record).
 
 ```bash
 php runway make:record users
 ```
 
-Наприклад, якщо у вас є таблиця `users` з такою схемою: `id`, `name`, `email`, `created_at`, `updated_at`, буде створено файл, подібний до наступного, у файлі `app/records/UserRecord.php`:
+В офіційному скелеті моделі живуть під **`app/Model/`** з простором імен **`App\Model`**, а з'єднання з БД — це **[SimplePdo](/learn/simple-pdo)** (ін'єктуйте його або передайте у конструктор ActiveRecord). Назви файлів/просторів імен генеруються відповідно до поточних налаштувань Runway та вашої конфігурації `runway`—віддавайте перевагу узгодженню нових моделей з `App\Model`, щоб вони відповідали [автозавантаженню](/learn/autoloading) та `AGENTS.md`.
+
+Приклад моделі, узгодженої з демо постів скелета:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace app\records;
+namespace App\Model;
+
+use flight\ActiveRecord;
 
 /**
- * ActiveRecord class for the users table.
- * @link https://docs.flightphp.com/awesome-plugins/active-record
- * 
  * @property int $id
- * @property string $name
- * @property string $email
- * @property string $created_at
- * @property string $updated_at
- * // you could also add relationships here once you define them in the $relations array
- * @property CompanyRecord $company Example of a relationship
+ * @property string $title
+ * // …
  */
-class UserRecord extends \flight\ActiveRecord
+class Post extends ActiveRecord
 {
-    /**
-     * @var array $relations Set the relationships for the model
-     *   https://docs.flightphp.com/awesome-plugins/active-record#relationships
-     */
-    protected array $relations = [];
+	protected array $relations = [];
 
-    /**
-     * Constructor
-     * @param mixed $databaseConnection The connection to the database
-     */
-    public function __construct($databaseConnection)
-    {
-        parent::__construct($databaseConnection, 'users');
-    }
+	public function __construct($databaseConnection)
+	{
+		parent::__construct($databaseConnection, 'posts');
+	}
 }
 ```
 
-### Відображення Всіх Маршрутів
+Якщо старіший генератор все ще видає `app/records` / `app\records`, ви можете зберегти цю конвенцію у застарілих додатках або перемістити файли у `app/Model/` та оновити простір імен відповідно до регістру папки.
 
-Це відобразить усі маршрути, які наразі зареєстровані в Flight.
+### Міграції (скелет)
+
+Офіційний скелет постачає проектну команду (виявлену з `app/commands/`), таку як:
+
+```bash
+php runway migrate
+```
+
+Міграції — це SQL-файли під `migrations/` (наприклад `YYYYMMDDHHMMSS_description.sql` для SQLite та `…_description.mysql.sql` для MySQL), вибрані з конфігурації драйвера бази даних / env. Точні прапорці та поведінка визначаються цією проектною командою—запустіть `php runway migrate --help` у вашому додатку.
+
+### AI-помічники
+
+Runway надає AI-орієнтовані команди, що використовуються з [AI та досвідом розробника](/learn/ai):
+
+```bash
+php runway ai:init
+php runway ai:generate-instructions
+```
+
+Вони зберігають облікові дані LLM та генерують інструкції проекту (в основному **`AGENTS.md`**). На скелеті, розглядайте `AGENTS.md` (та scoped копії під `app/`) плюс **`SECURITY.md`** як джерело правди для агентів.
+
+### Відображення всіх маршрутів
+
+Це відобразить усі маршрути, які зараз зареєстровані у Flight.
 
 ```bash
 php runway routes
 ```
 
-Якщо ви хочете переглянути лише певні маршрути, ви можете передати прапорець для фільтрації маршрутів.
+Якщо ви хочете переглядати лише специфічні маршрути, ви можете передати прапорець для фільтрації маршрутів.
 
 ```bash
-# Display only GET routes
+# Відобразити лише GET маршрути
 php runway routes --get
 
-# Display only POST routes
+# Відобразити лише POST маршрути
 php runway routes --post
 
-# etc.
+# тощо.
 ```
 
-## Додавання Власних Команд до Пасовиці
+## Додавання власних команд до Runway
 
-Якщо ви створюєте пакет для Flight або хочете додати власні власні команди до вашого проекту, ви можете зробити це, створивши директорію `src/commands/`, `flight/commands/`, `app/commands/` або `commands/` для вашого проекту/пакету. Якщо вам потрібна подальша кастомізація, дивіться розділ нижче про Конфігурацію.
+Якщо ви створюєте пакет для Flight або хочете додати власні команди у ваш проект, ви можете зробити це, створивши директорію `src/commands/`, `flight/commands/`, `app/commands/` або `commands/` для вашого проекту/пакету. Якщо вам потрібна подальша кастомізація, дивіться розділ нижче про Конфігурацію.
 
-Щоб створити команду, ви просто розширюєте клас `AbstractBaseCommand` і реалізуєте щонайменше метод `__construct` та метод `execute`.
+У скелеті проектні команди живуть у **`app/commands/`** з простором імен **`App\Command`**. Runway виявляє їх за шляхом; тримайте цю папку синхронізованою з Composer classmap/PSR-4, як це вже робить ваш проект.
+
+Щоб створити команду, просто розширьте клас `AbstractBaseCommand` та реалізуйте щонайменше метод `__construct` та метод `execute`.
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace flight\commands;
+namespace App\Command;
+
+use flight\commands\AbstractBaseCommand;
 
 class ExampleCommand extends AbstractBaseCommand
 {
 	/**
-     * Construct
+     * Конструктор
      *
-     * @param array<string,mixed> $config Config from app/config/config.php
+     * @param array<string,mixed> $config Конфігурація з app/config/config.php
      */
     public function __construct(array $config)
     {
-        parent::__construct('make:example', 'Create an example for the documentation', $config);
-        $this->argument('<funny-gif>', 'The name of the funny gif');
+        parent::__construct('make:example', 'Створити приклад для документації', $config);
+        $this->argument('<funny-gif>', 'Назва кумедного gif');
     }
 
 	/**
-     * Executes the function
+     * Виконує функцію
      *
      * @return void
      */
@@ -169,30 +242,32 @@ class ExampleCommand extends AbstractBaseCommand
     {
         $io = $this->app()->io();
 
-		$io->info('Creating example...');
+		$io->info('Створення прикладу...');
 
-		// Do something here
+		// Зробіть щось тут
 
-		$io->ok('Example created!');
+		$io->ok('Приклад створено!');
 	}
 }
 ```
 
-Дивіться [Документацію adhocore/php-cli](https://github.com/adhocore/php-cli) для отримання додаткової інформації про те, як створювати власні власні команди для вашого додатка Flight!
+Дивіться [Документацію adhocore/php-cli](https://github.com/adhocore/php-cli) для отримання додаткової інформації про те, як побудувати власні команди у ваш Flight додаток!
 
-## Керування Конфігурацією
+## Управління конфігурацією
 
-Оскільки конфігурація переміщена до `app/config/config.php` починаючи з `v1.2.0`, є кілька допоміжних команд для керування конфігурацією.
+Оскільки конфігурація перемістилася до `app/config/config.php` станом на `v1.2.0`, є кілька допоміжних команд для управління конфігурацією.
 
-### Міграція Старої Конфігурації
+> **Порада скелета:** Тримайте `config.php` як **літеральні** PHP-значення. Секрети належать у `.env`. Уникайте виразів `$_ENV[...]` всередині `config.php`—`config:set` перезаписує цей файл як статичні дані і може вбудувати секрети у файл. Див. [Конфігурація](/learn/configuration).
 
-Якщо у вас є старий файл `.runway-config.json`, ви можете легко мігрувати його до `app/config/config.php` за допомогою наступної команди:
+### Міграція старої конфігурації
+
+Якщо у вас є старий файл `.runway-config.json`, ви можете легко мігрувати його до `app/config/config.php` за допомогою наступної команды:
 
 ```bash
 php runway config:migrate
 ```
 
-### Встановлення Значення Конфігурації
+### Встановлення значення конфігурації
 
 Ви можете встановити значення конфігурації за допомогою команди `config:set`. Це корисно, якщо ви хочете оновити значення конфігурації без відкриття файлу.
 
@@ -200,7 +275,7 @@ php runway config:migrate
 php runway config:set app_root "app/"
 ```
 
-### Отримання Значення Конфігурації
+### Отримання значення конфігурації
 
 Ви можете отримати значення конфігурації за допомогою команди `config:get`.
 
@@ -208,41 +283,41 @@ php runway config:set app_root "app/"
 php runway config:get app_root
 ```
 
-## Усі Конфігурації Пасовиці
+## Усі конфігурації Runway
 
-Якщо вам потрібно кастомізувати конфігурацію для Пасовиці, ви можете встановити ці значення в `app/config/config.php`. Нижче наведено деякі додаткові конфігурації, які ви можете встановити:
+Якщо вам потрібно кастомізувати конфігурацію для Runway, ви можете встановити ці значення у `app/config/config.php`. Нижче наведено деякі додаткові конфігурації, які ви можете встановити:
 
 ```php
 <?php
 // app/config/config.php
 return [
-    // ... other config values ...
+    // ... інші значення конфігурації ...
 
     'runway' => [
-        // This is where your application directory is located
+        // Це місце, де знаходиться директорія вашого додатку
         'app_root' => 'app/',
 
-        // This is the directory where your root index file is located
+        // Це директорія, де знаходиться ваш кореневий index файл
         'index_root' => 'public/',
 
-        // These are the paths to the roots of other projects
+        // Це шляхи до коренів інших проектів
         'root_paths' => [
             '/home/user/different-project',
             '/var/www/another-project'
         ],
 
-        // Base paths most likely don't need to be configured, but it's here if you want it
+        // Базові шляхи, ймовірно, не потребують конфігурації, але вони тут, якщо ви цього хочете
         'base_paths' => [
-            '/includes/libs/vendor', // if you have a really unique path for your vendor directory or something
+            '/includes/libs/vendor', // якщо у вас дійсно унікальний шлях до вашої vendor директорії чи щось подібне
         ],
 
-        // Final paths are locations within a project to search for the command files
+        // Фінальні шляхи — це локації в проекті для пошуку файлів команд
         'final_paths' => [
             'src/diff-path/commands',
             'app/module/admin/commands',
         ],
 
-        // If you want to just add the full path, go right ahead (absolute or relative to project root)
+        // Якщо ви хочете просто додати повний шлях, вперед (абсолютний або відносний до кореня проекту)
         'paths' => [
             '/home/user/different-project/src/diff-path/commands',
             '/var/www/another-project/app/module/admin/commands',
@@ -252,35 +327,44 @@ return [
 ];
 ```
 
-### Доступ до Конфігурації
+### Доступ до конфігурації
 
-Якщо вам потрібно ефективно отримати доступ до значень конфігурації, ви можете отримати доступ до них через метод `__construct` або метод `app()`. Також важливо зазначити, що якщо у вас є файл `app/config/services.php`, ці сервіси також будуть доступні для вашої команди.
+Якщо вам потрібно ефективно отримати доступ до значень конфігурації, ви можете отримати їх через метод `__construct` або метод `app()`. Також важливо зазначити, що якщо у вас є файл `app/config/services.php`, ці сервіси також будуть доступні для вашої команди.
 
 ```php
 public function execute()
 {
     $io = $this->app()->io();
     
-    // Access configuration
+    // Доступ до конфігурації
     $app_root = $this->config['runway']['app_root'];
     
-    // Access services like maybe a database connection
+    // Доступ до сервісів, таких як, можливо, з'єднання з базою даних
     $database = $this->config['database']
     
     // ...
 }
 ```
 
-## Обгортки Допоміжника ШІ
+## AI-помічники-обгортки
 
-Пасовиця має деякі обгортки помічників, які полегшують генерацію команд для ШІ. Ви можете використовувати `addOption` та `addArgument` таким чином, що нагадує Symfony Console. Це корисно, якщо ви використовуєте інструменти ШІ для генерації ваших команд.
+Runway має деякі допоміжні обгортки, які полегшують AI генерувати команди. Ви можете використовувати `addOption` та `addArgument` у спосіб, схожий на Symfony Console. Це корисно, якщо ви використовуєте AI-інструменти для генерації ваших команд.
 
 ```php
 public function __construct(array $config)
 {
-    parent::__construct('make:example', 'Create an example for the documentation', $config);
+    parent::__construct('make:example', 'Створити приклад для документації', $config);
     
-    // The mode argument is nullable and defaults to completely optional
-    $this->addOption('name', 'The name of the example', null);
+    // Аргумент mode є nullable і за замовчуванням повністю опціональний
+    $this->addOption('name', 'Назва прикладу', null);
 }
 ```
+
+## Дивіться також
+
+- [Встановлення](/install) - Дерево скелета та налаштування create-project
+- [Автозавантаження](/learn/autoloading) - `App\` та регістр папки
+- [Впровадження залежностей](/learn/dependency-injection-container) - Dice + ін'єкція Engine для згенерованих контролерів
+- [AI та досвід розробника](/learn/ai) - `ai:init`, `ai:generate-instructions`, `AGENTS.md`
+- [Active Record](/awesome-plugins/active-record) - Моделі, що використовуються з `make:record` / скелет `App\Model`
+- [SimplePdo](/learn/simple-pdo) - З'єднання з БД, що використовується міграціями та моделями скелета

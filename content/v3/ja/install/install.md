@@ -1,61 +1,106 @@
 # インストール手順
 
-Flight をインストールする前に、いくつかの基本的な前提条件があります。つまり、以下のことをする必要があります：
+Flightをインストールする前に、いくつかの前提条件があります。具体的には以下が必要です：
 
-1. [システムに PHP をインストールする](#installing-php)
-2. 最高の開発者体験のために [Composer をインストールする](https://getcomposer.org)。
+1. [システムにPHPをインストール](#installing-php)
+2. 最良の開発体験のために[Composerをインストール](https://getcomposer.org)
 
-## 基本インストール
+## 基本的なインストール
 
-[Composer](https://getcomposer.org) を使用している場合、以下のコマンドを実行できます：
+[Composer](https://getcomposer.org)を使用している場合は、次のコマンドを実行できます：
 
 ```bash
 composer require flightphp/core
 ```
 
-これは、Flight のコアファイルのみをシステムに配置します。プロジェクト構造、[レイアウト](/learn/templates)、[依存関係](/learn/dependency-injection-container)、[設定](/learn/configuration)、[自動読み込み](/learn/autoloading) などを定義する必要があります。この方法により、Flight 以外の依存関係はインストールされません。
+これにより、Flightのコアファイルだけがシステムにインストールされます。プロジェクト構造、[レイアウト](/learn/templates)、[依存関係](/learn/dependency-injection-container)、[設定](/learn/configuration)、[オートローディング](/learn/autoloading)などは自分で定義する必要があります。この方法では、Flight以外の依存関係はインストールされません。
 
-また、[ファイルをダウンロード](https://github.com/flightphp/core/archive/master.zip) して、Web ディレクトリに抽出することもできます。
+[ファイルをダウンロード](https://github.com/flightphp/core/archive/master.zip)して、Webディレクトリに直接展開することもできます。
+
+基本的なインストールは、学習、マイクロAPI、コピー＆ペーストの実験に最適です。人間と[AIコーディングツール](/learn/ai)が同じ方法で従える完全なアプリレイアウトが必要な場合は、以下の推奨スケルトンを使用してください。
 
 ## 推奨インストール
 
-新しいプロジェクトの場合、[flightphp/skeleton](https://github.com/flightphp/skeleton) アプリから始めることを強く推奨します。インストールは簡単です。
+新しいプロジェクトには、[flightphp/skeleton](https://github.com/flightphp/skeleton)アプリから始めることを強くお勧めします。インストールは簡単です。
 
 ```bash
 composer create-project flightphp/skeleton my-project/
+cd my-project/
+composer start
+# オプションのサンプルDB + 投稿デモ
+php runway migrate
 ```
 
-これにより、プロジェクト構造が設定され、名前空間付きの自動読み込みが構成され、設定がセットアップされ、[Tracy](/awesome-plugins/tracy)、[Tracy Extensions](/awesome-plugins/tracy-extensions)、[Runway](/awesome-plugins/runway) などの他のツールが提供されます。
+このステップにより、プロジェクト構造、Composer PSR-4オートローディング、設定、および[Tracy](/awesome-plugins/tracy)、[Tracy Extensions](/awesome-plugins/tracy-extensions)、[Runway](/awesome-plugins/runway)などのツールがセットアップされます。また、ルートの**`AGENTS.md`**（および`app/`配下のスコープ付きコピー）が同梱されているため、AIアシスタントはあなたと同じレイアウトを共有できます。[AIと開発者体験](/learn/ai)を参照してください。
 
-## Web サーバーの設定
+### スケルトンが提供するもの
 
-### ビルトイン PHP 開発サーバー
+```text
+project-root/
+├── AGENTS.md              # AI / エージェントの情報源
+├── SECURITY.md            # セキュリティの期待値
+├── .env.example           # シークレット / デプロイオーバーレイ（.envにコピー）
+├── public/index.php       # Webエントリのみ
+├── app/
+│   ├── config/            # bootstrap、routes、services、config_sample.php
+│   ├── Controller/        # App\Controller\*（パスカルケースのフォルダ！）
+│   ├── Middleware/        # App\Middleware\*
+│   ├── Model/             # App\Model\*（ActiveRecord）
+│   ├── Utils/             # Config、Env、DatabaseFactory
+│   ├── commands/          # Runway CLIコマンド
+│   ├── views/             # Twigテンプレート（*.twig）
+│   ├── cache/
+│   └── log/
+├── migrations/            # SQLマイグレーション（.sql / .mysql.sql）
+└── tests/                 # PHPUnit
+```
 
-これは、起動して実行する最も簡単な方法です。ビルトインサーバーを使用してアプリケーションを実行し、データベースとして SQLite を使用することもできます（システムに sqlite3 がインストールされている限り）。ほとんど何も必要ありません！ PHP がインストールされたら、以下のコマンドを実行するだけです：
+**名前空間はフォルダーの大文字小文字に従います。** Composerは`"App\\": "app/"`をマッピングするため、次のようになります：
+
+| ディスク上のパス | 名前空間 |
+|--------------|-----------|
+| `app/Controller/HomeController.php` | `App\Controller\HomeController` |
+| `app/Middleware/…` | `App\Middleware\…` |
+| `app/Model/…` | `App\Model\…` |
+| `app/Utils/…` | `App\Utils\…` |
+
+Linuxでは、`app/controller/`は`app/Controller/`と同じ**ではありません**。オートローディングは大文字小文字を区別します。スケルトンのパスカルケースフォルダーに合わせてください。詳細：[オートローディング](/learn/autoloading)。
+
+**スタックのデフォルト（新規プロジェクト）：** Twigビュー、SimplePdo + ActiveRecord、`Engine`注入を使用したDice（アプリクラス内での`Flight::`の使用は避ける）、`php runway migrate`後のオプションのSQLite。
+
+`create-project`は通常、`app/config/config_sample.php`を`config.php`に、`.env.example`を`.env`にコピーします（存在する場合）。ルートは`app/config/routes.php`に、サービスとDIは`app/config/services.php`にあります。
+
+> **ドキュメント ↔ スケルトン：** これらのドキュメントはFlightの**API**を教えます（多くの場合、短い`Flight::`サンプルを使用）。スケルトンは**アプリケーションの形**を固定します。`app/`配下にコードを追加する場合は、スケルトンのツリーに従ってください。メソッド名、オプション、プラグインについてはドキュメントを使用してください。
+
+## Webサーバーの設定
+
+### PHPビルトイン開発サーバー
+
+これは断然最も簡単な起動方法です。ビルトインサーバーを使用してアプリケーションを実行でき、データベースにSQLiteを使用することもできます（システムにsqlite3がインストールされていれば）。PHPがインストールされていれば、次のコマンドを実行するだけです：
 
 ```bash
 php -S localhost:8000
-# または skeleton アプリの場合
+# またはスケルトンアプリの場合
 composer start
 ```
 
-次に、ブラウザを開いて `http://localhost:8000` にアクセスします。
+その後、ブラウザを開いて`http://localhost:8000`にアクセスします。
 
-プロジェクトのドキュメントルートを別のディレクトリにしたい場合（例: プロジェクトが `~/myproject` ですが、ドキュメントルートが `~/myproject/public/` の場合）、`~/myproject` ディレクトリ内にいる状態で以下のコマンドを実行できます：
+プロジェクトのドキュメントルートを別のディレクトリにしたい場合（例：プロジェクトが`~/myproject`で、ドキュメントルートが`~/myproject/public/`の場合）、`~/myproject`ディレクトリにいる状態で次のコマンドを実行できます：
 
 ```bash
 php -S localhost:8000 -t public/
-# skeleton アプリの場合、これはすでに構成されています
+# スケルトンアプリでは、これは既に設定されています
 composer start
 ```
 
-次に、ブラウザを開いて `http://localhost:8000` にアクセスします。
+その後、ブラウザを開いて`http://localhost:8000`にアクセスします。
 
 ### Apache
 
-システムに Apache がすでにインストールされていることを確認してください。インストールされていない場合、システムに Apache をインストールする方法を Google で検索してください。
+Apacheがシステムにインストールされていることを確認してください。インストールされていない場合は、お使いのシステムへのApacheのインストール方法をGoogleで検索してください。
 
-Apache の場合、`.htaccess` ファイルを以下のように編集します：
+Apacheの場合、`.htaccess`ファイルを次のように編集します：
 
 ```apacheconf
 RewriteEngine On
@@ -64,10 +109,9 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
 ```
 
-> **注意**: サブディレクトリで flight を使用する必要がある場合、`RewriteEngine On` の直後に `RewriteBase /subdir/` の行を追加します。
+> **注：** flightをサブディレクトリで使用する必要がある場合は、`RewriteEngine On`の直後に`RewriteBase /subdir/`の行を追加してください。
 
-> **注意**: サーバーのすべてのファイルを保護したい場合、例えば db や env ファイルのように。
-> `.htaccess` ファイルに以下を配置します：
+> **注：** DBやenvファイルなど、すべてのサーバーファイルを保護したい場合は、`.htaccess`ファイルに次のように記述します：
 
 ```apacheconf
 RewriteEngine On
@@ -76,9 +120,9 @@ RewriteRule ^(.*)$ index.php
 
 ### Nginx
 
-システムに Nginx がすでにインストールされていることを確認してください。インストールされていない場合、システムに Nginx をインストールする方法を Google で検索してください。
+Nginxがシステムにインストールされていることを確認してください。インストールされていない場合は、お使いのシステムへのNginxのインストール方法をGoogleで検索してください。
 
-Nginx の場合、サーバー宣言に以下を追加します：
+Nginxの場合、サーバー宣言に次を追加します：
 
 ```nginx
 server {
@@ -88,56 +132,56 @@ server {
 }
 ```
 
-## `index.php` ファイルの作成
+## `index.php`ファイルを作成する
 
-基本インストールを行っている場合、開始するためのコードが必要です。
+基本的なインストールを行う場合は、開始するためのコードが必要です。
 
 ```php
 <?php
 
-// Composer を使用している場合、オートローダーを require します。
+// Composerを使用している場合は、オートローダーを読み込みます。
 require 'vendor/autoload.php';
-// Composer を使用していない場合、フレームワークを直接ロードします
+// Composerを使用しない場合は、フレームワークを直接読み込みます
 // require 'flight/Flight.php';
 
-// 次に、ルートを定義し、リクエストを処理する関数を割り当てます。
+// 次にルートを定義し、リクエストを処理する関数を割り当てます。
 Flight::route('/', function () {
   echo 'hello world!';
 });
 
-// 最後に、フレームワークを開始します。
+// 最後に、フレームワークを起動します。
 Flight::start();
 ```
 
-skeleton アプリの場合、これはすでに構成されており、`app/config/routes.php` ファイルで処理されます。サービスは `app/config/services.php` で構成されます。
+スケルトンアプリでは、パブリックエントリはアプリを起動するだけです。ルートは`app/config/routes.php`で登録されます（通常は`[App\Controller\…::class, 'method']`の形式で、Diceが依存関係を注入できるようにします）。サービス、Twig、SimplePdo、コンテナは`app/config/services.php`で配線されます。この構造は、AIツールと人間が毎回同じ場所を編集するように意図されています。
 
-## PHP のインストール
+## PHPのインストール
 
-システムに `php` がすでにインストールされている場合、これらの手順をスキップして [ダウンロードセクション](#download-the-files) に進んでください。
+お使いのシステムに`php`が既にインストールされている場合は、これらの手順をスキップして[ダウンロードセクション](#download-the-files)に進んでください。
 
 ### **macOS**
 
-#### **Homebrew を使用した PHP のインストール**
+#### **Homebrewを使用したPHPのインストール**
 
-1. **Homebrew をインストール** (すでにインストールされていない場合)：
+1. **Homebrewをインストール**（まだインストールされていない場合）：
    - ターミナルを開いて実行：
      ```bash
      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
      ```
 
-2. **PHP をインストール**：
+2. **PHPをインストール**：
    - 最新バージョンをインストール：
      ```bash
      brew install php
      ```
-   - 特定のバージョンをインストールする場合、例えば PHP 8.1：
+   - 特定のバージョン（例：PHP 8.1）をインストールする場合：
      ```bash
      brew tap shivammathur/php
      brew install shivammathur/php/php@8.1
      ```
 
-3. **PHP バージョンの切り替え**：
-   - 現在のバージョンをリンク解除し、希望のバージョンをリンク：
+3. **PHPバージョンの切り替え**：
+   - 現在のバージョンのリンクを解除し、希望するバージョンにリンク：
      ```bash
      brew unlink php
      brew link --overwrite --force php@8.1
@@ -149,39 +193,39 @@ skeleton アプリの場合、これはすでに構成されており、`app/con
 
 ### **Windows 10/11**
 
-#### **PHP を手動でインストール**
+#### **PHPの手動インストール**
 
-1. **PHP をダウンロード**：
-   - [PHP for Windows](https://windows.php.net/download/) を訪れて、最新版または特定のバージョン（例: 7.4, 8.0）を non-thread-safe zip ファイルとしてダウンロードします。
+1. **PHPをダウンロード**：
+   - [PHP for Windows](https://windows.php.net/download/)にアクセスし、最新版または特定のバージョン（例：7.4、8.0）を非スレッドセーフ版のzipファイルとしてダウンロードします。
 
-2. **PHP を抽出**：
-   - ダウンロードした zip ファイルを `C:\php` に抽出します。
+2. **PHPを展開**：
+   - ダウンロードしたzipファイルを`C:\php`に展開します。
 
-3. **PHP をシステム PATH に追加**：
-   - **システムのプロパティ** > **環境変数** に移動。
-   - **システム変数**の下で **Path** を見つけ、**編集** をクリック。
-   - パス `C:\php` (または PHP を抽出した場所) を追加。
-   - すべてのウィンドウを閉じるために **OK** をクリック。
+3. **PHPをシステムのPATHに追加**：
+   - **システムのプロパティ** > **環境変数**に移動します。
+   - **システム変数**の下で**Path**を見つけ、**編集**をクリックします。
+   - パス`C:\php`（またはPHPを展開した場所）を追加します。
+   - **OK**をクリックしてすべてのウィンドウを閉じます。
 
-4. **PHP を構成**：
-   - `php.ini-development` を `php.ini` にコピー。
-   - `php.ini` を編集して PHP を必要に応じて構成（例: `extension_dir` の設定、拡張機能の有効化）。
+4. **PHPを設定**：
+   - `php.ini-development`を`php.ini`にコピーします。
+   - `php.ini`を編集して、必要に応じてPHPを設定します（例：`extension_dir`の設定、拡張機能の有効化）。
 
-5. **PHP インストールの確認**：
+5. **PHPのインストールを確認**：
    - コマンドプロンプトを開いて実行：
      ```cmd
      php -v
      ```
 
-#### **複数の PHP バージョンをインストール**
+#### **複数バージョンのPHPをインストール**
 
-1. **上記のステップを各バージョンで繰り返す**、各々を別々のディレクトリに配置（例: `C:\php7`, `C:\php8`）。
+1. 各バージョンについて**上記の手順を繰り返し**、それぞれを別のディレクトリ（例：`C:\php7`、`C:\php8`）に配置します。
 
-2. **バージョンの切り替え** は、システム PATH 変数を希望のバージョンディレクトリを指すように調整します。
+2. システムのPATH変数を目的のバージョンのディレクトリに調整して、**バージョンを切り替えます**。
 
-### **Ubuntu (20.04, 22.04 など)**
+### **Ubuntu（20.04、22.04など）**
 
-#### **apt を使用した PHP のインストール**
+#### **aptを使用したPHPのインストール**
 
 1. **パッケージリストを更新**：
    - ターミナルを開いて実行：
@@ -189,24 +233,24 @@ skeleton アプリの場合、これはすでに構成されており、`app/con
      sudo apt update
      ```
 
-2. **PHP をインストール**：
-   - 最新の PHP バージョンをインストール：
+2. **PHPをインストール**：
+   - 最新のPHPバージョンをインストール：
      ```bash
      sudo apt install php
      ```
-   - 特定のバージョンをインストールする場合、例えば PHP 8.1：
+   - 特定のバージョン（例：PHP 8.1）をインストールする場合：
      ```bash
      sudo apt install php8.1
      ```
 
-3. **追加モジュールをインストール** (オプション)：
-   - 例えば、MySQL サポートをインストール：
+3. **追加モジュールをインストール**（オプション）：
+   - 例えば、MySQLサポートをインストールする場合：
      ```bash
      sudo apt install php8.1-mysql
      ```
 
-4. **PHP バージョンの切り替え**：
-   - `update-alternatives` を使用：
+4. **PHPバージョンの切り替え**：
+   - `update-alternatives`を使用：
      ```bash
      sudo update-alternatives --set php /usr/bin/php8.1
      ```
@@ -219,33 +263,33 @@ skeleton アプリの場合、これはすでに構成されており、`app/con
 
 ### **Rocky Linux**
 
-#### **yum/dnf を使用した PHP のインストール**
+#### **yum/dnfを使用したPHPのインストール**
 
-1. **EPEL リポジトリを有効化**：
+1. **EPELリポジトリを有効化**：
    - ターミナルを開いて実行：
      ```bash
      sudo dnf install epel-release
      ```
 
-2. **Remi のリポジトリをインストール**：
+2. **Remiリポジトリをインストール**：
    - 実行：
      ```bash
      sudo dnf install https://rpms.remirepo.net/enterprise/remi-release-8.rpm
      sudo dnf module reset php
      ```
 
-3. **PHP をインストール**：
+3. **PHPをインストール**：
    - デフォルトバージョンをインストール：
      ```bash
      sudo dnf install php
      ```
-   - 特定のバージョンをインストールする場合、例えば PHP 7.4：
+   - 特定のバージョン（例：PHP 7.4）をインストールする場合：
      ```bash
      sudo dnf module install php:remi-7.4
      ```
 
-4. **PHP バージョンの切り替え**：
-   - `dnf` モジュールコマンドを使用：
+4. **PHPバージョンの切り替え**：
+   - `dnf`モジュールコマンドを使用：
      ```bash
      sudo dnf module reset php
      sudo dnf module enable php:remi-8.0
@@ -260,6 +304,6 @@ skeleton アプリの場合、これはすでに構成されており、`app/con
 
 ### **一般的な注意事項**
 
-- 開発環境の場合、プロジェクトの要件に応じて PHP 設定を構成することが重要です。
-- PHP バージョンを切り替える際、使用する予定の特定のバージョンにすべての関連 PHP 拡張機能がインストールされていることを確認してください。
-- PHP バージョンを切り替えたり、設定を更新した後、変更を適用するために Web サーバー (Apache、Nginx など) を再起動してください。
+- 開発環境では、プロジェクトの要件に応じてPHP設定を構成することが重要です。
+- PHPバージョンを切り替える際は、使用予定の特定バージョンに対応するすべての関連PHP拡張機能がインストールされていることを確認してください。
+- PHPバージョンの切り替えや設定の更新後は、Webサーバー（Apache、Nginxなど）を再起動して変更を適用してください。

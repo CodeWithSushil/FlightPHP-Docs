@@ -2,34 +2,34 @@
 
 ## 概要
 
-Flight でのユニットテストは、アプリケーションが期待通りに動作することを保証し、バグを早期に検出し、コードベースのメンテナンスを容易にします。Flight は、最も人気のある PHP テストフレームワークである [PHPUnit](https://phpunit.de/) とスムーズに動作するように設計されています。
+Flightでのユニットテストは、アプリケーションが期待どおりに動作することを確認し、バグを早期に発見し、コードベースを保守しやすくするのに役立ちます。Flightは、最も人気のあるPHPテストフレームワークである[PHPUnit](https://phpunit.de/)とスムーズに連携するように設計されています。
 
 ## 理解
 
-ユニットテストは、アプリケーションの小さな部分（コントローラーやサービスなど）を分離してその動作をチェックします。Flight では、これはルート、コントローラー、ロジックが異なる入力に対してどのように応答するかをテストすることを意味します—グローバル状態や実際の外部サービスに依存せずに。
+ユニットテストは、アプリケーションの小さな部分（コントローラやサービスなど）の動作を単体でチェックします。Flightでは、ルート、コントローラ、ロジックがさまざまな入力にどのように応答するかを、グローバル状態や実際の外部サービスに依存せずにテストすることを意味します。
 
-主な原則:
-- **実装ではなく動作をテスト:** コードが何をするかに焦点を当て、どうするかを気にしない。
-- **グローバル状態を避ける:** `Flight::set()` や `Flight::get()` の代わりに依存性注入を使用。
-- **外部サービスをモック:** データベースやメーラーなどのものをテストダブルで置き換え。
-- **テストを高速で集中させる:** ユニットテストは実際のデータベースや API にアクセスしない。
+主要な原則：
+- **実装ではなく動作をテストする：** コードが「どのように」行うかではなく、「何を」行うかに焦点を当てます。
+- **グローバル状態を避ける：** `Flight::set()` や `Flight::get()` の代わりに依存性注入を使用します。
+- **外部サービスをモックする：** データベースやメーラーなどの外部サービスはテストダブルに置き換えます。
+- **テストを高速かつ焦点を絞ったものにする：** ユニットテストは実際のデータベースやAPIにアクセスすべきではありません。
 
-## 基本的な使用方法
+## 基本的な使い方
 
-### PHPUnit のセットアップ
+### PHPUnitのセットアップ
 
-1. Composer で PHPUnit をインストール:
+1. ComposerでPHPUnitをインストールします。
    ```bash
    composer require --dev phpunit/phpunit
    ```
-2. プロジェクトのルートに `tests` ディレクトリを作成。
-3. `composer.json` にテストスクリプトを追加:
+2. プロジェクトルートに `tests` ディレクトリを作成します。
+3. `composer.json` にテストスクリプトを追加します。
    ```json
    "scripts": {
        "test": "phpunit --configuration phpunit.xml"
    }
    ```
-4. `phpunit.xml` ファイルを作成:
+4. `phpunit.xml` ファイルを作成します。
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
    <phpunit bootstrap="vendor/autoload.php">
@@ -41,11 +41,11 @@ Flight でのユニットテストは、アプリケーションが期待通り�
    </phpunit>
    ```
 
-これで `composer test` でテストを実行できます。
+これで `composer test` を実行してテストを実行できます。
 
-### シンプルなルートハンドラーのテスト
+### シンプルなルートハンドラのテスト
 
-メールを検証するルートがあると仮定:
+メールアドレスを検証するルートがあるとします。
 
 ```php
 // index.php
@@ -67,7 +67,7 @@ class UserController {
 }
 ```
 
-このコントローラーのシンプルなテスト:
+このコントローラのシンプルなテスト：
 
 ```php
 use PHPUnit\Framework\TestCase;
@@ -98,16 +98,16 @@ class UserControllerTest extends TestCase {
 }
 ```
 
-**ヒント:**
-- `$app->request()->data` を使用して POST データ をシミュレート。
-- テストでは `Flight::` 静的メソッドを避け—`$app` インスタンスを使用。
+**ヒント：**
+- POSTデータは `$app->request()->data` を使用してシミュレートします。
+- テストでは `Flight::` の静的メソッドを使わず、`$app` インスタンスを使用してください。
 
-### テスト可能なコントローラー向けの依存性注入の使用
+### テスト可能なコントローラのための依存性注入の使用
 
-コントローラーに依存性（データベースやメーラーなど）を注入して、テストで簡単にモックできるようにします:
+依存関係（データベースやメーラーなど）をコントローラに注入することで、テストでモックしやすくなります。
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
@@ -130,14 +130,14 @@ class UserController {
 }
 ```
 
-モックを使ったテスト:
+モックを使ったテスト：
 
 ```php
 use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
-        $mockDb = $this->createMock(flight\database\PdoWrapper::class);
+        $mockDb = $this->createMock(flight\database\SimplePdo::class);
         $mockDb->method('runQuery')->willReturn(true);
         $mockMailer = new class {
             public $sentEmail = null;
@@ -156,28 +156,28 @@ class UserControllerDICTest extends TestCase {
 }
 ```
 
-## 高度な使用方法
+## 高度な使い方
 
-- **モッキング:** PHPUnit のビルトインモックや匿名クラスを使用して依存性を置き換え。
-- **コントローラーの直接テスト:** 新しい `Engine` でコントローラーをインスタンス化し、依存性をモック。
-- **過度なモッキングを避ける:** 可能な限り実際のロジックを実行; 外部サービスのみモック。
+- **モッキング：** PHPUnitの組み込みモックまたは匿名クラスを使用して依存関係を置き換えます。
+- **コントローラを直接テストする：** 新しい `Engine` でコントローラをインスタンス化し、依存関係をモックします。
+- **過剰なモッキングを避ける：** 可能な限り実際のロジックを実行させ、外部サービスのみをモックします。
 
-## 関連項目
+## 関連情報
 
-- [Unit Testing Guide](/guides/unit-testing) - ユニットテストのベストプラクティスに関する包括的なガイド。
-- [Dependency Injection Container](/learn/dependency-injection-container) - DIC を使用して依存性を管理し、テスト可能性を向上させる方法。
-- [Extending](/learn/extending) - 独自のヘルパー を追加したり、コアクラスをオーバーライドする方法。
-- [PDO Wrapper](/learn/pdo-wrapper) - データベースインタラクションを簡素化し、テストでモックしやすくする。
-- [Requests](/learn/requests) - Flight での HTTP リクエストの処理。
-- [Responses](/learn/responses) - ユーザーにレスポンスを送信。
-- [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) - SOLID 原則がユニットテストをどのように改善するかを学ぶ。
+- [ユニットテストガイド](/guides/unit-testing) - ユニットテストのベストプラクティスに関する包括的なガイドです。
+- [依存性注入コンテナ](/learn/dependency-injection-container) - DICを使用して依存関係を管理し、テスト容易性を向上させる方法。
+- [拡張](/learn/extending) - 独自のヘルパーを追加したり、コアクラスをオーバーライドする方法。
+- [SimplePdo](/learn/simple-pdo) - データベース操作を簡素化し、テストでモックしやすくします。
+- [リクエスト](/learn/requests) - FlightでHTTPリクエストを処理する方法。
+- [レスポンス](/learn/responses) - ユーザーにレスポンスを送信する方法。
+- [ユニットテストとSOLID原則](/learn/unit-testing-and-solid-principles) - SOLID原則がユニットテストを改善する方法を学びます。
 
 ## トラブルシューティング
 
-- コードとテストでグローバル状態（`Flight::set()`、`$_SESSION` など）を避ける。
-- テストが遅い場合、インテグレーションテストを書いている可能性—外部サービスをモックしてユニットテストを高速に保つ。
-- テストセットアップが複雑な場合、依存性注入を使用するようコードをリファクタリングを検討。
+- コードとテストでグローバル状態（`Flight::set()`、`$_SESSION` など）を使用しないようにしてください。
+- テストが遅い場合は、統合テストを書いている可能性があります。外部サービスをモックしてユニットテストを高速に保ちましょう。
+- テストのセットアップが複雑な場合は、依存性注入を使用するようにコードをリファクタリングすることを検討してください。
 
 ## 変更履歴
 
-- v3.15.0 - 依存性注入とモッキングの例を追加。
+- v3.15.0 - 依存性注入とモッキングの例を追加しました。

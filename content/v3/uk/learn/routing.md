@@ -1,17 +1,17 @@
 # Маршрутизація
 
 ## Огляд
-Маршрутизація в Flight PHP відображає шаблони URL на функції зворотного виклику або методи класів, що забезпечує швидке та просте оброблення запитів. Вона розроблена для мінімального навантаження, зручного використання для початківців та розширюваності без зовнішніх залежностей.
+Маршрутизація у Flight PHP зіставляє URL-шаблони з функціями зворотного виклику або методами класів, що забезпечує швидку та просту обробку запитів. Вона розроблена з мінімальними накладними витратами, зручна для початківців і розширювана без зовнішніх залежностей.
 
 ## Розуміння
-Маршрутизація є основним механізмом, який з'єднує HTTP-запити з логікою вашого додатка в Flight. Визначаючи маршрути, ви вказуєте, як різні URL викликають конкретний код, чи то через функції, методи класів, чи дії контролера. Система маршрутизації Flight є гнучкою, підтримує базові шаблони, іменовані параметри, регулярні вирази та розширені функції, такі як ін'єкція залежностей та ресурсна маршрутизація. Цей підхід тримає ваш код організованим і легким у підтримці, залишаючись швидким та простим для початківців і розширюваним для просунутих користувачів.
+Маршрутизація — це основний механізм, який пов’язує HTTP-запити з логікою вашого застосунку у Flight. Визначаючи маршрути, ви задаєте, як різні URL-адреси запускають певний код — через функції, методи класів або дії контролерів. Система маршрутизації Flight є гнучкою: підтримує базові шаблони, іменовані параметри, регулярні вирази та розширені можливості, як-от впровадження залежностей і ресурсна маршрутизація. Такий підхід тримає ваш код організованим і легким у підтримці, залишаючись швидким і простим для початківців та розширюваним для досвідчених користувачів.
 
-> **Примітка:** Хочете дізнатися більше про маршрутизацію? Перегляньте сторінку ["why a framework?"](/learn/why-frameworks) для більш детального пояснення.
+> **Примітка:** Хочете краще зрозуміти маршрутизацію? Перегляньте сторінку [«чому фреймворк?»](/learn/why-frameworks) для детальнішого пояснення.
 
 ## Основне використання
 
 ### Визначення простого маршруту
-Основна маршрутизація в Flight виконується шляхом співставлення шаблону URL з функцією зворотного виклику або масивом класу та методу.
+Базова маршрутизація у Flight виконується шляхом зіставлення URL-шаблону з функцією зворотного виклику або масивом із класом і методом.
 
 ```php
 Flight::route('/', function(){
@@ -19,10 +19,10 @@ Flight::route('/', function(){
 });
 ```
 
-> Маршрути співставляються в порядку їх визначення. Перший маршрут, що співпадає з запитом, буде викликаний.
+> Маршрути зіставляються в порядку їх визначення. Перший маршрут, який відповідає запиту, буде викликано.
 
 ### Використання функцій як зворотних викликів
-Зворотний виклик може бути будь-яким об'єктом, який є викликаним. Тому ви можете використовувати звичайну функцію:
+Зворотний виклик може бути будь-яким викличним об’єктом. Тож можна використовувати звичайну функцію:
 
 ```php
 function hello() {
@@ -33,7 +33,7 @@ Flight::route('/', 'hello');
 ```
 
 ### Використання класів і методів як контролера
-Ви також можете використовувати метод (статичний чи ні) класу:
+Можна також використовувати метод класу (статичний або звичайний):
 
 ```php
 class GreetingController {
@@ -43,15 +43,15 @@ class GreetingController {
 }
 
 Flight::route('/', [ 'GreetingController','hello' ]);
-// or
-Flight::route('/', [ GreetingController::class, 'hello' ]); // preferred method
-// or
+// або
+Flight::route('/', [ GreetingController::class, 'hello' ]); // рекомендований спосіб
+// або
 Flight::route('/', [ 'GreetingController::hello' ]);
-// or 
+// або 
 Flight::route('/', [ 'GreetingController->hello' ]);
 ```
 
-Або створюючи об'єкт спочатку, а потім викликаючи метод:
+Або створивши об’єкт спочатку, а потім викликавши метод:
 
 ```php
 use flight\Engine;
@@ -77,11 +77,12 @@ $greeting = new GreetingController($app);
 Flight::route('/', [ $greeting, 'hello' ]);
 ```
 
-> **Примітка:** За замовчуванням, коли контролер викликається в рамках фреймворку, клас `flight\Engine` завжди інжектується, якщо ви не вказуєте через [контейнер ін'єкції залежностей](/learn/dependency-injection-container)
+> **Примітка:** За замовчуванням, коли контролер викликається у межах фреймворку, клас `flight\Engine` завжди впроваджується, якщо ви не вкажете інше через [контейнер впровадження залежностей](/learn/dependency-injection-container)
 
-### Маршрутизація, специфічна для методу
+### Маршрутизація за методами
 
-За замовчуванням шаблони маршрутів співставляються з усіма методами запитів. Ви можете відповідати на конкретні методи, розміщуючи ідентифікатор перед URL.
+За замовчуванням шаблони маршрутів зіставляються з усіма методами запитів. Ви можете реагувати
+на певні методи, розмістивши ідентифікатор перед URL.
 
 ```php
 Flight::route('GET /', function () {
@@ -92,15 +93,15 @@ Flight::route('POST /', function () {
   echo 'I received a POST request.';
 });
 
-// You cannot use Flight::get() for routes as that is a method 
-//    to get variables, not create a route.
-Flight::post('/', function() { /* code */ });
-Flight::patch('/', function() { /* code */ });
-Flight::put('/', function() { /* code */ });
-Flight::delete('/', function() { /* code */ });
+// Не можна використовувати Flight::get() для маршрутів, оскільки це метод
+//    для отримання змінних, а не створення маршруту.
+Flight::post('/', function() { /* код */ });
+Flight::patch('/', function() { /* код */ });
+Flight::put('/', function() { /* код */ });
+Flight::delete('/', function() { /* код */ });
 ```
 
-Ви також можете відображати кілька методів на один зворотний виклик, використовуючи роздільник `|`:
+Також можна зіставити кілька методів з одним зворотним викликом, використовуючи розділювач `|`:
 
 ```php
 Flight::route('GET|POST /', function () {
@@ -108,76 +109,77 @@ Flight::route('GET|POST /', function () {
 });
 ```
 
-### Спеціальна обробка запитів HEAD та OPTIONS
+### Особлива обробка HEAD і OPTIONS запитів
 
-Flight надає вбудовану обробку для HTTP-запитів `HEAD` та `OPTIONS`:
+Flight має вбудовану обробку для HTTP-запитів `HEAD` та `OPTIONS`:
 
-#### Запити HEAD
+#### HEAD-запити
 
-- **Запити HEAD** обробляються так само, як запити `GET`, але Flight автоматично видаляє тіло відповіді перед відправкою його клієнту.
-- Це означає, що ви можете визначити маршрут для `GET`, і запити HEAD на той самий URL повертатимуть тільки заголовки (без вмісту), як очікується за стандартами HTTP.
+- **HEAD-запити** обробляються так само, як і `GET`, але Flight автоматично видаляє тіло відповіді перед відправкою клієнту.
+- Це означає, що ви можете визначити маршрут для `GET`, і HEAD-запити на ту саму URL-адресу повертатимуть лише заголовки (без вмісту), як того вимагають стандарти HTTP.
 
 ```php
 Flight::route('GET /info', function() {
     echo 'This is some info!';
 });
-// A HEAD request to /info will return the same headers, but no body.
+// HEAD-запит до /info поверне ті самі заголовки, але без тіла.
 ```
 
-#### Запити OPTIONS
+#### OPTIONS-запити
 
-Запити `OPTIONS` автоматично обробляються Flight для будь-якого визначеного маршруту.
-- Коли отримано запит OPTIONS, Flight відповідає статусом `204 No Content` та заголовком `Allow`, що перелічує всі підтримувані HTTP-методи для цього маршруту.
+`OPTIONS`-запити автоматично обробляються Flight для будь-якого визначеного маршруту.
+- Коли надходить OPTIONS-запит, Flight відповідає статусом `204 No Content` та заголовком `Allow`, у якому перелічено всі підтримувані HTTP-методи для цього маршруту.
 - Вам не потрібно визначати окремий маршрут для OPTIONS.
 
 ```php
-// For a route defined as:
+// Для маршруту, визначеного як:
 Flight::route('GET|POST /users', function() { /* ... */ });
 
-// An OPTIONS request to /users will respond with:
+// OPTIONS-запит до /users відповість:
 //
 // Status: 204 No Content
 // Allow: GET, POST, HEAD, OPTIONS
 ```
 
-### Використання об'єкта Router
+### Використання об’єкта Router
 
-Крім того, ви можете отримати об'єкт Router, який має деякі допоміжні методи для використання:
+Крім того, ви можете отримати об’єкт Router, який має кілька допоміжних методів:
 
 ```php
 
 $router = Flight::router();
 
-// maps all methods just like Flight::route()
+// зіставляє всі методи, як і Flight::route()
 $router->map('/', function() {
 	echo 'hello world!';
 });
 
-// GET request
+// GET-запит
 $router->get('/users', function() {
 	echo 'users';
 });
-$router->post('/users', 			function() { /* code */});
-$router->put('/users/update/@id', 	function() { /* code */});
-$router->delete('/users/@id', 		function() { /* code */});
-$router->patch('/users/@id', 		function() { /* code */});
+$router->post('/users', 			function() { /* код */});
+$router->put('/users/update/@id', 	function() { /* код */});
+$router->delete('/users/@id', 		function() { /* код */});
+$router->patch('/users/@id', 		function() { /* код */});
 ```
 
 ### Регулярні вирази (Regex)
-Ви можете використовувати регулярні вирази у ваших маршрутах:
+Ви можете використовувати регулярні вирази у своїх маршрутах:
 
 ```php
 Flight::route('/user/[0-9]+', function () {
-  // This will match /user/1234
+  // Цей маршрут відповідатиме /user/1234
 });
 ```
 
-Хоча цей метод доступний, рекомендується використовувати іменовані параметри або 
-іменовані параметри з регулярними виразами, оскільки вони більш читабельні та легші в підтримці.
+Хоча цей метод доступний, рекомендується використовувати іменовані параметри або
+іменовані параметри з регулярними виразами, оскільки вони більш читабельні та легші у підтримці.
 
 ### Іменовані параметри
-Ви можете вказувати іменовані параметри у ваших маршрутах, які будуть передані до
-вашої функції зворотного виклику. **Це більше для читабельності маршруту, ніж для чогось іншого. Будь ласка, дивіться розділ нижче щодо важливого застереження.**
+Ви можете вказувати іменовані параметри у маршрутах, які будуть передані
+у вашу функцію зворотного виклику. **Це більше для читабельності маршруту, ніж щось інше.
+Будь ласка, перегляньте важливе застереження нижче.**
 
 ```php
 Flight::route('/@name/@id', function (string $name, string $id) {
@@ -185,21 +187,21 @@ Flight::route('/@name/@id', function (string $name, string $id) {
 });
 ```
 
-Ви також можете включати регулярні вирази з вашими іменованими параметрами, використовуючи
-роздільник `:`:
+Ви також можете додавати регулярні вирази до іменованих параметрів, використовуючи
+розділювач `:`:
 
 ```php
 Flight::route('/@name/@id:[0-9]{3}', function (string $name, string $id) {
-  // This will match /bob/123
-  // But will not match /bob/12345
+  // Цей маршрут відповідатиме /bob/123
+  // Але не відповідатиме /bob/12345
 });
 ```
 
-> **Примітка:** Співставлення груп regex `()` з позиційними параметрами не підтримується. Приклад: `:'\(`
+> **Примітка:** Зіставлення груп регулярних виразів `()` із позиційними параметрами не підтримується. Напр.: `:'\(`
 
 #### Важливе застереження
 
-Хоча в прикладі вище здається, що `@name` безпосередньо пов'язаний зі змінною `$name`, це не так. Порядок параметрів у функції зворотного виклику визначає, що передається до неї. Якщо ви зміните порядок параметрів у функції зворотного виклику, змінні також зміняться. Ось приклад:
+Хоча у наведеному вище прикладі здається, що `@name` безпосередньо пов’язаний зі змінною `$name`, це не так. Порядок параметрів у функції зворотного виклику визначає, що буде передано. Якщо поміняти порядок параметрів у функції зворотного виклику, змінні також поміняються. Ось приклад:
 
 ```php
 Flight::route('/@name/@id', function (string $id, string $name) {
@@ -207,18 +209,18 @@ Flight::route('/@name/@id', function (string $id, string $name) {
 });
 ```
 
-І якщо ви перейдете за таким URL: `/bob/123`, вивід буде `hello, 123 (bob)!`. 
-_Будьте обережні_ при налаштуванні ваших маршрутів та функцій зворотного виклику!
+І якщо ви перейдете за наступним URL: `/bob/123`, вивід буде `hello, 123 (bob)!`.
+_Будьте уважні_, коли налаштовуєте маршрути та функції зворотного виклику!
 
-### Необов'язкові параметри
-Ви можете вказувати іменовані параметри, які є необов'язковими для співставлення, обгортаючи
-сегменти в дужки.
+### Необов’язкові параметри
+Ви можете визначити іменовані параметри як необов’язкові для зіставлення, обгорнувши
+сегменти у круглі дужки.
 
 ```php
 Flight::route(
   '/blog(/@year(/@month(/@day)))',
   function(?string $year, ?string $month, ?string $day) {
-    // This will match the following URLS:
+    // Цей маршрут відповідатиме таким URL:
     // /blog/2012/12/10
     // /blog/2012/12
     // /blog/2012
@@ -227,36 +229,36 @@ Flight::route(
 );
 ```
 
-Будь-які необов'язкові параметри, які не співпадають, будуть передані як `NULL`.
+Будь-які необов’язкові параметри, які не збіглися, будуть передані як `NULL`.
 
-### Дикі карти в маршрутизації
-Співставлення виконується тільки для окремих сегментів URL. Якщо ви хочете співставити кілька
-сегментів, ви можете використовувати символ дикого `*`.
+### Глобальні шаблони (Wildcard Routing)
+Зіставлення виконується лише для окремих сегментів URL. Якщо потрібно зіставити кілька
+сегментів, можна використовувати символ `*`.
 
 ```php
 Flight::route('/blog/*', function () {
-  // This will match /blog/2000/02/01
+  // Цей маршрут відповідатиме /blog/2000/02/01
 });
 ```
 
-Щоб маршрутизувати всі запити на один зворотний виклик, ви можете зробити:
+Щоб направити всі запити на один зворотний виклик, можна зробити так:
 
 ```php
 Flight::route('*', function () {
-  // Do something
+  // Зробити щось
 });
 ```
 
 ### Обробник 404 Not Found
 
-За замовчуванням, якщо URL не знайдено, Flight надішле відповідь `HTTP 404 Not Found`, яка є дуже простою та звичайною.
-Якщо ви хочете мати більш кастомізовану відповідь 404, ви можете [відобразити](/learn/extending) свій власний метод `notFound`:
+За замовчуванням, якщо URL не знайдено, Flight надішле дуже просту відповідь `HTTP 404 Not Found`.
+Якщо ви хочете налаштувати власну відповідь 404, ви можете [змапити](/learn/extending) власний метод `notFound`:
 
 ```php
 Flight::map('notFound', function() {
 	$url = Flight::request()->url;
 
-	// You could also use Flight::render() with a custom template.
+	// Ви також можете використати Flight::render() з власним шаблоном.
     $output = <<<HTML
 		<h1>My Custom 404 Not Found</h1>
 		<h3>The page you have requested {$url} could not be found.</h3>
@@ -272,9 +274,9 @@ Flight::map('notFound', function() {
 
 ### Обробник Method Not Found
 
-За замовчуванням, якщо URL знайдено, але метод не дозволено, Flight надішле відповідь `HTTP 405 Method Not Allowed`, яка є дуже простою та звичайною (Наприклад: Method Not Allowed. Allowed Methods are: GET, POST). Вона також включатиме заголовок `Allow` з дозволеними методами для цього URL.
+За замовчуванням, якщо URL знайдено, але метод не дозволений, Flight надішле дуже просту відповідь `HTTP 405 Method Not Allowed` (напр.: Method Not Allowed. Allowed Methods are: GET, POST). Вона також міститиме заголовок `Allow` із дозволеними методами для цього URL.
 
-Якщо ви хочете мати більш кастомізовану відповідь 405, ви можете [відобразити](/learn/extending) свій власний метод `methodNotFound`:
+Якщо ви хочете налаштувати власну відповідь 405, ви можете [змапити](/learn/extending) власний метод `methodNotFound`:
 
 ```php
 use flight\net\Route;
@@ -283,7 +285,7 @@ Flight::map('methodNotFound', function(Route $route) {
 	$url = Flight::request()->url;
 	$methods = implode(', ', $route->methods);
 
-	// You could also use Flight::render() with a custom template.
+	// Ви також можете використати Flight::render() з власним шаблоном.
 	$output = <<<HTML
 		<h1>My Custom 405 Method Not Allowed</h1>
 		<h3>The method you have requested for {$url} is not allowed.</h3>
@@ -301,39 +303,41 @@ Flight::map('methodNotFound', function(Route $route) {
 
 ## Розширене використання
 
-### Ін'єкція залежностей у маршрутах
-Якщо ви хочете використовувати ін'єкцію залежностей через контейнер (PSR-11, PHP-DI, Dice тощо), єдиний тип маршрутів, де це доступно, — це або безпосереднє створення об'єкта самостійно та використання контейнера для створення вашого об'єкта, або ви можете використовувати рядки для визначення класу та методу для виклику. Ви можете перейти на сторінку [Dependency Injection](/learn/dependency-injection-container) для 
-більшої інформації. 
+### Впровадження залежностей у маршрутах
+Якщо ви хочете використовувати впровадження залежностей через контейнер (PSR-11, PHP-DI, Dice тощо), то
+це доступно лише для таких типів маршрутів: або ви самостійно створюєте об’єкт
+і використовуєте контейнер для його створення, або використовуєте рядки для визначення класу та
+методу, який потрібно викликати. Більше інформації ви можете знайти на сторінці [Впровадження залежностей](/learn/dependency-injection-container).
 
 Ось швидкий приклад:
 
 ```php
 
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 // Greeting.php
 class Greeting
 {
-	protected PdoWrapper $pdoWrapper;
-	public function __construct(PdoWrapper $pdoWrapper) {
-		$this->pdoWrapper = $pdoWrapper;
+	protected SimplePdo $db;
+	public function __construct(SimplePdo $db) {
+		$this->db = $db;
 	}
 
 	public function hello(int $id) {
-		// do something with $this->pdoWrapper
-		$name = $this->pdoWrapper->fetchField("SELECT name FROM users WHERE id = ?", [ $id ]);
+		// зробити щось із $this->db
+		$name = $this->db->fetchField("SELECT name FROM users WHERE id = ?", [ $id ]);
 		echo "Hello, world! My name is {$name}!";
 	}
 }
 
 // index.php
 
-// Setup the container with whatever params you need
-// See the Dependency Injection page for more information on PSR-11
+// Налаштуйте контейнер із необхідними параметрами
+// Дивіться сторінку Впровадження залежностей для отримання додаткової інформації про PSR-11
 $dice = new \Dice\Dice();
 
-// Don't forget to reassign the variable with '$dice = '!!!!!
-$dice = $dice->addRule('flight\database\PdoWrapper', [
+// Не забудьте переназначити змінну з '$dice = '!!!!!
+$dice = $dice->addRule(SimplePdo::class, [
 	'shared' => true,
 	'constructParams' => [ 
 		'mysql:host=localhost;dbname=test', 
@@ -342,221 +346,221 @@ $dice = $dice->addRule('flight\database\PdoWrapper', [
 	]
 ]);
 
-// Register the container handler
+// Зареєструйте обробник контейнера
 Flight::registerContainerHandler(function($class, $params) use ($dice) {
 	return $dice->create($class, $params);
 });
 
-// Routes like normal
+// Маршрути як зазвичай
 Flight::route('/hello/@id', [ 'Greeting', 'hello' ]);
-// or
+// або
 Flight::route('/hello/@id', 'Greeting->hello');
-// or
+// або
 Flight::route('/hello/@id', 'Greeting::hello');
 
 Flight::start();
 ```
 
 ### Передача виконання наступному маршруту
-<span class="badge bg-warning">Deprecated</span>
-Ви можете передати виконання наступному співпадаючому маршруту, повертаючи `true` з
-вашої функції зворотного виклику.
+<span class="badge bg-warning">Застаріло</span>
+Ви можете передати виконання наступному відповідному маршруту, повернувши `true` зі своєї
+функції зворотного виклику.
 
 ```php
 Flight::route('/user/@name', function (string $name) {
-  // Check some condition
+  // Перевірити певну умову
   if ($name !== "Bob") {
-    // Continue to next route
+    // Перейти до наступного маршруту
     return true;
   }
 });
 
 Flight::route('/user/*', function () {
-  // This will get called
+  // Цей маршрут буде викликано
 });
 ```
 
-Тепер рекомендується використовувати [middleware](/learn/middleware) для обробки складних випадків, як цей.
+Тепер для складних випадків, подібних до цього, рекомендується використовувати [мідлвару](/learn/middleware).
 
 ### Псевдоніми маршрутів
-Призначаючи псевдонім маршруту, ви можете пізніше динамічно викликати цей псевдонім у вашому додатку, щоб згенерувати його пізніше в коді (наприклад: посилання в HTML-шаблоні або генерація URL для перенаправлення).
+Призначивши маршруту псевдонім, ви можете пізніше динамічно викликати цей псевдонім у своєму застосунку для генерації URL (наприклад, посилання у HTML-шаблоні або для створення URL-адреси перенаправлення).
 
 ```php
 Flight::route('/users/@id', function($id) { echo 'user:'.$id; }, false, 'user_view');
-// or 
+// або 
 Flight::route('/users/@id', function($id) { echo 'user:'.$id; })->setAlias('user_view');
 
-// later in code somewhere
+// пізніше десь у коді
 class UserController {
 	public function update() {
 
-		// code to save user...
-		$id = $user['id']; // 5 for example
+		// код для збереження користувача...
+		$id = $user['id']; // наприклад, 5
 
-		$redirectUrl = Flight::getUrl('user_view', [ 'id' => $id ]); // will return '/users/5'
+		$redirectUrl = Flight::getUrl('user_view', [ 'id' => $id ]); // поверне '/users/5'
 		Flight::redirect($redirectUrl);
 	}
 }
 
 ```
 
-Це особливо корисно, якщо ваш URL змінюється. У прикладі вище, припустимо, що користувачі переміщені до `/admin/users/@id` замість.
-З псевдонімами на місці для маршруту, вам більше не потрібно шукати всі старі URL у вашому коді та змінювати їх, оскільки псевдонім тепер поверне `/admin/users/5`, як у прикладі вище.
+Це особливо корисно, якщо ваш URL змінюється. У наведеному вище прикладі, скажімо, користувачів перенесли на `/admin/users/@id`.
+Завдяки псевдоніму маршруту вам більше не потрібно шукати всі старі URL у коді та змінювати їх, оскільки псевдонім тепер повертатиме `/admin/users/5`, як у прикладі вище.
 
 Псевдоніми маршрутів також працюють у групах:
 
 ```php
 Flight::group('/users', function() {
     Flight::route('/@id', function($id) { echo 'user:'.$id; }, false, 'user_view');
-	// or
+	// або
 	Flight::route('/@id', function($id) { echo 'user:'.$id; })->setAlias('user_view');
 });
 ```
 
-### Перевірка інформації про маршрут
-Якщо ви хочете перевірити інформацію про співпадаючий маршрут, є 2 способи це зробити:
+### Перегляд інформації про маршрут
+Якщо ви хочете переглянути інформацію про відповідний маршрут, є два способи:
 
-1. Ви можете використовувати властивість `executedRoute` на об'єкті `Flight::router()`.
-2. Ви можете запросити передачу об'єкта маршруту до вашого зворотного виклику, передавши `true` як третій параметр у методі маршруту. Об'єкт маршруту завжди буде останнім параметром, переданим до вашої функції зворотного виклику.
+1. Використати властивість `executedRoute` на об’єкті `Flight::router()`.
+2. Попросити передати об’єкт маршруту у ваш зворотний виклик, передавши `true` третім параметром у методі маршруту. Об’єкт маршруту завжди буде останнім параметром, переданим у вашу функцію зворотного виклику.
 
 #### `executedRoute`
 ```php
 Flight::route('/', function() {
   $route = Flight::router()->executedRoute;
-  // Do something with $route
-  // Array of HTTP methods matched against
+  // Зробити щось із $route
+  // Масив HTTP-методів, з якими зіставлено маршрут
   $route->methods;
 
-  // Array of named parameters
+  // Масив іменованих параметрів
   $route->params;
 
-  // Matching regular expression
+  // Відповідний регулярний вираз
   $route->regex;
 
-  // Contains the contents of any '*' used in the URL pattern
+  // Містить вміст будь-якого '*', використаного у шаблоні URL
   $route->splat;
 
-  // Shows the url path....if you really need it
+  // Показує шлях URL... якщо вам справді це потрібно
   $route->pattern;
 
-  // Shows what middleware is assigned to this
+  // Показує, яка мідлвара призначена цьому маршруту
   $route->middleware;
 
-  // Shows the alias assigned to this route
+  // Показує псевдонім, призначений цьому маршруту
   $route->alias;
 });
 ```
 
-> **Примітка:** Властивість `executedRoute` буде встановлена тільки після виконання маршруту. Якщо ви спробуєте отримати доступ до неї перед виконанням маршруту, вона буде `NULL`. Ви також можете використовувати executedRoute у [middleware](/learn/middleware)!
+> **Примітка:** Властивість `executedRoute` буде встановлена лише після виконання маршруту. Якщо спробувати отримати до неї доступ до виконання маршруту, вона буде `NULL`. Ви також можете використовувати executedRoute у [мідлварі](/learn/middleware)!
 
-#### Передача `true` до визначення маршруту
+#### Передача `true` у визначення маршруту
 ```php
 Flight::route('/', function(\flight\net\Route $route) {
-  // Array of HTTP methods matched against
+  // Масив HTTP-методів, з якими зіставлено маршрут
   $route->methods;
 
-  // Array of named parameters
+  // Масив іменованих параметрів
   $route->params;
 
-  // Matching regular expression
+  // Відповідний регулярний вираз
   $route->regex;
 
-  // Contains the contents of any '*' used in the URL pattern
+  // Містить вміст будь-якого '*', використаного у шаблоні URL
   $route->splat;
 
-  // Shows the url path....if you really need it
+  // Показує шлях URL... якщо вам справді це потрібно
   $route->pattern;
 
-  // Shows what middleware is assigned to this
+  // Показує, яка мідлвара призначена цьому маршруту
   $route->middleware;
 
-  // Shows the alias assigned to this route
+  // Показує псевдонім, призначений цьому маршруту
   $route->alias;
-}, true);// <-- This true parameter is what makes that happen
+}, true);// <-- Цей параметр true робить це можливим
 ```
 
-### Групування маршрутів та Middleware
-Можуть бути випадки, коли ви хочете групувати пов'язані маршрути разом (наприклад, `/api/v1`).
-Ви можете зробити це, використовуючи метод `group`:
+### Групування маршрутів і мідлвара
+Іноді потрібно згрупувати пов’язані маршрути (наприклад, `/api/v1`).
+Це можна зробити за допомогою методу `group`:
 
 ```php
 Flight::group('/api/v1', function () {
   Flight::route('/users', function () {
-	// Matches /api/v1/users
+	// Відповідає /api/v1/users
   });
 
   Flight::route('/posts', function () {
-	// Matches /api/v1/posts
+	// Відповідає /api/v1/posts
   });
 });
 ```
 
-Ви навіть можете вкладати групи в групи:
+Можна навіть вкладати групи в групи:
 
 ```php
 Flight::group('/api', function () {
   Flight::group('/v1', function () {
-	// Flight::get() gets variables, it doesn't set a route! See object context below
+	// Flight::get() отримує змінні, він не встановлює маршрут! Дивіться контекст об’єкта нижче
 	Flight::route('GET /users', function () {
-	  // Matches GET /api/v1/users
+	  // Відповідає GET /api/v1/users
 	});
 
 	Flight::post('/posts', function () {
-	  // Matches POST /api/v1/posts
+	  // Відповідає POST /api/v1/posts
 	});
 
 	Flight::put('/posts/1', function () {
-	  // Matches PUT /api/v1/posts
+	  // Відповідає PUT /api/v1/posts
 	});
   });
   Flight::group('/v2', function () {
 
-	// Flight::get() gets variables, it doesn't set a route! See object context below
+	// Flight::get() отримує змінні, він не встановлює маршрут! Дивіться контекст об’єкта нижче
 	Flight::route('GET /users', function () {
-	  // Matches GET /api/v2/users
+	  // Відповідає GET /api/v2/users
 	});
   });
 });
 ```
 
-#### Групування з контекстом об'єкта
+#### Групування з контекстом об’єкта
 
-Ви все ще можете використовувати групування маршрутів з об'єктом `Engine` наступним чином:
+Ви також можете використовувати групування маршрутів з об’єктом `Engine` таким чином:
 
 ```php
 $app = Flight::app();
 
 $app->group('/api/v1', function (Router $router) {
 
-  // user the $router variable
+  // використовуйте змінну $router
   $router->get('/users', function () {
-	// Matches GET /api/v1/users
+	// Відповідає GET /api/v1/users
   });
 
   $router->post('/posts', function () {
-	// Matches POST /api/v1/posts
+	// Відповідає POST /api/v1/posts
   });
 });
 ```
 
-> **Примітка:** Це перевага метод визначення маршрутів і груп з об'єктом `$router`.
+> **Примітка:** Це рекомендований спосіб визначення маршрутів і груп з об’єктом `$router`.
 
-#### Групування з Middleware
+#### Групування з мідлварою
 
-Ви також можете призначати middleware групі маршрутів:
+Ви також можете призначити мідлвару групі маршрутів:
 
 ```php
 Flight::group('/api/v1', function () {
   Flight::route('/users', function () {
-	// Matches /api/v1/users
+	// Відповідає /api/v1/users
   });
-}, [ MyAuthMiddleware::class ]); // or [ new MyAuthMiddleware() ] if you want to use an instance
+}, [ MyAuthMiddleware::class ]); // або [ new MyAuthMiddleware() ], якщо ви хочете використати екземпляр
 ```
 
-Дивіться більше деталей на сторінці [group middleware](/learn/middleware#grouping-middleware).
+Більше деталей на сторінці [групова мідлвара](/learn/middleware#grouping-middleware).
 
 ### Ресурсна маршрутизація
-Ви можете створювати набір маршрутів для ресурсу, використовуючи метод `resource`. Це створить
+Ви можете створити набір маршрутів для ресурсу за допомогою методу `resource`. Це створить
 набір маршрутів для ресурсу, що відповідає RESTful-конвенціям.
 
 Щоб створити ресурс, зробіть наступне:
@@ -565,7 +569,7 @@ Flight::group('/api/v1', function () {
 Flight::resource('/users', UsersController::class);
 ```
 
-І що станеться в фоні — це створення наступних маршрутів:
+У фоновому режимі буде створено такі маршрути:
 
 ```php
 [
@@ -579,7 +583,7 @@ Flight::resource('/users', UsersController::class);
 ]
 ```
 
-І ваш контролер використовуватиме наступні методи:
+А ваш контролер використовуватиме наступні методи:
 
 ```php
 class UsersController
@@ -614,42 +618,42 @@ class UsersController
 }
 ```
 
-> **Примітка**: Ви можете переглядати щойно додані маршрути з `runway`, запустивши `php runway routes`.
+> **Примітка:** Ви можете переглянути новостворені маршрути за допомогою `runway`, виконавши `php runway routes`.
 
 #### Налаштування ресурсних маршрутів
 
-Є кілька опцій для налаштування ресурсних маршрутів.
+Є кілька опцій для конфігурування ресурсних маршрутів.
 
-##### Базовий псевдонім
+##### База псевдоніма
 
 Ви можете налаштувати `aliasBase`. За замовчуванням псевдонім — це остання частина вказаного URL.
-Наприклад, `/users/` призведе до `aliasBase` як `users`. Коли ці маршрути створюються,
-псевдоніми — `users.index`, `users.create` тощо. Якщо ви хочете змінити псевдонім, встановіть `aliasBase`
-на значення, яке ви хочете.
+Наприклад, `/users/` дасть `aliasBase` зі значенням `users`. Коли ці маршрути створюються,
+псевдоніми будуть `users.index`, `users.create` тощо. Якщо ви хочете змінити псевдонім, встановіть `aliasBase`
+на потрібне значення.
 
 ```php
 Flight::resource('/users', UsersController::class, [ 'aliasBase' => 'user' ]);
 ```
 
-##### Only та Except
+##### only та except
 
-Ви також можете вказати, які маршрути ви хочете створити, використовуючи опції `only` та `except`.
+Ви також можете вказати, які маршрути потрібно створювати, за допомогою опцій `only` та `except`.
 
 ```php
-// Whitelist only these methods and blacklist the rest
+// Білий список лише цих методів, решта — у чорному списку
 Flight::resource('/users', UsersController::class, [ 'only' => [ 'index', 'show' ] ]);
 ```
 
 ```php
-// Blacklist only these methods and whitelist the rest
+// Чорний список лише цих методів, решта — у білому списку
 Flight::resource('/users', UsersController::class, [ 'except' => [ 'create', 'store', 'edit', 'update', 'destroy' ] ]);
 ```
 
-Це по суті опції білої та чорної списків, щоб ви могли вказати, які маршрути ви хочете створити.
+По суті, це опції білого та чорного списків, тож ви можете вказати, які маршрути створювати.
 
-##### Middleware
+##### Мідлвара
 
-Ви також можете вказати middleware, яке буде виконуватися для кожного з маршрутів, створених методом `resource`.
+Ви також можете вказати мідлвару, яка буде виконуватися для кожного маршруту, створеного методом `resource`.
 
 ```php
 Flight::resource('/users', UsersController::class, [ 'middleware' => [ MyAuthMiddleware::class ] ]);
@@ -657,32 +661,32 @@ Flight::resource('/users', UsersController::class, [ 'middleware' => [ MyAuthMid
 
 ### Потокові відповіді
 
-Ви тепер можете потоково передавати відповіді клієнту, використовуючи `stream()` або `streamWithHeaders()`. 
-Це корисно для відправки великих файлів, довготривалих процесів або генерації великих відповідей. 
-Потокова передача маршруту обробляється трохи інакше, ніж звичайний маршрут.
+Тепер ви можете передавати відповіді клієнту потоково за допомогою `stream()` або `streamWithHeaders()`. 
+Це корисно для надсилання великих файлів, довготривалих процесів або генерації великих відповідей. 
+Потокова передача маршруту обробляється дещо інакше, ніж звичайного маршруту.
 
-> **Примітка:** Потокові відповіді доступні тільки якщо у вас встановлено [`flight.v2.output_buffering`](/learn/migrating-to-v3#output_buffering) на `false`.
+> **Примітка:** Потокові відповіді доступні лише тоді, коли [`flight.v2.output_buffering`](/learn/migrating-to-v3#output_buffering) встановлено у `false`.
 
-#### Потік з ручними заголовками
+#### Потік із ручними заголовками
 
-Ви можете потоково передавати відповідь клієнту, використовуючи метод `stream()` на маршруті. Якщо ви 
-зробите це, ви мусите встановити всі заголовки вручну перед тим, як вивести щось клієнту.
-Це робиться з функцією `header()` php або методом `Flight::response()->setRealHeader()`.
+Ви можете передавати відповідь клієнту потоково за допомогою методу `stream()` на маршруті. Якщо ви 
+це робите, ви повинні вручну встановити всі заголовки перед тим, як виводити щось клієнту.
+Це робиться за допомогою PHP-функції `header()` або методу `Flight::response()->setRealHeader()`.
 
 ```php
 Flight::route('/@filename', function($filename) {
 
 	$response = Flight::response();
 
-	// obviously you would sanitize the path and whatnot.
+	// очевидно, ви маєте очистити шлях тощо.
 	$fileNameSafe = basename($filename);
 
-	// If you have additional headers to set here after the route has executed
-	// you must define them before anything is echoed out.
-	// They must all be a raw call to the header() function or 
-	// a call to Flight::response()->setRealHeader()
+	// Якщо вам потрібно встановити додаткові заголовки після виконання маршруту,
+	// ви повинні визначити їх до того, як щось буде виведено.
+	// Вони мають бути необробленим викликом функції header() або
+	// викликом Flight::response()->setRealHeader()
 	header('Content-Disposition: attachment; filename="'.$fileNameSafe.'"');
-	// or
+	// або
 	$response->setRealHeader('Content-Disposition: attachment; filename="'.$fileNameSafe.'"');
 
 	$filePath = '/some/path/to/files/'.$fileNameSafe;
@@ -691,29 +695,29 @@ Flight::route('/@filename', function($filename) {
 		Flight::halt(404, 'File not found');
 	}
 
-	// manually set the content length if you'd like
+	// вручну встановіть довжину вмісту, якщо бажаєте
 	header('Content-Length: '.filesize($filePath));
-	// or
+	// або
 	$response->setRealHeader('Content-Length: '.filesize($filePath));
 
-	// Stream the file to the client as it's read
+	// Потоково передайте файл клієнту, читаючи його
 	readfile($filePath);
 
-// This is the magic line here
+// Це магічний рядок
 })->stream();
 ```
 
-#### Потік з заголовками
+#### Потік із заголовками
 
 Ви також можете використовувати метод `streamWithHeaders()`, щоб встановити заголовки перед початком потокової передачі.
 
 ```php
 Flight::route('/stream-users', function() {
 
-	// you can add any additional headers you want here
-	// you just must use header() or Flight::response()->setRealHeader()
+	// тут ви можете додати будь-які додаткові заголовки
+	// ви просто повинні використовувати header() або Flight::response()->setRealHeader()
 
-	// however you pull your data, just as an example...
+	// однак ви отримуєте свої дані, наприклад...
 	$users_stmt = Flight::db()->query("SELECT id, first_name, last_name FROM users");
 
 	echo '{';
@@ -724,54 +728,54 @@ Flight::route('/stream-users', function() {
 			echo ',';
 		}
 
-		// This is required to send the data to the client
+		// Це необхідно для надсилання даних клієнту
 		ob_flush();
 	}
 	echo '}';
 
-// This is how you'll set the headers before you start streaming.
+// Ось так ви встановите заголовки перед початком потокової передачі.
 })->streamWithHeaders([
 	'Content-Type' => 'application/json',
 	'Content-Disposition' => 'attachment; filename="users.json"',
-	// optional status code, defaults to 200
+	// необов’язковий код статусу, за замовчуванням 200
 	'status' => 200
 ]);
 ```
 
 ## Дивіться також
-- [Middleware](/learn/middleware) - Використання middleware з маршрутами для аутентифікації, логування тощо.
-- [Dependency Injection](/learn/dependency-injection-container) - Спрощення створення та керування об'єктами в маршрутах.
-- [Why a Framework?](/learn/why-frameworks) - Розуміння переваг використання фреймворку, як Flight.
-- [Extending](/learn/extending) - Як розширити Flight власною функціональністю, включаючи метод `notFound`.
-- [php.net: preg_match](https://www.php.net/manual/en/function.preg-match.php) - Функція PHP для співставлення регулярних виразів.
+- [Мідлвара](/learn/middleware) — використання мідлвари з маршрутами для автентифікації, журналювання тощо.
+- [Впровадження залежностей](/learn/dependency-injection-container) — спрощення створення об’єктів та керування ними у маршрутах.
+- [Чому фреймворк?](/learn/why-frameworks) — розуміння переваг використання фреймворку, такого як Flight.
+- [Розширення](/learn/extending) — як розширити Flight власними функціями, зокрема методом `notFound`.
+- [php.net: preg_match](https://www.php.net/manual/en/function.preg-match.php) — PHP-функція для зіставлення регулярних виразів.
 
-## Вирішення проблем
-- Параметри маршруту співставляються за порядком, а не за ім'ям. Переконайтеся, що порядок параметрів зворотного виклику відповідає визначенню маршруту.
-- Використання `Flight::get()` не визначає маршрут; використовуйте `Flight::route('GET /...')` для маршрутизації або контекст об'єкта Router у групах (наприклад, `$router->get(...)`).
-- Властивість executedRoute встановлюється тільки після виконання маршруту; вона NULL перед виконанням.
-- Потокова передача вимагає відключення функціональності буферизації виводу Flight (`flight.v2.output_buffering = false`).
-- Для ін'єкції залежностей тільки певні визначення маршрутів підтримують інстанціацію на основі контейнера.
+## Усунення неполадок
+- Параметри маршруту зіставляються за порядком, а не за ім’ям. Переконайтеся, що порядок параметрів зворотного виклику відповідає визначенню маршруту.
+- Використання `Flight::get()` не визначає маршрут; для маршрутизації використовуйте `Flight::route('GET /...')` або контекст об’єкта Router у групах (напр., `$router->get(...)`).
+- Властивість executedRoute встановлюється лише після виконання маршруту; до цього вона дорівнює NULL.
+- Потокова передача потребує вимкнення застарілої функціональності вихідного буферизації Flight (`flight.v2.output_buffering = false`).
+- Для впровадження залежностей лише певні визначення маршрутів підтримують створення через контейнер.
 
-### 404 Not Found або несподівана поведінка маршруту
+### 404 Not Found або неочікувана поведінка маршруту
 
-Якщо ви бачите помилку 404 Not Found (але ви присягаєтеся своїм життям, що вона дійсно там і це не помилка друку), це насправді може бути проблема 
-з поверненням значення у вашому кінцевому пункті маршруту замість простого виведення. Причина для цього навмисна, але може заскочити деяких розробників.
+Якщо ви бачите помилку 404 Not Found (але ви присягаєтеся, що маршрут справді існує, і це не помилка), насправді це може бути проблемою 
+з тим, що ви повертаєте значення у кінцевій точці маршруту, а не просто виводите його. Причина цього навмисна, але може стати несподіванкою для деяких розробників.
 
 ```php
 Flight::route('/hello', function(){
-	// This might cause a 404 Not Found error
+	// Це може спричинити помилку 404 Not Found
 	return 'Hello World';
 });
 
-// What you probably want
+// Ймовірно, ви хочете так
 Flight::route('/hello', function(){
 	echo 'Hello World';
 });
 ```
 
-Причина для цього — спеціальний механізм, вбудований у роутер, який обробляє вивід повернення як сигнал "перейти до наступного маршруту". 
-Ви можете побачити поведінку, документовану в розділі [Routing](/learn/routing#passing).
+Причина в тому, що в маршрутизатор вбудовано спеціальний механізм, який трактує повернений результат як сигнал «перейти до наступного маршруту». 
+Цю поведінку задокументовано в розділі [Маршрутизація](/learn/routing#passing).
 
 ## Журнал змін
-- v3: Додано ресурсну маршрутизацію, псевдоніми маршрутів, підтримку потокової передачі, групи маршрутів та підтримку middleware.
-- v1: Більшість базових функцій доступні.
+- v3: Додано ресурсну маршрутизацію, псевдоніми маршрутів, підтримку потокової передачі, групи маршрутів та підтримку мідлвари.
+- v1: Доступна переважна більшість базових функцій.

@@ -2,17 +2,17 @@
 
 ## Aperçu
 
-Les tests unitaires dans Flight vous aident à vous assurer que votre application se comporte comme prévu, à détecter les bogues tôt et à rendre votre codebase plus facile à maintenir. Flight est conçu pour fonctionner sans heurts avec [PHPUnit](https://phpunit.de/), le framework de test PHP le plus populaire.
+Les tests unitaires dans Flight vous aident à garantir que votre application se comporte comme prévu, à détecter les bugs rapidement et à rendre votre base de code plus facile à maintenir. Flight est conçu pour fonctionner parfaitement avec [PHPUnit](https://phpunit.de/), le framework de test PHP le plus populaire.
 
-## Comprendre
+## Compréhension
 
-Les tests unitaires vérifient le comportement de petites parties de votre application (comme les contrôleurs ou les services) de manière isolée. Dans Flight, cela signifie tester comment vos routes, contrôleurs et logique répondent à différents inputs — sans dépendre d'un état global ou de services externes réels.
+Les tests unitaires vérifient le comportement de petites parties de votre application (comme les contrôleurs ou les services) de manière isolée. Dans Flight, cela signifie tester comment vos routes, contrôleurs et logiques répondent à différentes entrées, sans dépendre de l'état global ou de véritables services externes.
 
 Principes clés :
-- **Tester le comportement, pas l'implémentation :** Concentrez-vous sur ce que fait votre code, pas sur comment il le fait.
-- **Éviter l'état global :** Utilisez l'injection de dépendances au lieu de `Flight::set()` ou `Flight::get()`.
-- **Simuler les services externes :** Remplacez les éléments comme les bases de données ou les envois d'e-mails par des doubles de test.
-- **Garder les tests rapides et focalisés :** Les tests unitaires ne doivent pas interagir avec de vraies bases de données ou APIs.
+- **Testez le comportement, pas l'implémentation :** Concentrez-vous sur ce que votre code fait, pas sur la façon dont il le fait.
+- **Évitez l'état global :** Utilisez l'injection de dépendances au lieu de `Flight::set()` ou `Flight::get()`.
+- **Simulez les services externes :** Remplacez des éléments comme les bases de données ou les envois d'e-mails par des doubles de test.
+- **Gardez les tests rapides et ciblés :** Les tests unitaires ne doivent pas toucher de vraies bases de données ou API.
 
 ## Utilisation de base
 
@@ -41,9 +41,9 @@ Principes clés :
    </phpunit>
    ```
 
-Maintenant, vous pouvez exécuter vos tests avec `composer test`.
+Vous pouvez maintenant exécuter vos tests avec `composer test`.
 
-### Tester un gestionnaire de route simple
+### Tester un simple gestionnaire de route
 
 Supposons que vous ayez une route qui valide un e-mail :
 
@@ -100,14 +100,14 @@ class UserControllerTest extends TestCase {
 
 **Conseils :**
 - Simulez les données POST en utilisant `$app->request()->data`.
-- Évitez d'utiliser les méthodes statiques `Flight::` dans vos tests — utilisez l'instance `$app`.
+- Évitez d'utiliser les statiques `Flight::` dans vos tests—utilisez l'instance `$app`.
 
 ### Utiliser l'injection de dépendances pour des contrôleurs testables
 
-Injectez les dépendances (comme la base de données ou l'envoi d'e-mails) dans vos contrôleurs pour les rendre faciles à simuler dans les tests :
+Injectez les dépendances (comme la base de données ou l'expéditeur d'e-mails) dans vos contrôleurs pour les rendre faciles à simuler dans les tests :
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
@@ -130,14 +130,14 @@ class UserController {
 }
 ```
 
-Et un test avec des simulations :
+Et un test avec des mocks :
 
 ```php
 use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
-        $mockDb = $this->createMock(flight\database\PdoWrapper::class);
+        $mockDb = $this->createMock(flight\database\SimplePdo::class);
         $mockDb->method('runQuery')->willReturn(true);
         $mockMailer = new class {
             public $sentEmail = null;
@@ -158,26 +158,26 @@ class UserControllerDICTest extends TestCase {
 
 ## Utilisation avancée
 
-- **Simulation :** Utilisez les simulations intégrées de PHPUnit ou des classes anonymes pour remplacer les dépendances.
-- **Tester les contrôleurs directement :** Instanciez les contrôleurs avec un nouveau `Engine` et simulez les dépendances.
-- **Éviter la sur-simulation :** Laissez la logique réelle s'exécuter quand c'est possible ; ne simulez que les services externes.
+- **Mocking :** Utilisez les mocks intégrés de PHPUnit ou des classes anonymes pour remplacer les dépendances.
+- **Tester les contrôleurs directement :** Instanciez les contrôleurs avec un nouvel `Engine` et simulez les dépendances.
+- **Évitez le sur-mock :** Laissez la logique réelle s'exécuter lorsque c'est possible ; ne simulez que les services externes.
 
 ## Voir aussi
 
-- [Guide des tests unitaires](/guides/unit-testing) - Un guide complet sur les meilleures pratiques pour les tests unitaires.
+- [Guide de tests unitaires](/guides/unit-testing) - Un guide complet sur les meilleures pratiques de tests unitaires.
 - [Conteneur d'injection de dépendances](/learn/dependency-injection-container) - Comment utiliser les DIC pour gérer les dépendances et améliorer la testabilité.
-- [Extension](/learn/extending) - Comment ajouter vos propres aides ou surcharger les classes de base.
-- [Wrapper PDO](/learn/pdo-wrapper) - Simplifie les interactions avec la base de données et est plus facile à simuler dans les tests.
-- [Requêtes](/learn/requests) - Gestion des requêtes HTTP dans Flight.
-- [Réponses](/learn/responses) - Envoi de réponses aux utilisateurs.
+- [Extension](/learn/extending) - Comment ajouter vos propres helpers ou remplacer les classes de base.
+- [SimplePdo](/learn/simple-pdo) - Simplifie les interactions avec la base de données et est plus facile à simuler dans les tests.
+- [Requêtes](/learn/requests) - Gérer les requêtes HTTP dans Flight.
+- [Réponses](/learn/responses) - Envoyer des réponses aux utilisateurs.
 - [Tests unitaires et principes SOLID](/learn/unit-testing-and-solid-principles) - Apprenez comment les principes SOLID peuvent améliorer vos tests unitaires.
 
 ## Dépannage
 
 - Évitez d'utiliser l'état global (`Flight::set()`, `$_SESSION`, etc.) dans votre code et vos tests.
-- Si vos tests sont lents, vous écrivez peut-être des tests d'intégration — simulez les services externes pour garder les tests unitaires rapides.
+- Si vos tests sont lents, vous écrivez peut-être des tests d'intégration—simulez les services externes pour garder les tests unitaires rapides.
 - Si la configuration des tests est complexe, envisagez de refactoriser votre code pour utiliser l'injection de dépendances.
 
 ## Journal des modifications
 
-- v3.15.0 - Ajout d'exemples pour l'injection de dépendances et la simulation.
+- v3.15.0 - Ajout d'exemples pour l'injection de dépendances et le mocking.

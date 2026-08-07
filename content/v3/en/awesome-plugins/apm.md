@@ -41,7 +41,7 @@ Drop this into your `index.php` or a `services.php` file to start tracking:
 
 ```php
 use flight\apm\logger\LoggerFactory;
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 use flight\Apm;
 
 $ApmLogger = LoggerFactory::create(__DIR__ . '/../../.runway-config.json');
@@ -49,8 +49,11 @@ $Apm = new Apm($ApmLogger);
 $Apm->bindEventsToFlightInstance($app);
 
 // If you're adding a database connection
-// Must be PdoWrapper or PdoQueryCapture from Tracy Extensions
-$pdo = new PdoWrapper('mysql:host=localhost;dbname=example', 'user', 'pass', null, true); // <-- True required to enable tracking in the APM.
+// Prefer SimplePdo (or PdoQueryCapture from Tracy Extensions in dev).
+// Enable APM query tracking via the options array (5th argument).
+$pdo = new SimplePdo('mysql:host=localhost;dbname=example', 'user', 'pass', null, [
+	'trackApmQueries' => true, // required to capture queries for the APM
+]);
 $Apm->addPdoConnection($pdo);
 ```
 
@@ -240,9 +243,11 @@ Now you’ll see if that API’s dragging your app down!
 Track PDO queries like this:
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
-$pdo = new PdoWrapper('sqlite:/path/to/db.sqlite', null, null, null, true); // <-- True required to enable tracking in the APM.
+$pdo = new SimplePdo('sqlite:/path/to/db.sqlite', null, null, null, [
+	'trackApmQueries' => true, // required to capture queries for the APM
+]);
 $Apm->addPdoConnection($pdo);
 ```
 
@@ -253,7 +258,7 @@ $Apm->addPdoConnection($pdo);
 
 **Heads Up**:
 - **Optional**: Skip this if you don’t need DB tracking.
-- **PdoWrapper Only**: Core PDO isn’t hooked yet—stay tuned!
+- **SimplePdo (preferred)**: Use `SimplePdo` with `trackApmQueries => true`. The deprecated `PdoWrapper` still works (5th constructor arg `true`). Raw core PDO isn’t hooked yet—stay tuned!
 - **Performance Warning**: Logging every query on a DB-heavy site can slow things down. Use sampling (`$Apm = new Apm($ApmLogger, 0.1)`) to lighten the load.
 
 **Example Output**:
@@ -355,5 +360,6 @@ Stuck? Try these:
   - If you have [Tracy](https://tracy.nette.org/) enabled for your project, it will override Flight's error handling. You'll need to disable Tracy and then make sure that `Flight::set('flight.handle_errors', true);` is set.
 
 - **Not Tracking Database Queries?**
-  - Ensure you are using `PdoWrapper` for your database connections.
-  - Make sure you are making the last argument in the constructor `true`.
+  - Prefer `SimplePdo` with `['trackApmQueries' => true]` as the 5th constructor argument (options array).
+  - If you still use deprecated `PdoWrapper`, pass `true` as the 5th argument.
+  - Call `$Apm->addPdoConnection($pdo)` after creating the connection.

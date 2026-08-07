@@ -1,16 +1,80 @@
 # Autoloading
 
-## Überblick
+## Übersicht
 
-Autoloading ist ein Konzept in PHP, bei dem Sie ein Verzeichnis oder Verzeichnisse angeben, aus denen Klassen geladen werden. Dies ist viel vorteilhafter als die Verwendung von `require` oder `include`, um Klassen zu laden. Es ist auch eine Voraussetzung für die Verwendung von Composer-Paketen.
+Autoloading ist ein Konzept in PHP, bei dem Sie ein Verzeichnis oder mehrere Verzeichnisse angeben, aus denen Klassen geladen werden. Dies ist viel vorteilhafter als `require` oder `include` zum Laden von Klassen zu verwenden. Es ist auch eine Voraussetzung für die Verwendung von Composer-Paketen.
+
+Ein korrektes Autoloading ist auch für KI-gestützte Entwicklung wichtig: Agents legen Dateien dort ab, wohin der Namespace zeigt. Wenn die Groß-/Kleinschreibung von Ordnern und Namespaces nicht übereinstimmt, treten unter Linux Fehler wie „Klasse nicht gefunden" auf, selbst wenn die Dinge auf einer Mac-Festplatte ohne Beachtung der Groß-/Kleinschreibung funktioniert haben.
 
 ## Verständnis
 
-Standardmäßig wird jede `Flight`-Klasse dank Composer automatisch für Sie autoloaded. Wenn Sie jedoch Ihre eigenen Klassen autoloaden möchten, können Sie die Methode `Flight::path()` verwenden, um ein Verzeichnis anzugeben, aus dem Klassen geladen werden.
+Standardmäßig wird jede `Flight`-Klasse dank Composer automatisch für Sie geladen. Für **Ihre** Anwendungsklassen gibt es zwei gängige Ansätze:
 
-Die Verwendung eines Autoloaders kann Ihren Code auf erhebliche Weise vereinfachen. Statt dass Dateien mit einer Vielzahl von `include`- oder `require`-Anweisungen am Anfang beginnen, um alle in dieser Datei verwendeten Klassen zu erfassen, können Sie Ihre Klassen stattdessen dynamisch aufrufen, und sie werden automatisch eingeschlossen.
+1. **Composer PSR-4** (was das [offizielle Grundgerüst](https://github.com/flightphp/skeleton) verwendet): Ordnen Sie ein Namespace-Präfix einem Verzeichnis in `composer.json` zu und führen Sie dann `composer dump-autoload` aus.
+2. **`Flight::path()`**: Weisen Sie den Loader von Flight auf Verzeichnisse hin (praktisch für einfache Apps oder wenn Sie Composer nicht für Anwendungscode verwenden).
 
-## Grundlegende Verwendung
+Die Verwendung eines Autoloaders vereinfacht Ihren Code erheblich. Anstatt einer Wand von `include` / `require` am Anfang jeder Datei werden Klassen geladen, wenn Sie sie zum ersten Mal verwenden.
+
+### Groß-/Kleinschreibung (lesen Sie dies zweimal)
+
+**Namespaces müssen mit der Verzeichnisstruktur *und* der Groß-/Kleinschreibung dieser Verzeichnisse übereinstimmen.**
+
+| Funktioniert | Schlägt unter Linux fehl |
+|-------|-----------------|
+| `App\Controller\HomeController` → `app/Controller/HomeController.php` | `App\Controller\…` mit Ordner `app/controllers/` |
+| `app\controllers\MyController` → `app/controllers/MyController.php` | Mischung aus `App\` mit kleingeschriebenem `controllers` |
+
+PHP-Namespaces sind in manchen Kontexten case-insensitiv (Groß-/Kleinschreibung wird ignoriert), aber **Composer und das Dateisystem sind es nicht**. Das offizielle Grundgerüst standardisiert auf:
+
+- Composer: `"App\\": "app/"`
+- Ordner: **`Controller`**, **`Middleware`**, **`Model`**, **`Utils`** (PascalCase), nicht `controllers` / `middlewares`
+
+Ältere Dokumentationen und Beispiele aus der Community verwendeten manchmal kleingeschriebenes `app\controllers`. Das funktioniert weiterhin, wenn Ihre Ordner kleingeschrieben sind – aber **neue Skeleton-Projekte verwenden `App\` + PascalCase-Ordner**. Wählen Sie eine Konvention pro Projekt und bleiben Sie dabei, damit Menschen und KI-Tools kein zweites Layout erfinden.
+
+## Skeleton (empfohlen für neue Projekte)
+
+Nach `composer create-project flightphp/skeleton` wird Anwendungscode über Composer automatisch geladen – für `App\`-Klassen ist kein `Flight::path()` erforderlich:
+
+```json
+{
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}
+```
+
+```php
+// app/Controller/HomeController.php
+namespace App\Controller;
+
+use flight\Engine;
+
+class HomeController
+{
+	protected Engine $app;
+
+	public function __construct(Engine $app)
+	{
+		$this->app = $app;
+	}
+
+	public function index(): void
+	{
+		$this->app->render('welcome', ['message' => 'Hello!']);
+	}
+}
+```
+
+```php
+// app/config/routes.php – Dice löst App\Controller\… über den Container auf
+$router->get('/', [HomeController::class, 'index']);
+```
+
+Siehe [Installation](/install) für den vollständigen Verzeichnisbaum und [KI & Entwicklererfahrung](/learn/ai) für die Dokumentation dieses Layouts für Programmierassistenten in `AGENTS.md`.
+
+## Grundlegende Verwendung (`Flight::path()`)
 
 Nehmen wir an, wir haben einen Verzeichnisbaum wie den folgenden:
 
@@ -20,9 +84,9 @@ Nehmen wir an, wir haben einen Verzeichnisbaum wie den folgenden:
 ├── app
 │   ├── cache
 │   ├── config
-│   ├── controllers - enthält die Controller für dieses Projekt
+│   ├── controllers – enthält die Controller für dieses Projekt
 │   ├── translations
-│   ├── UTILS - enthält Klassen nur für diese Anwendung (dies ist absichtlich in Großbuchstaben für ein späteres Beispiel)
+│   ├── UTILS – enthält Klassen nur für diese Anwendung (dies ist absichtlich in Großbuchstaben für ein späteres Beispiel)
 │   └── views
 └── public
     └── css
@@ -30,7 +94,7 @@ Nehmen wir an, wir haben einen Verzeichnisbaum wie den folgenden:
 	└── index.php
 ```
 
-Sie haben vielleicht bemerkt, dass dies die gleiche Dateistruktur wie diese Dokumentationsseite ist.
+Ihnen ist vielleicht aufgefallen, dass dies einem typischen App-Verzeichnisbaum ähnelt (die Dokumentationsseite selbst verwendet eine strukturierte Darstellung). Kleingeschriebenes `controllers` ist hier eine *bewusste Wahl* – es ist nur nicht die aktuelle Standardeinstellung des Skeletons.
 
 Sie können jedes Verzeichnis zum Laden wie folgt angeben:
 
@@ -49,9 +113,9 @@ Flight::path(__DIR__.'/../app/utils/');
  * app/controllers/MyController.php
  */
 
-// Keine Namensräume erforderlich
+// Keine Namespaces erforderlich
 
-// Alle autoloaded Klassen sollten im Pascal Case sein (jedes Wort großgeschrieben, keine Leerzeichen)
+// Alle automatisch geladenen Klassen sollten in Pascal Case sein (jedes Wort großgeschrieben, keine Leerzeichen)
 class MyController {
 
 	public function index() {
@@ -60,9 +124,9 @@ class MyController {
 }
 ```
 
-## Namensräume
+## Namespaces mit `Flight::path()`
 
-Wenn Sie Namensräume haben, wird es tatsächlich sehr einfach, dies zu implementieren. Sie sollten die Methode `Flight::path()` verwenden, um das Stammverzeichnis (nicht das Dokumentenroot oder den `public/`-Ordner) Ihrer Anwendung anzugeben.
+Wenn Sie Namespaces verwenden, wird die Implementierung tatsächlich sehr einfach. Sie sollten die Methode `Flight::path()` verwenden, um das Wurzelverzeichnis (nicht das Dokumentenwurzelverzeichnis oder den `public/`-Ordner) Ihrer Anwendung anzugeben.
 
 ```php
 
@@ -74,21 +138,21 @@ Wenn Sie Namensräume haben, wird es tatsächlich sehr einfach, dies zu implemen
 Flight::path(__DIR__.'/../');
 ```
 
-Nun sieht Ihr Controller so aus. Schauen Sie sich das Beispiel unten an, aber achten Sie auf die Kommentare für wichtige Informationen.
+So könnte Ihr Controller nun aussehen. Schauen Sie sich das folgende Beispiel an, aber achten Sie auf die Kommentare mit wichtigen Informationen.
 
 ```php
 /**
  * app/controllers/MyController.php
  */
 
-// Namensräume sind erforderlich
-// Namensräume sind identisch mit der Verzeichnisstruktur
-// Namensräume müssen dem gleichen Groß-/Kleinschreibungsstil der Verzeichnisstruktur folgen
-// Namensräume und Verzeichnisse dürfen keine Unterstriche enthalten (es sei denn, Loader::setV2ClassLoading(false) ist gesetzt)
+// Namespaces sind erforderlich
+// Namespaces entsprechen der Verzeichnisstruktur
+// Namespaces müssen die gleiche Groß-/Kleinschreibung wie die Verzeichnisstruktur verwenden
+// Namespaces und Verzeichnisse dürfen keine Unterstriche enthalten (außer wenn Loader::setV2ClassLoading(false) gesetzt ist)
 namespace app\controllers;
 
-// Alle autoloaded Klassen sollten im Pascal Case sein (jedes Wort großgeschrieben, keine Leerzeichen)
-// Ab 3.7.2 können Sie Pascal_Snake_Case für Ihre Klassennamen verwenden, indem Sie Loader::setV2ClassLoading(false) ausführen;
+// Alle automatisch geladenen Klassen sollten in Pascal Case sein (jedes Wort großgeschrieben, keine Leerzeichen)
+// Ab 3.7.2 können Sie Pascal_Snake_Case für Ihre Klassennamen verwenden, indem Sie Loader::setV2ClassLoading(false); ausführen.
 class MyController {
 
 	public function index() {
@@ -97,7 +161,7 @@ class MyController {
 }
 ```
 
-Und wenn Sie eine Klasse in Ihrem utils-Verzeichnis autoloaden möchten, würden Sie im Wesentlichen dasselbe tun:
+Und wenn Sie eine Klasse in Ihrem utils-Verzeichnis automatisch laden möchten, gehen Sie im Grunde genauso vor:
 
 ```php
 
@@ -105,8 +169,8 @@ Und wenn Sie eine Klasse in Ihrem utils-Verzeichnis autoloaden möchten, würden
  * app/UTILS/ArrayHelperUtil.php
  */
 
-// Der Namensraum muss der Verzeichnisstruktur und dem Groß-/Kleinschreibungsstil entsprechen (beachten Sie, dass das UTILS-Verzeichnis in Großbuchstaben ist
-//     wie im Dateibaum oben)
+// Namespace muss mit der Verzeichnisstruktur und der Groß-/Kleinschreibung übereinstimmen (beachten Sie, dass das UTILS-Verzeichnis komplett groß geschrieben ist
+//     wie im obigen Verzeichnisbaum)
 namespace app\UTILS;
 
 class ArrayHelperUtil {
@@ -117,11 +181,24 @@ class ArrayHelperUtil {
 }
 ```
 
+### Skeleton-Stil-Namespace (gleiche Regeln, andere Groß-/Kleinschreibung)
+
+```php
+/**
+ * app/Controller/MyController.php
+ */
+namespace App\Controller;
+
+class MyController {
+	// ...
+}
+```
+
+Die Regel hat sich nicht geändert – nur die vom Skeleton gewählte Groß-/Kleinschreibung von Ordnern und Namespaces. **Egal welche Groß-/Kleinschreibung Ihre Ordner verwenden, Ihre `namespace`-Zeile muss übereinstimmen.**
+
 ## Unterstriche in Klassennamen
 
-Ab 3.7.2 können Sie Pascal_Snake_Case für Ihre Klassennamen verwenden, indem Sie `Loader::setV2ClassLoading(false);` ausführen. 
-Dies ermöglicht es Ihnen, Unterstriche in Ihren Klassennamen zu verwenden. 
-Dies wird nicht empfohlen, ist aber für diejenigen verfügbar, die es benötigen.
+Ab 3.7.2 können Sie Pascal_Snake_Case für Ihre Klassennamen verwenden, indem Sie `Loader::setV2ClassLoading(false);` ausführen. Dadurch können Sie Unterstriche in Ihren Klassennamen verwenden. Dies wird nicht empfohlen, ist aber für diejenigen verfügbar, die es benötigen.
 
 ```php
 use flight\core\Loader;
@@ -139,7 +216,7 @@ Loader::setV2ClassLoading(false);
  * app/controllers/My_Controller.php
  */
 
-// Keine Namensräume erforderlich
+// Keine Namespaces erforderlich
 
 class My_Controller {
 
@@ -150,54 +227,66 @@ class My_Controller {
 ```
 
 ## Siehe auch
-- [Routing](/learn/routing) - Wie man Routen zu Controllern zuweist und Views rendert.
-- [Warum ein Framework?](/learn/why-frameworks) - Das Verständnis der Vorteile der Verwendung eines Frameworks wie Flight.
+
+- [Installation](/install) – Skeleton-Verzeichnisbaum und `App\`-Standardwerte für neue Projekte.
+- [Routing](/learn/routing) – Wie Sie Routen auf Controller abbilden und Ansichten rendern.
+- [Dependency Injection](/learn/dependency-injection-container) – Wie Controller `Engine` und Dienste erhalten.
+- [KI & Entwicklererfahrung](/learn/ai) – Halten Sie Agents mit Ihrem Layout durch `AGENTS.md` im Einklang.
+- [Warum ein Framework?](/learn/why-frameworks) – Vorteile der Verwendung eines Frameworks wie Flight verstehen.
 
 ## Fehlerbehebung
-- Wenn Sie nicht herausfinden können, warum Ihre namespaced Klassen nicht gefunden werden, denken Sie daran, `Flight::path()` zum Stammverzeichnis in Ihrem Projekt zu verwenden, nicht zu Ihrem `app/`- oder `src/`-Verzeichnis oder Äquivalent.
+
+Wenn Sie nicht herausfinden können, warum Ihre Namespace-Klassen nicht gefunden werden, denken Sie daran: Verwenden Sie mit `Flight::path()` das **Projektwurzelverzeichnis** (oder die korrekte Basis für Ihren Namespace), nicht nur einen verschachtelten Ordner, den Sie im Namespace vergessen haben zu spiegeln.
+
+Führen Sie bei Composer PSR-4 nach Änderungen an den `composer.json`-Zuordnungen `composer dump-autoload` aus.
+
+Bei Linux-CI oder Produktion ist eine falsche Groß-/Kleinschreibung von Ordnern ein sehr häufiger Fall von „Funktioniert auf meinem Rechner"-Fehlern.
 
 ### Klasse nicht gefunden (Autoloading funktioniert nicht)
 
-Es könnte ein paar Gründe dafür geben, dass dies nicht passiert. Unten sind einige Beispiele, aber stellen Sie sicher, dass Sie auch den [Autoloading](/learn/autoloading)-Abschnitt überprüfen.
+Es kann mehrere Gründe geben, warum dies nicht funktioniert. Im Folgenden finden Sie einige Beispiele.
 
 #### Falscher Dateiname
-Der häufigste Grund ist, dass der Klassenname nicht zum Dateinamen passt.
 
-Wenn Sie eine Klasse namens `MyClass` haben, sollte die Datei `MyClass.php` heißen. Wenn Sie eine Klasse namens `MyClass` haben und die Datei `myclass.php` heißt, 
-kann der Autoloader sie nicht finden.
+Der häufigste Grund ist, dass der Klassenname nicht mit dem Dateinamen übereinstimmt.
 
-#### Falscher Namensraum
-Wenn Sie Namensräume verwenden, sollte der Namensraum zur Verzeichnisstruktur passen.
+Wenn Sie eine Klasse mit dem Namen `MyClass` haben, sollte die Datei `MyClass.php` heißen. Wenn Sie eine Klasse mit dem Namen `MyClass` haben und die Datei `myclass.php` heißt, kann der Autoloader sie nicht finden.
+
+#### Falscher Namespace oder falsche Groß-/Kleinschreibung des Ordners
+
+Wenn Sie Namespaces verwenden, sollte der Namespace der Verzeichnisstruktur entsprechen, **einschließlich der Groß-/Kleinschreibung**.
 
 ```php
 // ...code...
 
-// Wenn Ihr MyController im app/controllers-Verzeichnis ist und namespaced
-// Dies wird nicht funktionieren.
+// wenn sich Ihr MyController in app/Controller (Skeleton) befindet und App\Controller als Namespace hat
+// das funktioniert nicht:
 Flight::route('/hello', 'MyController->hello');
 
-// Sie müssen eine dieser Optionen wählen
-Flight::route('/hello', 'app\controllers\MyController->hello');
-// oder wenn Sie oben eine use-Anweisung haben
-
-use app\controllers\MyController;
-
+// Skeleton-Stil:
+use App\Controller\MyController;
 Flight::route('/hello', [ MyController::class, 'hello' ]);
-// kann auch so geschrieben werden
-Flight::route('/hello', MyController::class.'->hello');
-// auch...
-Flight::route('/hello', [ 'app\controllers\MyController', 'hello' ]);
+
+// Älteres Layout mit Kleinbuchstaben (nur wenn Ihre Ordner tatsächlich app/controllers heißen):
+use app\controllers\MyController;
+Flight::route('/hello', [ MyController::class, 'hello' ]);
+// oder voll qualifiziert:
+Flight::route('/hello', [ 'App\Controller\MyController', 'hello' ]);
 ```
 
-#### `path()` nicht definiert
+#### `path()` nicht definiert (Anwendungscode ohne Composer)
 
-In der Skeleton-App ist dies in der `config.php`-Datei definiert, aber damit Ihre Klassen gefunden werden, müssen Sie sicherstellen, dass die `path()`-Methode definiert ist (wahrscheinlich zum Stammverzeichnis Ihres Verzeichnisses), bevor Sie sie verwenden.
+Wenn Sie für Anwendungsklassen auf `Flight::path()` anstelle von Composer setzen, definieren Sie den Pfad vor Routen, die diese Klassen referenzieren (oft früh im Bootstrap / in `public/index.php`):
 
 ```php
-// Fügen Sie einen Pfad zum Autoloader hinzu
+// Einen Pfad zum Autoloader hinzufügen (Projektwurzelverzeichnis für Apps mit Namespaces)
 Flight::path(__DIR__.'/../');
 ```
 
+Das offizielle Skeleton verwendet hauptsächlich **Composer PSR-4** für `App\`, daher benötigen Sie dort normalerweise kein `Flight::path()` für Controller und Modelle.
+
 ## Änderungsprotokoll
-- v3.7.2 - Sie können Pascal_Snake_Case für Ihre Klassennamen verwenden, indem Sie `Loader::setV2ClassLoading(false);` ausführen
-- v2.0 - Autoload-Funktionalität hinzugefügt.
+
+- Docs – Dokumentieren von Skeleton `App\` + PascalCase-Ordnern und Fallstricken zur Groß-/Kleinschreibung für Menschen und KI-Tools.
+- v3.7.2 – Sie können Pascal_Snake_Case für Ihre Klassennamen verwenden, indem Sie `Loader::setV2ClassLoading(false);` ausführen.
+- v2.0 – Autoload-Funktionalität hinzugefügt.

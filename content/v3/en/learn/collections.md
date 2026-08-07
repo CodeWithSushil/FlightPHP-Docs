@@ -141,7 +141,7 @@ Collections are especially useful when you want to pass structured data between 
 ## See Also
 
 - [Requests](/learn/requests) - Learn how to handle HTTP requests and how collections can be used to manage request data.
-- [PDO Wrapper](/learn/pdo-wrapper) - Learn how to use the PDO wrapper in Flight and how collections can be used to manage database results.
+- [SimplePdo](/learn/simple-pdo) - Database helper that returns query rows as Collections.
 
 ## Troubleshooting
 

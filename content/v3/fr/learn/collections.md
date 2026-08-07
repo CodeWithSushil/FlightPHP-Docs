@@ -2,21 +2,21 @@
 
 ## Aperçu
 
-La classe `Collection` dans Flight est un utilitaire pratique pour gérer des ensembles de données. Elle vous permet d'accéder et de manipuler les données en utilisant à la fois la notation tableau et la notation objet, rendant votre code plus propre et plus flexible.
+La classe `Collection` dans Flight est un utilitaire pratique pour gérer des ensembles de données. Elle vous permet d'accéder aux données et de les manipuler en utilisant à la fois la notation tableau et la notation objet, rendant votre code plus propre et plus flexible.
 
 ## Compréhension
 
-Une `Collection` est essentiellement un wrapper autour d'un tableau, mais avec des pouvoirs supplémentaires. Vous pouvez l'utiliser comme un tableau, itérer dessus, compter ses éléments, et même accéder aux éléments comme s'ils étaient des propriétés d'objet. Cela est particulièrement utile lorsque vous souhaitez passer des données structurées dans votre application, ou lorsque vous voulez rendre votre code un peu plus lisible.
+Une `Collection` est fondamentalement un wrapper autour d'un tableau, mais avec des pouvoirs supplémentaires. Vous pouvez l'utiliser comme un tableau, itérer dessus, compter ses éléments, et même accéder aux éléments comme s'il s'agissait de propriétés d'objet. C'est particulièrement utile lorsque vous souhaitez transmettre des données structurées dans votre application, ou lorsque vous voulez rendre votre code un peu plus lisible.
 
-Les Collections implémentent plusieurs interfaces PHP :
-- `ArrayAccess` (pour utiliser la syntaxe tableau)
-- `Iterator` (pour itérer avec `foreach`)
-- `Countable` (pour utiliser `count()`)
-- `JsonSerializable` (pour convertir facilement en JSON)
+Les collections implémentent plusieurs interfaces PHP :
+- `ArrayAccess` (ainsi vous pouvez utiliser la syntaxe de tableau)
+- `Iterator` (ainsi vous pouvez boucler avec `foreach`)
+- `Countable` (ainsi vous pouvez utiliser `count()`)
+- `JsonSerializable` (ainsi vous pouvez facilement convertir en JSON)
 
 ## Utilisation de base
 
-### Créer une Collection
+### Créer une collection
 
 Vous pouvez créer une collection en passant simplement un tableau à son constructeur :
 
@@ -34,7 +34,7 @@ $collection = new Collection($data);
 
 ### Accéder aux éléments
 
-Vous pouvez accéder aux éléments en utilisant soit la notation tableau, soit la notation objet :
+Vous pouvez accéder aux éléments en utilisant la notation tableau ou la notation objet :
 
 ```php
 // Notation tableau
@@ -48,7 +48,7 @@ Si vous essayez d'accéder à une clé qui n'existe pas, vous obtiendrez `null` 
 
 ### Définir des éléments
 
-Vous pouvez définir des éléments en utilisant l'une ou l'autre notation :
+Vous pouvez également définir des éléments en utilisant l'une ou l'autre notation :
 
 ```php
 // Notation tableau
@@ -64,24 +64,24 @@ Vérifiez si un élément existe :
 
 ```php
 if (isset($collection['name'])) {
-  // Faites quelque chose
+  // Faire quelque chose
 }
 
 if (isset($collection->version)) {
-  // Faites quelque chose
+  // Faire quelque chose
 }
 ```
 
-Supprimez un élément :
+Supprimer un élément :
 
 ```php
 unset($collection['author']);
 unset($collection->license);
 ```
 
-### Itérer sur une Collection
+### Itérer sur une collection
 
-Les Collections sont itérables, vous pouvez donc les utiliser dans une boucle `foreach` :
+Les collections sont itérables, vous pouvez donc les utiliser dans une boucle `foreach` :
 
 ```php
 foreach ($collection as $key => $value) {
@@ -97,23 +97,23 @@ Vous pouvez compter le nombre d'éléments dans une collection :
 echo count($collection); // Sortie : 4
 ```
 
-### Obtenir toutes les clés ou toutes les données
+### Obtenir toutes les clés ou les données
 
-Obtenez toutes les clés :
+Obtenir toutes les clés :
 
 ```php
 $keys = $collection->keys(); // ['name', 'version', 'features', 'license']
 ```
 
-Obtenez toutes les données sous forme de tableau :
+Obtenir toutes les données sous forme de tableau :
 
 ```php
 $data = $collection->getData();
 ```
 
-### Vider la Collection
+### Vider la collection
 
-Supprimez tous les éléments :
+Supprimer tous les éléments :
 
 ```php
 $collection->clear();
@@ -121,7 +121,7 @@ $collection->clear();
 
 ### Sérialisation JSON
 
-Les Collections peuvent être facilement converties en JSON :
+Les collections peuvent être facilement converties en JSON :
 
 ```php
 echo json_encode($collection);
@@ -136,20 +136,20 @@ Vous pouvez remplacer entièrement le tableau de données interne si nécessaire
 $collection->setData(['foo' => 'bar']);
 ```
 
-Les Collections sont particulièrement utiles lorsque vous souhaitez passer des données structurées entre les composants, ou lorsque vous voulez fournir une interface plus orientée objet pour les données de tableau.
+Les collections sont particulièrement utiles lorsque vous souhaitez transmettre des données structurées entre les composants, ou lorsque vous voulez fournir une interface plus orientée objet pour les données de type tableau.
 
 ## Voir aussi
 
-- [Requests](/learn/requests) - Apprenez à gérer les requêtes HTTP et comment les collections peuvent être utilisées pour gérer les données de requête.
-- [PDO Wrapper](/learn/pdo-wrapper) - Apprenez à utiliser le wrapper PDO dans Flight et comment les collections peuvent être utilisées pour gérer les résultats de base de données.
+- [Requêtes](/learn/requests) - Apprenez à gérer les requêtes HTTP et comment les collections peuvent être utilisées pour gérer les données de requête.
+- [SimplePdo](/learn/simple-pdo) - Helper de base de données qui renvoie les lignes de requête sous forme de collections.
 
 ## Dépannage
 
 - Si vous essayez d'accéder à une clé qui n'existe pas, vous obtiendrez `null` au lieu d'une erreur.
-- N'oubliez pas que les collections ne sont pas récursives : les tableaux imbriqués ne sont pas automatiquement convertis en collections.
+- Rappelez-vous que les collections ne sont pas récursives : les tableaux imbriqués ne sont pas automatiquement convertis en collections.
 - Si vous devez réinitialiser la collection, utilisez `$collection->clear()` ou `$collection->setData([])`.
 
 ## Journal des modifications
 
-- v3.0 - Amélioration des indications de type et support de PHP 8+.
-- v1.0 - Première publication de la classe Collection.
+- v3.0 - Amélioration des indications de type et prise en charge de PHP 8+.
+- v1.0 - Première version de la classe Collection.

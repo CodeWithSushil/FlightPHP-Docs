@@ -1,6 +1,6 @@
 # Tracy
 
-Tracy is an amazing error handler that can be used with Flight. It has a number of panels that can help you debug your application. It's also very easy to extend and add your own panels. The Flight Team has created a few panels specifically for Flight projects with the [flightphp/tracy-extensions](https://github.com/flightphp/tracy-extensions) plugin.
+Tracy is an amazing error handler that can be used with Flight. It has a number of panels that can help you debug your application. It's also very easy to extend and add your own panels. The Flight Team has created a few panels specifically for Flight projects with the [flightphp/tracy-extensions](https://github.com/flightphp/tracy-extensions) plugin (Flight vars, DB queries, request, session, and an optional **Twig** panel when you pass a profiler profile—see [Tracy Extensions](/awesome-plugins/tracy-extensions)).
 
 ## Installation
 

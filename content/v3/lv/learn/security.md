@@ -2,68 +2,68 @@
 
 ## Pārskats
 
-Drošība ir ļoti svarīga tīmekļa lietojumprogrammām. Jūs vēlaties pārliecināties, ka jūsu lietojumprogramma ir droša un ka jūsu lietotāju dati ir 
-aizsargāti. Flight nodrošina vairākas funkcijas, kas palīdz nodrošināt jūsu tīmekļa lietojumprogrammu drošību.
+Drošība ir liela lieta, runājot par tīmekļa lietojumprogrammām. Jūs vēlaties pārliecināties, ka jūsu lietojumprogramma ir droša un ka jūsu lietotāju dati ir drošībā. Flight piedāvā vairākas funkcijas, lai palīdzētu jums aizsargāt savas tīmekļa lietojumprogrammas.
+
+Oficiālais [skelets](https://github.com/flightphp/skeleton) ietver arī īpašu **`SECURITY.md`** un drošības galveņu starpprogrammatūru, lai [AI kodēšanas rīkiem](/learn/ai) (un cilvēkiem) būtu viena apzināta vieta noslēpumiem, galvenēm un XSS/SQL noteikumiem — atsevišķi no vispārējā koda stila failā `AGENTS.md`.
 
 ## Izpratne
 
-Ir vairākas izplatītas drošības draudus, par kurām jums būtu jāzina, veidojot tīmekļa lietojumprogrammas. Daži no visbiežāk sastopamajiem draudiem
-ietver:
-- Cross Site Request Forgery (CSRF)
-- Cross Site Scripting (XSS)
-- SQL Injection
+Ir vairāki izplatīti drošības apdraudējumi, par kuriem jums vajadzētu zināt, veidojot tīmekļa lietojumprogrammas. Daži no visizplatītākajiem apdraudējumiem ir:
+- Starpsaites pieprasījuma viltošana (CSRF)
+- Starpsaites skriptošana (XSS)
+- SQL injekcija
 - Cross Origin Resource Sharing (CORS)
 
-[Veidnes](/learn/templates) palīdz novērst XSS, noklusēti izvadot aizbēgušus datus, tāpēc jums nav par to jādomā. [Sesijas](/awesome-plugins/session) var palīdzēt ar CSRF, saglabājot CSRF marķieri lietotāja sesijā, kā aprakstīts zemāk. Sagatavotu vaicājumu izmantošana ar PDO palīdz novērst SQL injekcijas uzbrukumus (vai izmantojot ērtas metodes [PdoWrapper](/learn/pdo-wrapper) klasē). CORS var apstrādāt ar vienkāršu āķi pirms `Flight::start()` izsaukšanas.
+[Veidnes](/learn/templates) palīdz pret XSS, pēc noklusējuma atdalot izvadi (Twig un Latte to dara; izmantojiet šo priekšrocību). [Sesijas](/awesome-plugins/session) var palīdzēt pret CSRF, saglabājot CSRF tokenu lietotāja sesijā, kā aprakstīts tālāk. Sagatavotu vaicājumu izmantošana ar PDO — vai [SimplePdo](/learn/simple-pdo) palīgmetodes — palīdz novērst SQL injekcijas. CORS var apstrādāt ar vienkāršu āķi pirms `Flight::start()` izsaukšanas.
 
-Visas šīs metodes darbojas kopā, lai palīdzētu uzturēt jūsu tīmekļa lietojumprogrammas drošību. Jums vienmēr jāpatur prātā, ka jāapgūst un jāsaprot drošības labākā prakse.
+Visas šīs metodes darbojas kopā, lai palīdzētu uzturēt jūsu tīmekļa lietojumprogrammas drošas. Jums vienmēr priekšplānā jābūt apgūt un izprast drošības paraugpraksi. Nelūdziet AI asistentam "atspējot CSP" vai vājināt galvenes tikai tāpēc, lai lapa ielādētos, nesaprotot kompromisu.
 
 ## Pamata lietošana
 
 ### Galvenes
 
-HTTP galvenes ir viens no vienkāršākajiem veidiem, kā nodrošināt jūsu tīmekļa lietojumprogrammu drošību. Jūs varat izmantot galvenes, lai novērstu klikšķu nolaupīšanu, XSS un citus uzbrukumus. 
-Ir vairāki veidi, kā pievienot šīs galvenes savai lietojumprogrammai.
+HTTP galvenes ir viens no vienkāršākajiem veidiem, kā aizsargāt savas tīmekļa lietojumprogrammas. Varat izmantot galvenes, lai novērstu klikšķināšanas nolaupīšanu (clickjacking), XSS un citus uzbrukumus. Ir vairāki veidi, kā pievienot šīs galvenes savai lietojumprogrammai.
 
-Divas lieliskas tīmekļa vietnes, lai pārbaudītu galveņu drošību, ir [securityheaders.com](https://securityheaders.com/) un 
-[observatory.mozilla.org](https://observatory.mozilla.org/). Pēc zemāk esošā koda iestatīšanas varat viegli pārbaudīt, vai jūsu galvenes darbojas, izmantojot šīs divas vietnes.
+Divas lieliskas vietnes, kur pārbaudīt savu galveņu drošību, ir [securityheaders.com](https://securityheaders.com/) un [observatory.mozilla.org](https://observatory.mozilla.org/). Pēc tālāk norādītā koda iestatīšanas jūs varat viegli pārbaudīt, vai jūsu galvenes darbojas, izmantojot šīs divas vietnes.
 
-#### Pievienot manuāli
+Skelets ietver `App\Middleware\SecurityHeadersMiddleware` (CSP ar pieprasījumam atbilstošu nonce, frame opcijām, HSTS un vairāk). Dodiet priekšroku tā apzinātai paplašināšanai, nevis galveņu atspējošanai.
 
-Jūs varat manuāli pievienot šīs galvenes, izmantojot `header` metodi `Flight\Response` objektā.
+#### Pievienošana ar rokām
+
+Šīs galvenes varat pievienot manuāli, izmantojot `header` metodi uz `Flight\Response` objekta.
 ```php
-// Iestatīt X-Frame-Options galveni, lai novērstu klikšķu nolaupīšanu
+// Iestatiet X-Frame-Options galveni, lai novērstu clickjacking
 Flight::response()->header('X-Frame-Options', 'SAMEORIGIN');
 
-// Iestatīt Content-Security-Policy galveni, lai novērstu XSS
-// Piezīme: šī galvene var kļūt ļoti sarežģīta, tāpēc jums vajadzēs
-//  konsultēties ar piemēriem internetā savai lietojumprogrammai
+// Iestatiet Content-Security-Policy galveni, lai novērstu XSS
+// Piezīme: šī galvene var kļūt ļoti sarežģīta, tāpēc jūs vēlēsities
+//  apskatīt piemērus internetā savai lietojumprogrammai
 Flight::response()->header("Content-Security-Policy", "default-src 'self'");
 
-// Iestatīt X-XSS-Protection galveni, lai novērstu XSS
+// Iestatiet X-XSS-Protection galveni, lai novērstu XSS
 Flight::response()->header('X-XSS-Protection', '1; mode=block');
 
-// Iestatīt X-Content-Type-Options galveni, lai novērstu MIME sniffingu
+// Iestatiet X-Content-Type-Options galveni, lai novērstu MIME uzminēšanu
 Flight::response()->header('X-Content-Type-Options', 'nosniff');
 
-// Iestatīt Referrer-Policy galveni, lai kontrolētu, cik daudz referrer informācijas tiek nosūtīts
+// Iestatiet Referrer-Policy galveni, lai kontrolētu, cik daudz referrer informācijas tiek nosūtīts
 Flight::response()->header('Referrer-Policy', 'no-referrer-when-downgrade');
 
-// Iestatīt Strict-Transport-Security galveni, lai piespiestu HTTPS
+// Iestatiet Strict-Transport-Security galveni, lai piespiestu HTTPS
 Flight::response()->header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
-// Iestatīt Permissions-Policy galveni, lai kontrolētu, kādas funkcijas un API var izmantot
+// Iestatiet Permissions-Policy galveni, lai kontrolētu, kādas funkcijas un API var tikt izmantotas
 Flight::response()->header('Permissions-Policy', 'geolocation=()');
 ```
 
-Tās var pievienot `routes.php` vai `index.php` failu augšdaļā.
+Tās var pievienot savu `routes.php` vai `index.php` failu augšpusē.
 
-#### Pievienot kā filtru
+#### Pievienošana kā filtrs
 
-Jūs varat arī pievienot tās filtrā/āķī šādi: 
+Varat tās arī pievienot filtrā/āķī, piemēram:
 
 ```php
-// Pievienot galvenes filtrā
+// Pievienojiet galvenes filtrā
 Flight::before('start', function() {
 	Flight::response()->header('X-Frame-Options', 'SAMEORIGIN');
 	Flight::response()->header("Content-Security-Policy", "default-src 'self'");
@@ -75,14 +75,16 @@ Flight::before('start', function() {
 });
 ```
 
-#### Pievienot kā starpprogrammatūru
+#### Pievienošana kā starpprogrammatūra
 
-Jūs varat arī pievienot tās kā starpprogrammatūras klasi, kas nodrošina vislielāko elastību, kurām maršrutiem to lietot. Parasti šīs galvenes jāpielieto visām HTML un API atbildēm.
+Varat tās pievienot arī kā starpprogrammatūras klasi, kas nodrošina vislielāko elastību, nosakot, kuriem maršrutiem to piemērot. Parasti šīs galvenes būtu jāpiemēro visām HTML un API atbildēm.
+
+Skeleta stila ceļš un nosaukumvieta (**mapes reģistrs atbilst `App\Middleware`**):
 
 ```php
-// app/middlewares/SecurityHeadersMiddleware.php
+// app/Middleware/SecurityHeadersMiddleware.php
 
-namespace app\middlewares;
+namespace App\Middleware;
 
 use flight\Engine;
 
@@ -98,8 +100,14 @@ class SecurityHeadersMiddleware
 	public function before(array $params): void
 	{
 		$response = $this->app->response();
+		// Dodiet priekšroku CSP nonce no bootstrap, ja jums ir iekļauti skripti (skelets iestata csp_nonce)
+		$nonce = $this->app->get('csp_nonce');
+		$csp = $nonce
+			? "default-src 'self'; script-src 'self' 'nonce-{$nonce}'; style-src 'self' 'nonce-{$nonce}'"
+			: "default-src 'self'";
+
 		$response->header('X-Frame-Options', 'SAMEORIGIN');
-		$response->header("Content-Security-Policy", "default-src 'self'");
+		$response->header('Content-Security-Policy', $csp);
 		$response->header('X-XSS-Protection', '1; mode=block');
 		$response->header('X-Content-Type-Options', 'nosniff');
 		$response->header('Referrer-Policy', 'no-referrer-when-downgrade');
@@ -108,53 +116,69 @@ class SecurityHeadersMiddleware
 	}
 }
 
-// index.php vai kur jums ir jūsu maršruti
-// FYI, šī tukšā virkne grupa darbojas kā globāla starpprogrammatūra visiem
-// maršrutiem. Protams, jūs varētu darīt to pašu un tikai pievienot
-// to tikai konkrētiem maršrutiem.
-Flight::group('', function(Router $router) {
-	$router->get('/users', [ 'UserController', 'getUsers' ]);
+// app/config/routes.php — tukšas virknes grupa = globālā starpprogrammatūra visiem maršrutiem
+use App\Middleware\SecurityHeadersMiddleware;
+use flight\net\Router;
+
+$router->group('', function (Router $router) {
+	$router->get('/users', [ \App\Controller\UserController::class, 'getUsers' ]);
 	// vairāk maršrutu
-}, [ SecurityHeadersMiddleware::class ]);
+}, [SecurityHeadersMiddleware::class]);
 ```
 
-### Cross Site Request Forgery (CSRF)
+Vecāki projekti joprojām var izmantot `app/middlewares` un `app\middlewares`; tas darbojas, ja mapes sakrīt. Jaunās skeleta lietotnes izmanto **`app/Middleware/`** un **`App\Middleware`**. Skatīt [Automātiskā ielāde](/learn/autoloading).
 
-Cross Site Request Forgery (CSRF) ir uzbrukuma veids, kurā ļaunprātīga tīmekļa vietne var likt lietotāja pārlūkprogrammai nosūtīt pieprasījumu uz jūsu vietni. 
-To var izmantot, lai veiktu darbības jūsu vietnē bez lietotāja ziņas. Flight nenodrošina iebūvētu CSRF aizsardzības 
-mehānismu, bet jūs varat viegli ieviest savu, izmantojot starpprogrammatūru.
+### Starpsaites pieprasījuma viltošana (CSRF)
+
+Starpsaites pieprasījuma viltošana (CSRF) ir uzbrukuma veids, kurā ļaunprātīga vietne var likt lietotāja pārlūkprogrammai nosūtīt pieprasījumu jūsu vietnei. To var izmantot, lai veiktu darbības jūsu vietnē bez lietotāja ziņas. Flight nepiedāvā iebūvētu CSRF aizsardzības mehānismu, taču jūs to viegli varat ieviest pats, izmantojot starpprogrammatūru.
 
 #### Iestatīšana
 
-Vispirms jums jāģenerē CSRF marķieris un jāglabā tas lietotāja sesijā. Pēc tam jūs varat izmantot šo marķieri savās formās un pārbaudīt to, kad 
-forma tiek iesniegta. Mēs izmantosim [flightphp/session](/awesome-plugins/session) spraudni sesiju pārvaldībai.
+Vispirms jums ir jāģenerē CSRF tokens un jāsaglabā tas lietotāja sesijā. Pēc tam varat izmantot šo tokenu savās veidlapās un pārbaudīt to, kad veidlapa tiek iesniegta. Mēs izmantosim [flightphp/session](/awesome-plugins/session) spraudni, lai pārvaldītu sesijas.
 
 ```php
-// Ģenerēt CSRF marķieri un saglabāt to lietotāja sesijā
+// Ģenerējiet CSRF tokenu un saglabājiet to lietotāja sesijā
 // (pieņemot, ka esat izveidojis sesijas objektu un pievienojis to Flight)
 // skatiet sesijas dokumentāciju, lai iegūtu vairāk informācijas
 Flight::register('session', flight\Session::class);
 
-// Jums jāģenerē tikai viens marķieris vienā sesijā (tā tas darbojas 
-// vairākās cilnēs un pieprasījumos vienam lietotājam)
+// Jums ir jāģenerē tikai viens tokens katrā sesijā (lai tas darbotos 
+// vairākās cilnēs un pieprasījumos vienam un tam pašam lietotājam)
 if(Flight::session()->get('csrf_token') === null) {
 	Flight::session()->set('csrf_token', bin2hex(random_bytes(32)) );
 }
 ```
 
-##### Izmantojot noklusēto PHP Flight veidni
+##### Izmantojot noklusējuma PHP Flight veidni
 
 ```html
-<!-- Izmantot CSRF marķieri savā formā -->
+<!-- Izmantojiet CSRF tokenu savā veidlapā -->
 <form method="post">
 	<input type="hidden" name="csrf_token" value="<?= Flight::session()->get('csrf_token') ?>">
-	<!-- citi formas lauki -->
+	<!-- citi veidlapas lauki -->
+</form>
+```
+
+##### Izmantojot Twig (skeleta noklusējums)
+
+Reģistrējiet Twig funkciju vai nododiet tokenu katrā veidlapas skatā. Minimāls piemērs ar globālo mainīgo + veidlapas lauku:
+
+```php
+// Konfigurējot Twig (piem., services.php)
+$twig->addGlobal('csrf_token', $app->session()->get('csrf_token'));
+```
+
+```html
+{# app/views/form.twig #}
+<form method="post">
+	<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+	{# citi lauki #}
 </form>
 ```
 
 ##### Izmantojot Latte
 
-Jūs varat arī iestatīt pielāgotu funkciju, lai izvadītu CSRF marķieri savās Latte veidnēs.
+Varat arī iestatīt pielāgotu funkciju, lai izvadītu CSRF tokenu savās Latte veidnēs.
 
 ```php
 
@@ -163,7 +187,7 @@ Flight::map('render', function(string $template, array $data, ?string $block): v
 
 	// citas konfigurācijas...
 
-	// Iestatīt pielāgotu funkciju, lai izvadītu CSRF marķieri
+	// Iestatiet pielāgotu funkciju, lai izvadītu CSRF tokenu
 	$latte->addFunction('csrf', function() {
 		$csrfToken = Flight::session()->get('csrf_token');
 		return new \Latte\Runtime\Html('<input type="hidden" name="csrf_token" value="' . $csrfToken . '">');
@@ -173,25 +197,25 @@ Flight::map('render', function(string $template, array $data, ?string $block): v
 });
 ```
 
-Un tagad savās Latte veidnēs varat izmantot `csrf()` funkciju, lai izvadītu CSRF marķieri.
+Un tagad savās Latte veidnēs varat izmantot `csrf()` funkciju, lai izvadītu CSRF tokenu.
 
 ```html
 <form method="post">
 	{csrf()}
-	<!-- citi formas lauki -->
+	<!-- citi veidlapas lauki -->
 </form>
 ```
 
-#### Pārbaudīt CSRF marķieri
+#### CSRF tokena pārbaude
 
-Jūs varat pārbaudīt CSRF marķieri, izmantojot vairākas metodes.
+CSRF tokenu var pārbaudīt vairākos veidos.
 
 ##### Starpprogrammatūra
 
 ```php
-// app/middlewares/CsrfMiddleware.php
+// app/Middleware/CsrfMiddleware.php
 
-namespace app\middleware;
+namespace App\Middleware;
 
 use flight\Engine;
 
@@ -215,23 +239,23 @@ class CsrfMiddleware
 	}
 }
 
-// index.php vai kur jums ir jūsu maršruti
-use app\middlewares\CsrfMiddleware;
+// routes.php
+use App\Middleware\CsrfMiddleware;
 
-Flight::group('', function(Router $router) {
-	$router->get('/users', [ 'UserController', 'getUsers' ]);
+$router->group('', function ($router) {
+	$router->get('/users', [ \App\Controller\UserController::class, 'getUsers' ]);
 	// vairāk maršrutu
-}, [ CsrfMiddleware::class ]);
+}, [CsrfMiddleware::class]);
 ```
 
 ##### Notikumu filtri
 
 ```php
-// Šī starpprogrammatūra pārbauda, vai pieprasījums ir POST pieprasījums un, ja tā ir, pārbauda, vai CSRF marķieris ir derīgs
+// Šī starpprogrammatūra pārbauda, vai pieprasījums ir POST pieprasījums, un, ja ir, tā pārbauda, vai CSRF tokens ir derīgs
 Flight::before('start', function() {
 	if(Flight::request()->method == 'POST') {
 
-		// uztvert csrf marķieri no formas vērtībām
+		// iegūstiet csrf tokenu no veidlapas vērtībām
 		$token = Flight::request()->data->csrf_token;
 		if($token !== Flight::session()->get('csrf_token')) {
 			Flight::halt(403, 'Invalid CSRF token');
@@ -242,51 +266,50 @@ Flight::before('start', function() {
 });
 ```
 
-### Cross Site Scripting (XSS)
+### Starpsaites skriptošana (XSS)
 
-Cross Site Scripting (XSS) ir uzbrukuma veids, kurā ļaunprātīga formas ievade var injicēt kodu jūsu vietnē. Lielākā daļa šo iespēju nāk 
-no formas vērtībām, kuras aizpildīs jūsu galalietotāji. Jums **nekad** nevajadzētu uzticēties izvadei no lietotājiem! Vienmēr pieņemiet, ka visi no tiem ir 
-labākie hakeri pasaulē. Viņi var injicēt ļaunprātīgu JavaScript vai HTML savā lapā. Šo kodu var izmantot, lai zagtu informāciju no jūsu 
-lietotājiem vai veiktu darbības jūsu vietnē. Izmantojot Flight skata klasi vai citu veidņu dzinēju, piemēram, [Latte](/awesome-plugins/latte), jūs varat viegli aizbēgt izvadi, lai novērstu XSS uzbrukumus.
+Starpsaites skriptošana (XSS) ir uzbrukuma veids, kurā ļaunprātīgs veidlapas ievads var ievietot kodu jūsu vietnē. Lielākā daļa šo iespēju rodas no veidlapas vērtībām, ko aizpilda jūsu galalietotāji. Jums **nekad** nevajadzētu uzticēties lietotāju ievadei! Vienmēr pieņemiet, ka viņi visi ir labākie hakeri pasaulē. Viņi var ievietot ļaunprātīgu JavaScript vai HTML jūsu lapā. Šo kodu var izmantot, lai nozagtu informāciju no jūsu lietotājiem vai veiktu darbības jūsu vietnē. Izmantojot Flight skatu klasi vai veidņu dzinēju, piemēram, [Twig](/awesome-plugins/twig) vai [Latte](/awesome-plugins/latte), jūs varat viegli aizsargāt izvadi, lai novērstu XSS uzbrukumus.
 
 ```php
-// Pieņemsim, ka lietotājs ir gudrs un mēģina izmantot šo kā savu vārdu
+// Pieņemsim, ka lietotājs ir viltīgs un mēģina to izmantot kā savu vārdu
 $name = '<script>alert("XSS")</script>';
 
-// Tas aizbēgs izvadi
+// Tas atdalīs izvadi (escape)
 Flight::view()->set('name', $name);
 // Tas izvadīs: &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;
 
-// Ja izmantojat kaut ko līdzīgu Latte, kas reģistrēts kā jūsu skata klase, tas arī automātiski aizbēgs šo.
-Flight::view()->render('template', ['name' => $name]);
+// Twig (skeleta noklusējums) un Latte pēc noklusējuma automātiski atdala izvadi — dodiet tiem priekšroku, nevis neapstrādātam PHP echo
+Flight::render('template', ['name' => $name]);
+// Twig: {{ name }}  → atdalīts
+// Izvairieties no |raw / neatdalītas izvades, ja vien saturs nav pilnībā uzticams
 ```
 
-### SQL Injection
+### SQL injekcija
 
-SQL Injection ir uzbrukuma veids, kurā ļaunprātīgs lietotājs var injicēt SQL kodu jūsu datubāzē. To var izmantot, lai zagtu informāciju 
-no jūsu datubāzes vai veiktu darbības jūsu datubāzē. Atkal jums **nekad** nevajadzētu uzticēties ievadei no lietotājiem! Vienmēr pieņemiet, ka viņi ir 
-uz asiņu medībām. Jūs varat izmantot sagatavotus vaicājumus savos `PDO` objektos, kas novērsīs SQL injekciju.
+SQL injekcija ir uzbrukuma veids, kurā ļaunprātīgs lietotājs var ievietot SQL kodu jūsu datubāzē. To var izmantot, lai nozagtu informāciju no jūsu datubāzes vai veiktu darbības jūsu datubāzē. Atkal jums **nekad** nevajadzētu uzticēties lietotāju ievadei! Vienmēr pieņemiet, ka viņi ir izslāpuši pēc asinīm. Izmantojiet sagatavotus vaicājumus — [SimplePdo](/learn/simple-pdo) palīgmetodes padara to par noklusējuma ceļu.
 
 ```php
-// Pieņemot, ka jums ir Flight::db() reģistrēts kā jūsu PDO objekts
+// Pieņemot, ka Flight::db() ir reģistrēts kā SimplePdo (vai injicējiet SimplePdo kontrolierī)
 $statement = Flight::db()->prepare('SELECT * FROM users WHERE username = :username');
 $statement->execute([':username' => $username]);
 $users = $statement->fetchAll();
 
-// Ja izmantojat PdoWrapper klasi, to var viegli izdarīt vienā rindā
+// SimplePdo (ieteicams) — vienas rindas vaicājumi ar piesaistītiem parametriem
 $users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = :username', [ 'username' => $username ]);
 
-// To pašu varat darīt ar PDO objektu ar ? vietas aizstājējiem
-$statement = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
+// Tā pati ideja ar ? vietturiem
+$users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
 ```
+
+Skeleta stila kontrolieros dodiet priekšroku konstruktora injekcijai ar `SimplePdo`, nevis `Flight::db()`, lai testi un AI ģenerēts kods paliktu konsekventi ([DIC](/learn/dependency-injection-container)).
 
 #### Nedrošs piemērs
 
-Zemāk redzamais ir iemesls, kāpēc mēs izmantojam SQL sagatavotus vaicājumus, lai aizsargātu no nevainīgiem piemēriem, piemēram, zemāk redzamā:
+Tālāk redzams, kāpēc mēs izmantojam SQL sagatavotus vaicājumus, lai aizsargātos no nekaitīgiem piemēriem, kā zemāk:
 
 ```php
-// galalietotājs aizpilda tīmekļa formu.
-// formas vērtībai hakeris ievada kaut ko līdzīgu šim:
+// galalietotājs aizpilda tīmekļa veidlapu.
+// kā veidlapas vērtību hakeris ievada aptuveni šo:
 $username = "' OR 1=1; -- ";
 
 $sql = "SELECT * FROM users WHERE username = '$username' LIMIT 5";
@@ -297,32 +320,45 @@ $users = Flight::db()->fetchAll($sql);
 // Tas izskatās dīvaini, bet tas ir derīgs vaicājums, kas darbosies. Patiesībā,
 // tas ir ļoti izplatīts SQL injekcijas uzbrukums, kas atgriezīs visus lietotājus.
 
-var_dump($users); // tas izmetīs visus lietotājus datubāzē, ne tikai vienu konkrēto lietotājvārdu
+var_dump($users); // tas izdrukās visus datubāzes lietotājus, nevis tikai vienu konkrēto lietotājvārdu
 ```
 
-### JSONP Callback Validation
+### Noslēpumi un konfigurācija
 
-Ja izmantojat Flight `Flight::jsonp()` metodi, ņemiet vērā, ka Flight validē JSONP callback parametra nosaukumu pret stingru atļauto sarakstu regulāro izteiksmi (`/^[A-Za-z_$][\w$.]{0,127}$/`). Jebkurš callback nosaukums, kas neatbilst šim modelim, liks Flight izraisīt izņēmumu, novēršot patvaļīga JavaScript injicēšanu caur ļaunprātīgu callback vērtību.
+- Ievietojiet noslēpumus **`.env`** (vai īstajā vidē), nevis iekļautajos `config.php` paraugos.
+- Skeleta noteikums: burtiskās noklusējuma vērtības `config.php`; bootstrap laikā apvienojiet env; **nedariet** lasiet `$_ENV` kontrolieros — tā vietā injicējiet konfigurāciju. Skatiet [Konfigurācija](/learn/configuration).
+- Nekad neiekļaujiet API atslēgas, datubāzes paroles vai sesijas šifrēšanas atslēgas. Norādiet AI rīkus uz **`SECURITY.md`**, lai tie neizdomā nedrošus īsceļus.
 
-Šī validācija ir iebūvēta un neprasa papildu konfigurāciju, bet par to ir vērts zināt, kad atkļūdojat negaidītas kļūdas no JSONP galapunktiem.
+### JSONP atzvanīšanas validācija
+
+Ja izmantojat Flight `Flight::jsonp()` metodi, ņemiet vērā, ka Flight pārbauda JSONP atzvanīšanas parametra nosaukumu pret stingru atļauto sarakstu ar regulāro izteiksmi (`/^[A-Za-z_$][\w$.]{0,127}$/`). Jebkurš atzvanīšanas nosaukums, kas neatbilst šim paraugam, liks Flight izmest izņēmumu, tādējādi novēršot patvaļīga JavaScript ievadīšanu caur ļaunprātīgu atzvanīšanas vērtību.
+
+Šī validācija ir iebūvēta un neprasa papildu konfigurāciju, taču ir vērts par to zināt, atkļūdojot negaidītas kļūdas no JSONP galapunktiem.
 
 ### CORS
 
-Cross-Origin Resource Sharing (CORS) ir mehānisms, kas ļauj daudziem resursiem (piem., fontiem, JavaScript utt.) tīmekļa lapā tikt 
-pieprasītiem no cita domēna ārpus domēna, no kura resursu izcelsme. Flight nav iebūvētas funkcionalitātes, 
-bet to var viegli apstrādāt ar āķi, kas jāizpilda pirms `Flight::start()` metodes izsaukšanas.
+Cross-Origin Resource Sharing (CORS) ir mehānisms, kas ļauj daudzus resursus (piemēram, fontus, JavaScript u.c.) tīmekļa lapā pieprasīt no cita domēna ārpus domēna, no kura resurss nācis. Flight nav iebūvētas funkcionalitātes, taču to var viegli apstrādāt ar āķi, kas tiek palaists pirms `Flight::start()` metodes izsaukšanas.
 
 ```php
-// app/utils/CorsUtil.php
+// app/Utils/CorsUtil.php  (skelets: PascalCase Utils mape → App\Utils)
 
-namespace app\utils;
+namespace App\Utils;
+
+use flight\Engine;
 
 class CorsUtil
 {
-	public function set(array $params): void
+	protected Engine $app;
+
+	public function __construct(Engine $app)
 	{
-		$request = Flight::request();
-		$response = Flight::response();
+		$this->app = $app;
+	}
+
+	public function set(array $params = []): void
+	{
+		$request = $this->app->request();
+		$response = $this->app->response();
 		if ($request->getVar('HTTP_ORIGIN') !== '') {
 			$this->allowOrigins();
 			$response->header('Access-Control-Allow-Credentials', 'true');
@@ -350,7 +386,7 @@ class CorsUtil
 
 	private function allowOrigins(): void
 	{
-		// pielāgojiet savus atļautos hostus šeit.
+		// pielāgojiet savus atļauto resursdatoru sarakstu šeit.
 		$allowed = [
 			'capacitor://localhost',
 			'ionic://localhost',
@@ -360,118 +396,121 @@ class CorsUtil
 			'http://localhost:8100',
 		];
 
-		$request = Flight::request();
+		$request = $this->app->request();
 
 		if (in_array($request->getVar('HTTP_ORIGIN'), $allowed, true) === true) {
-			$response = Flight::response();
+			$response = $this->app->response();
 			$response->header("Access-Control-Allow-Origin", $request->getVar('HTTP_ORIGIN'));
 		}
 	}
 }
 
-// index.php vai kur jums ir jūsu maršruti
-$CorsUtil = new CorsUtil();
-
-// Tas jāizpilda pirms start izsaukšanas.
-Flight::before('start', [ $CorsUtil, 'setupCors' ]);
+// bootstrap / maršruti — izpildīt pirms start
+$app = Flight::app();
+$cors = new \App\Utils\CorsUtil($app);
+$app->before('start', [ $cors, 'set' ]);
 ```
 
 ### Flight konfigurācijas nostiprināšana
 
-Flight atklāj vairākus dzinēja iestatījumus, kuriem ir tieša drošības ietekme. To pareiza iestatīšana ir viens no vienkāršākajiem veidiem, kā nostiprināt jūsu lietojumprogrammu.
+Flight atklāj vairākus dzinēja iestatījumus, kuriem ir tieša ietekme uz drošību. Pareiza šo iestatījumu konfigurēšana ir viens no vienkāršākajiem veidiem, kā nostiprināt savu lietojumprogrammu.
 
 #### `flight.allow_method_override`
 
-Pēc noklusējuma Flight ļauj klientiem ignorēt HTTP metodes pieprasījumu, izmantojot vai nu `X-HTTP-Method-Override` galveni vai `_method` lauku POST ķermenī. Lai gan tas ir ērti HTML formām, kas var sūtīt tikai `GET`/`POST`, tas var būt bīstami, ja jūs to negaidāt — uzbrucējs var viltot `DELETE` vai `PUT` pieprasījumus caur parasto formu.
+Pēc noklusējuma Flight ļauj klientiem mainīt pieprasījuma HTTP metodi, izmantojot vai nu `X-HTTP-Method-Override` galveni, vai `_method` lauku POST pamattekstā. Lai gan tas ir ērti HTML veidlapām, kas var nosūtīt tikai `GET`/`POST`, tas var būt bīstami, ja jūs to negaidāt — uzbrucējs varētu viltot `DELETE` vai `PUT` pieprasījumus caur parastu veidlapu.
 
-Ja jūsu lietojumprogramma nepaļaujas uz šo uzvedību (piem., jūs veidojat API, ko patērē mūsdienu klienti vai JavaScript priekšgala, kas var sūtīt jebkuru HTTP darbības vārdu), jums vajadzētu to atspējot:
+Ja jūsu lietojumprogramma nepaļaujas uz šo uzvedību (piem., veidojat API, ko izmanto mūsdienīgi klienti vai JavaScript priekšgali, kas var nosūtīt jebkuru HTTP metodi), jums tas būtu jāatspējo:
 
 ```php
 // Savā index.php vai bootstrap failā, pirms Flight::start()
 Flight::set('flight.allow_method_override', false);
 ```
 
-Noklusējuma vērtība ir `true` atpakaļsavietojamībai, bet **tā iestatīšana uz `false` ir stingri ieteicama** jebkurai lietojumprogrammai, kurai nav skaidri nepieciešama ignorēšanas funkcija.
+Noklusējuma vērtība ir `true` atpakaļsaderības dēļ, taču **ieteicams to iestatīt uz `false`** jebkurai lietojumprogrammai, kurai nav tieši nepieciešama aizstāšanas funkcija.
 
 #### `flight.debug`
 
-Flight ir `flight.debug` iestatījums, kas kontrolē, vai detalizēta kļūdas informācija (izņēmuma ziņojums, kods un pilns steka izsekojums) tiek renderēta pārlūkprogrammā, kad rodas neapstrādāts izņēmums. Noklusējums ir `false`, kas nozīmē, ka tiek rādīts tikai vispārīgs `500 Internal Server Error` ziņojums — klienta pusei netiek nopludināta iekšējā informācija.
+Flight ir `flight.debug` iestatījums, kas nosaka, vai detalizēta kļūdas informācija (izņēmuma ziņojums, kods un pilna steka izsekojums) tiek parādīta pārlūkprogrammā, kad rodas neapstrādāts izņēmums. Noklusējums ir `false`, kas nozīmē, ka tiek rādīts tikai vispārīgs ziņojums `500 Internal Server Error` — klientam netiek nopludinātas iekšējās detaļas.
 
-Nekad neiespējojiet to ražošanas serverī. Izmantojiet to tikai lokāli vai izstrādes vidē:
+Nekad neiespējojiet to uz produkcijas servera. Izmantojiet to tikai lokāli vai staging vidē:
 
 ```php
-// Droši tikai lokālai izstrādei — NEKAD ražošanā
+// Drošs tikai lokālai izstrādei — NEKAD produkcijā
 Flight::set('flight.debug', true);
 ```
 
-Kad `flight.debug` ir `false` (noklusējums), jūs joprojām varat uztvert kļūdas, iespējojot `flight.log_errors`:
+Kad `flight.debug` ir `false` (noklusējums), jūs joprojām varat reģistrēt kļūdas, iespējojot `flight.log_errors`:
 
 ```php
-// Reģistrēt kļūdas servera pusē, neizpaužot tās klientam
+// Reģistrējiet kļūdas servera pusē, nepadarot tās redzamas klientam
 Flight::set('flight.debug', false);
 Flight::set('flight.log_errors', true);
 ```
 
-#### Ieteicamā ražošanas konfigurācija
+#### Ieteicamā produkcijas konfigurācija
 
 ```php
-// index.php vai app/config/config.php
+// index.php vai lietots no lietotnes konfigurācijas / bootstrap
 Flight::set('flight.allow_method_override', false);
 Flight::set('flight.debug', false);
 Flight::set('flight.log_errors', true);
 ```
 
 ### Kļūdu apstrāde
-Paslēpt jutīgu kļūdu informāciju ražošanā, lai izvairītos no informācijas noplūdes uzbrucējiem. Ražošanā reģistrēt kļūdas, nevis tās parādīt, iestatot `display_errors` uz `0`.
+
+Slēpiet sensitīvas kļūdu detaļas produkcijas vidē, lai neizpaustu informāciju uzbrucējiem. Produkcijas vidē reģistrējiet kļūdas, nevis rādiet tās, iestatot `display_errors` uz `0`.
 
 ```php
-// Savā bootstrap.php vai index.php
+// Savā bootstrap.php vai index.php failā
 
 // pievienojiet to savam app/config/config.php
 $environment = ENVIRONMENT;
 if ($environment === 'production') {
-    ini_set('display_errors', 0); // Atspējot kļūdu parādīšanu
-    ini_set('log_errors', 1);     // Reģistrēt kļūdas tā vietā
+    ini_set('display_errors', 0); // Atspējo kļūdu attēlošanu
+    ini_set('log_errors', 1);     // Tā vietā reģistrē kļūdas
     ini_set('error_log', '/path/to/error.log');
 }
 
 // Savos maršrutos vai kontrolieros
-// Izmantot Flight::halt() kontrolētām kļūdu atbildēm
+// Izmantojiet Flight::halt() kontrolētām kļūdu atbildēm
 Flight::halt(403, 'Access denied');
 ```
 
 ### Ievades sanitizācija
-Nekad neuzticieties lietotāja ievadei. Sanitizējiet to, izmantojot [filter_var](https://www.php.net/manual/en/function.filter-var.php), pirms apstrādes, lai novērstu ļaunprātīgu datu iekļūšanu.
+
+Nekad neuzticieties lietotāja ievadei. Sanitizējiet to, izmantojot [filter_var](https://www.php.net/manual/en/function.filter-var.php), pirms apstrādes, lai novērstu ļaunprātīgu datu iekļūšanu. Dodiet priekšroku ievades lasīšanai ar `$app->request()` (vai `Flight::request()`), nevis neapstrādātiem `$_GET` / `$_POST` lietotnes kodā.
 
 ```php
 
-// Pieņemsim $_POST pieprasījumu ar $_POST['input'] un $_POST['email']
+// Pieņemsim, ka ir $_POST pieprasījums ar $_POST['input'] un $_POST['email']
 
-// Sanitizēt virknes ievadi
+// Sanitizējiet virknes ievadi
 $clean_input = filter_var(Flight::request()->data->input, FILTER_SANITIZE_STRING);
-// Sanitizēt e-pastu
+// Sanitizējiet e-pasta adresi
 $clean_email = filter_var(Flight::request()->data->email, FILTER_SANITIZE_EMAIL);
 ```
 
-### Paroļu jaukšana
-Saglabājiet paroles droši un verificējiet tās droši, izmantojot PHP iebūvētās funkcijas, piemēram, [password_hash](https://www.php.net/manual/en/function.password-hash.php) un [password_verify](https://www.php.net/manual/en/function.password-verify.php). Paroles nekad nedrīkst glabāt vienkāršā tekstā, kā arī tās nedrīkst šifrēt ar atgriezeniskām metodēm. Jaukšana nodrošina, ka pat tad, ja jūsu datubāze tiek kompromitēta, faktiskās paroles paliek aizsargātas.
+### Paroļu hešēšana
+
+Glabājiet paroles droši un pārbaudiet tās drošā veidā, izmantojot PHP iebūvētās funkcijas, piemēram, [password_hash](https://www.php.net/manual/en/function.password-hash.php) un [password_verify](https://www.php.net/manual/en/function.password-verify.php). Paroles nekad nedrīkst glabāt vienkāršā tekstā, un tās nedrīkst šifrēt ar atgriezeniskām metodēm. Hešēšana nodrošina, ka pat tad, ja jūsu datubāze tiek kompromitēta, faktiskās paroles paliek aizsargātas.
 
 ```php
 $password = Flight::request()->data->password;
-// Jaukt paroli, kad to saglabā (piem., reģistrācijas laikā)
+// Hešējiet paroli, kad to saglabājat (piem., reģistrācijas laikā)
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// Verificēt paroli (piem., pieteikšanās laikā)
+// Pārbaudiet paroli (piem., pieteikšanās laikā)
 if (password_verify($password, $stored_hash)) {
-    // Parole sakrīt
+    // Parole atbilst
 }
 ```
 
-### Pieprasījumu ierobežošana
-Aizsargāt pret brute force uzbrukumiem vai pakalpojuma atteikuma uzbrukumiem, ierobežojot pieprasījumu ātrumus ar kešatmiņu.
+### Pieprasījumu ātruma ierobežošana
+
+Aizsargājieties pret brutāla spēka uzbrukumiem vai pakalpojuma atteikuma uzbrukumiem, ierobežojot pieprasījumu ātrumu ar kešatmiņu.
 
 ```php
-// Pieņemot, ka jums ir flightphp/cache instalēts un reģistrēts
+// Pieņemot, ka flightphp/cache ir instalēts un reģistrēts
 // Izmantojot flightphp/cache filtrā
 Flight::before('start', function() {
     $cache = Flight::cache();
@@ -487,21 +526,29 @@ Flight::before('start', function() {
 });
 ```
 
-## Skatīt arī
+### Skatīt arī
+
 - [Sesijas](/awesome-plugins/session) - Kā droši pārvaldīt lietotāju sesijas.
-- [Veidnes](/learn/templates) - Veidņu izmantošana, lai automātiski aizbēgtu izvadi un novērstu XSS.
-- [PDO Wrapper](/learn/pdo-wrapper) - Vienkāršota datubāzes mijiedarbība ar sagatavotiem vaicājumiem.
+- [Veidnes](/learn/templates) - Twig/Latte automātiska izvades atdalīšana un XSS.
+- [SimplePdo](/learn/simple-pdo) - Datubāzes palīgmetodes ar sagatavotiem vaicājumiem.
+- [PdoWrapper](/learn/pdo-wrapper) - Novecojis; izmantojiet SimplePdo jaunam kodam.
 - [Starpprogrammatūra](/learn/middleware) - Kā izmantot starpprogrammatūru, lai vienkāršotu drošības galveņu pievienošanas procesu.
+- [Konfigurācija](/learn/configuration) - `.env` salīdzinājumā ar burtisko konfigurāciju, produkcijas karodziņi.
+- [AI un izstrādātāju pieredze](/learn/ai) - Glabājiet drošības politiku `SECURITY.md` aģentiem.
 - [Atbildes](/learn/responses) - Kā pielāgot HTTP atbildes ar drošām galvenēm.
 - [Pieprasījumi](/learn/requests) - Kā apstrādāt un sanitizēt lietotāja ievadi.
 - [filter_var](https://www.php.net/manual/en/function.filter-var.php) - PHP funkcija ievades sanitizācijai.
-- [password_hash](https://www.php.net/manual/en/function.password-hash.php) - PHP funkcija drošai paroles jaukšanai.
-- [password_verify](https://www.php.net/manual/en/function.password-verify.php) - PHP funkcija jaukto paroļu verificēšanai.
+- [password_hash](https://www.php.net/manual/en/function.password-hash.php) - PHP funkcija drošai paroļu hešēšanai.
+- [password_verify](https://www.php.net/manual/en/function.password-verify.php) - PHP funkcija hešēto paroļu pārbaudei.
 
-## Problēmu novēršana
-- Skatiet iepriekš minēto sadaļu "Skatīt arī", lai iegūtu problēmu novēršanas informāciju, kas saistīta ar Flight Framework komponentu problēmām.
+### Problēmu novēršana
 
-## Izmaiņu žurnāls
-- v3.18.1 - Pievienota Flight konfigurācijas nostiprināšanas sadaļa, kas aptver `flight.allow_method_override`, `flight.debug` un JSONP callback validāciju.
-- v3.1.0 - Pievienotas sadaļas par CORS, kļūdu apstrādi, ievades sanitizāciju, paroles jaukšanu un pieprasījumu ierobežošanu.
-- v2.0 - Pievienota aizbēgšana noklusētajiem skatiem, lai novērstu XSS.
+- Skatiet iepriekšējo sadaļu "Skatīt arī", lai iegūtu informāciju par problēmu novēršanu saistībā ar Flight Framework komponentu jautājumiem.
+- Ja CSP bloķē jūsu skriptus, pievienojiet nonce (skeleta paraugs) vai iekļaujiet atļauto sarakstā konkrētas izcelsmes — neiestatiet `script-src *` bez plāna.
+
+### Izmaiņu žurnāls
+
+- Dokumentācija — Skeleta `App\Middleware`, Twig CSRF/XSS piezīmes, SimplePdo, noslēpumi/`.env` un `SECURITY.md` AI draudzīgiem projektiem.
+- v3.18.1 - Pievienota Flight konfigurācijas nostiprināšanas sadaļa, kas aptver `flight.allow_method_override`, `flight.debug` un JSONP atzvanīšanas validāciju.
+- v3.1.0 - Pievienotas sadaļas par CORS, kļūdu apstrādi, ievades sanitizāciju, paroļu hešēšanu un pieprasījumu ātruma ierobežošanu.
+- v2.0 - Pievienota izvades atdalīšana noklusējuma skatiem, lai novērstu XSS.

@@ -2,17 +2,17 @@
 
 ## Visão Geral
 
-Os testes unitários no Flight ajudam você a garantir que sua aplicação se comporte como esperado, capture bugs cedo e torne seu código mais fácil de manter. O Flight é projetado para funcionar suavemente com [PHPUnit](https://phpunit.de/), o framework de testes PHP mais popular.
+Os testes unitários no Flight ajudam a garantir que sua aplicação se comporte conforme o esperado, detectar bugs cedo e tornar a base de código mais fácil de manter. O Flight foi projetado para funcionar bem com o [PHPUnit](https://phpunit.de/), o framework de testes PHP mais popular.
 
-## Entendendo
+## Compreensão
 
-Os testes unitários verificam o comportamento de pequenas partes da sua aplicação (como controladores ou serviços) de forma isolada. No Flight, isso significa testar como suas rotas, controladores e lógica respondem a diferentes entradas — sem depender de estado global ou serviços externos reais.
+Os testes unitários verificam o comportamento de pequenas partes da sua aplicação (como controladores ou serviços) de forma isolada. No Flight, isso significa testar como suas rotas, controladores e lógica respondem a diferentes entradas—sem depender de estado global ou serviços externos reais.
 
-Princípios chave:
-- **Teste o comportamento, não a implementação:** Foque no que seu código faz, não em como ele faz.
-- **Evite estado global:** Use injeção de dependências em vez de `Flight::set()` ou `Flight::get()`.
-- **Simule serviços externos:** Substitua coisas como bancos de dados ou remetentes de e-mail por duplos de teste.
-- **Mantenha os testes rápidos e focados:** Os testes unitários não devem acessar bancos de dados reais ou APIs.
+Princípios-chave:
+- **Teste o comportamento, não a implementação:** Concentre-se no que seu código faz, não em como faz.
+- **Evite estado global:** Use injeção de dependência em vez de `Flight::set()` ou `Flight::get()`.
+- **Simule serviços externos:** Substitua coisas como bancos de dados ou serviços de e-mail por dublês de teste.
+- **Mantenha os testes rápidos e focados:** Os testes unitários não devem acessar bancos de dados ou APIs reais.
 
 ## Uso Básico
 
@@ -45,7 +45,7 @@ Agora você pode executar seus testes com `composer test`.
 
 ### Testando um Manipulador de Rota Simples
 
-Suponha que você tenha uma rota que valida um e-mail:
+Suponha que você tenha uma rota que valide um e-mail:
 
 ```php
 // index.php
@@ -100,14 +100,14 @@ class UserControllerTest extends TestCase {
 
 **Dicas:**
 - Simule dados POST usando `$app->request()->data`.
-- Evite usar estática `Flight::` em seus testes — use a instância `$app`.
+- Evite usar estáticos `Flight::` em seus testes—use a instância `$app`.
 
-### Usando Injeção de Dependências para Controladores Testáveis
+### Usando Injeção de Dependência para Controladores Testáveis
 
-Injete dependências (como o banco de dados ou remetente de e-mail) em seus controladores para torná-los fáceis de simular em testes:
+Injete dependências (como o banco de dados ou serviço de e-mail) em seus controladores para facilitar a simulação (mock) nos testes:
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
@@ -130,14 +130,14 @@ class UserController {
 }
 ```
 
-E um teste com simulações:
+E um teste com mocks (simulações):
 
 ```php
 use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
-        $mockDb = $this->createMock(flight\database\PdoWrapper::class);
+        $mockDb = $this->createMock(flight\database\SimplePdo::class);
         $mockDb->method('runQuery')->willReturn(true);
         $mockMailer = new class {
             public $sentEmail = null;
@@ -158,26 +158,26 @@ class UserControllerDICTest extends TestCase {
 
 ## Uso Avançado
 
-- **Simulação:** Use as simulações integradas do PHPUnit ou classes anônimas para substituir dependências.
-- **Testando controladores diretamente:** Instancie controladores com um novo `Engine` e simule dependências.
-- **Evite simulação excessiva:** Deixe a lógica real executar onde possível; simule apenas serviços externos.
+- **Simulação (Mocking):** Use os mocks integrados do PHPUnit ou classes anônimas para substituir dependências.
+- **Testando controladores diretamente:** Instancie os controladores com um novo `Engine` e simule as dependências.
+- **Evite excesso de mocks:** Deixe a lógica real executar quando possível; simule apenas serviços externos.
 
 ## Veja Também
 
-- [Guia de Testes Unitários](/guides/unit-testing) - Um guia abrangente sobre melhores práticas de testes unitários.
-- [Container de Injeção de Dependências](/learn/dependency-injection-container) - Como usar DICs para gerenciar dependências e melhorar a testabilidade.
-- [Estendendo](/learn/extending) - Como adicionar seus próprios auxiliares ou sobrescrever classes principais.
-- [Wrapper PDO](/learn/pdo-wrapper) - Simplifica interações com banco de dados e é mais fácil de simular em testes.
-- [Requisições](/learn/requests) - Manipulando requisições HTTP no Flight.
-- [Respostas](/learn/responses) - Enviando respostas para usuários.
+- [Guia de Testes Unitários](/guides/unit-testing) - Um guia completo sobre boas práticas de testes unitários.
+- [Contêiner de Injeção de Dependência](/learn/dependency-injection-container) - Como usar DICs para gerenciar dependências e melhorar a testabilidade.
+- [Estendendo](/learn/extending) - Como adicionar seus próprios helpers ou sobrescrever classes principais.
+- [SimplePdo](/learn/simple-pdo) - Simplifica as interações com o banco de dados e é mais fácil de simular em testes.
+- [Requisições](/learn/requests) - Lidando com requisições HTTP no Flight.
+- [Respostas](/learn/responses) - Enviando respostas aos usuários.
 - [Testes Unitários e Princípios SOLID](/learn/unit-testing-and-solid-principles) - Aprenda como os princípios SOLID podem melhorar seus testes unitários.
 
 ## Solução de Problemas
 
 - Evite usar estado global (`Flight::set()`, `$_SESSION`, etc.) em seu código e testes.
-- Se seus testes forem lentos, você pode estar escrevendo testes de integração — simule serviços externos para manter os testes unitários rápidos.
-- Se a configuração de teste for complexa, considere refatorar seu código para usar injeção de dependências.
+- Se seus testes estão lentos, você pode estar escrevendo testes de integração—simule serviços externos para manter os testes unitários rápidos.
+- Se a configuração do teste for complexa, considere refatorar seu código para usar injeção de dependência.
 
 ## Registro de Alterações
 
-- v3.15.0 - Adicionados exemplos para injeção de dependências e simulação.
+- v3.15.0 - Adicionados exemplos para injeção de dependência e simulação (mocking).

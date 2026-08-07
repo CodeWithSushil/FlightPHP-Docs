@@ -1,10 +1,10 @@
 # Membangun Blog Sederhana dengan Flight PHP
 
-Panduan ini memandu Anda melalui pembuatan blog dasar menggunakan framework Flight PHP. Anda akan mengatur proyek, mendefinisikan rute, mengelola pos dengan JSON, dan merendernya dengan mesin templating Latte—semuanya menunjukkan kesederhanaan dan fleksibilitas Flight. Pada akhir panduan, Anda akan memiliki blog fungsional dengan halaman utama, halaman pos individu, dan formulir pembuatan.
+Panduan ini memandu Anda membuat blog dasar menggunakan framework PHP Flight. Anda akan menyiapkan proyek, mendefinisikan rute, mengelola posting dengan JSON, dan merendernya dengan mesin templat Latte—semuanya menunjukkan kesederhanaan dan fleksibilitas Flight. Pada akhirnya, Anda akan memiliki blog yang berfungsi dengan beranda, halaman posting individu, dan formulir pembuatan.
 
 ## Prasyarat
 - **PHP 7.4+**: Terinstal di sistem Anda.
-- **Composer**: Untuk manajemen ketergantungan.
+- **Composer**: Untuk manajemen dependensi.
 - **Editor Teks**: Editor apa pun seperti VS Code atau PHPStorm.
 - Pengetahuan dasar tentang PHP dan pengembangan web.
 
@@ -24,19 +24,19 @@ Mulailah dengan membuat direktori proyek baru dan menginstal Flight melalui Comp
    ```
 
 3. **Buat Direktori Publik**:
-   Flight menggunakan titik masuk tunggal (`index.php`). Buat folder `public/` untuk itu:
+   Flight menggunakan satu titik masuk (`index.php`). Buat folder `public/` untuk itu:
    ```bash
    mkdir public
    ```
 
 4. **`index.php` Dasar**:
-   Buat `public/index.php` dengan rute "hello world" yang sederhana:
+   Buat `public/index.php` dengan rute "hello world" sederhana:
    ```php
    <?php
    require '../vendor/autoload.php';
 
    Flight::route('/', function () {
-       echo 'Halo, Flight!';
+       echo 'Hello, Flight!';
    });
 
    Flight::start();
@@ -47,11 +47,11 @@ Mulailah dengan membuat direktori proyek baru dan menginstal Flight melalui Comp
    ```bash
    php -S localhost:8000 -t public/
    ```
-   Kunjungi `http://localhost:8000` untuk melihat "Halo, Flight!".
+   Kunjungi `http://localhost:8000` untuk melihat "Hello, Flight!".
 
 ## Langkah 2: Atur Struktur Proyek Anda
 
-Untuk pengaturan yang bersih, struktur proyek Anda seperti ini:
+Untuk pengaturan yang rapi, susun proyek Anda seperti ini:
 
 ```text
 flight-blog/
@@ -65,21 +65,21 @@ flight-blog/
 └── composer.json
 ```
 
-- `app/config/`: File konfigurasi (misalnya, acara, rute).
-- `app/views/`: Template untuk merender halaman.
-- `data/`: File JSON untuk menyimpan pos blog.
+- `app/config/`: File konfigurasi (misalnya, events, routes).
+- `app/views/`: Templat untuk merender halaman.
+- `data/`: File JSON untuk menyimpan posting blog.
 - `public/`: Root web dengan `index.php`.
 
 ## Langkah 3: Instal dan Konfigurasi Latte
 
-Latte adalah mesin templating ringan yang terintegrasi dengan baik dengan Flight.
+Latte adalah mesin templat ringan yang terintegrasi dengan baik dengan Flight.
 
 1. **Instal Latte**:
    ```bash
    composer require latte/latte
    ```
 
-2. **Konfigurasikan Latte di Flight**:
+2. **Konfigurasi Latte di Flight**:
    Perbarui `public/index.php` untuk mendaftarkan Latte sebagai mesin tampilan:
    ```php
    <?php
@@ -93,39 +93,39 @@ Latte adalah mesin templating ringan yang terintegrasi dengan baik dengan Flight
    });
 
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => 'Blog Saya']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::start();
    ```
 
-3. **Buat Template Layout: 
-Di `app/views/layout.latte`**:
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{$title}</title>
-</head>
-<body>
-    <header>
-        <h1>Blog Saya</h1>
-        <nav>
-            <a href="/">Beranda</a> | 
-            <a href="/create">Buat Pos</a>
-        </nav>
-    </header>
-    <main>
-        {block content}{/block}
-    </main>
-    <footer>
-        <p>&copy; {date('Y')} Blog Flight</p>
-    </footer>
-</body>
-</html>
-```
+3. **Buat Templat Layout**:
+   Di `app/views/layout.latte`:
+   ```html
+   <!DOCTYPE html>
+   <html>
+   <head>
+       <title>{$title}</title>
+   </head>
+   <body>
+       <header>
+           <h1>My Blog</h1>
+           <nav>
+               <a href="/">Beranda</a> | 
+               <a href="/create">Buat Posting</a>
+           </nav>
+       </header>
+       <main>
+           {block content}{/block}
+       </main>
+       <footer>
+           <p>&copy; {date('Y')} Flight Blog</p>
+       </footer>
+   </body>
+   </html>
+   ```
 
-4. **Buat Template Beranda**:
+4. **Buat Templat Beranda**:
    Di `app/views/home.latte`:
    ```html
    {extends 'layout.latte'}
@@ -143,15 +143,15 @@ Di `app/views/layout.latte`**:
 
 5. **Buat File Data**:
 
-   Gunakan file JSON untuk mensimulasikan database untuk kesederhanaan.
+   Gunakan file JSON untuk mensimulasikan database agar sederhana.
 
    Di `data/posts.json`:
    ```json
    [
        {
            "slug": "first-post",
-           "title": "Pos Pertama Saya",
-           "content": "Ini adalah pos blog pertama saya dengan Flight PHP!"
+           "title": "My First Post",
+           "content": "This is my very first blog post with Flight PHP!"
        }
    ]
    ```
@@ -165,20 +165,20 @@ Pisahkan rute Anda ke dalam file konfigurasi untuk organisasi yang lebih baik.
    ```php
    <?php
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => 'Blog Saya']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::route('/post/@slug', function ($slug) {
-       Flight::view()->render('post.latte', ['title' => 'Pos: ' . $slug, 'slug' => $slug]);
+       Flight::view()->render('post.latte', ['title' => 'Post: ' . $slug, 'slug' => $slug]);
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => 'Buat Pos']);
+       Flight::view()->render('create.latte', ['title' => 'Buat Posting']);
    });
    ```
 
 2. **Perbarui `index.php`**:
-   Termasuk file rute:
+   Sertakan file rute:
    ```php
    <?php
    require '../vendor/autoload.php';
@@ -195,12 +195,12 @@ Pisahkan rute Anda ke dalam file konfigurasi untuk organisasi yang lebih baik.
    Flight::start();
    ```
 
-## Langkah 5: Simpan dan Ambil Pos Blog
+## Langkah 5: Simpan dan Ambil Posting Blog
 
-Tambahkan metode untuk memuat dan menyimpan pos.
+Tambahkan metode untuk memuat dan menyimpan posting.
 
-1. **Tambahkan Metode Pos**:
-   Di `index.php`, tambahkan metode untuk memuat pos:
+1. **Tambahkan Metode Posts**:
+   Di `index.php`, tambahkan metode untuk memuat posting:
    ```php
    Flight::map('posts', function () {
        $file = __DIR__ . '/../data/posts.json';
@@ -209,13 +209,13 @@ Tambahkan metode untuk memuat dan menyimpan pos.
    ```
 
 2. **Perbarui Rute**:
-   Modifikasi `app/config/routes.php` untuk menggunakan pos:
+   Ubah `app/config/routes.php` untuk menggunakan posting:
    ```php
    <?php
    Flight::route('/', function () {
        $posts = Flight::posts();
        Flight::view()->render('home.latte', [
-           'title' => 'Blog Saya',
+           'title' => 'My Blog',
            'posts' => $posts
        ]);
    });
@@ -235,15 +235,15 @@ Tambahkan metode untuk memuat dan menyimpan pos.
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => 'Buat Pos']);
+       Flight::view()->render('create.latte', ['title' => 'Buat Posting']);
    });
    ```
 
-## Langkah 6: Buat Template
+## Langkah 6: Buat Templat
 
-Perbarui template Anda untuk menampilkan pos.
+Perbarui templat Anda untuk menampilkan posting.
 
-1. **Halaman Pos (`app/views/post.latte`)**:
+1. **Halaman Posting (`app/views/post.latte`)**:
    ```html
    {extends 'layout.latte'}
 
@@ -255,11 +255,11 @@ Perbarui template Anda untuk menampilkan pos.
 	{/block}
    ```
 
-## Langkah 7: Tambahkan Pembuatan Pos
+## Langkah 7: Tambahkan Pembuatan Posting
 
-Tangani pengiriman formulir untuk menambahkan pos baru.
+Tangani pengiriman formulir untuk menambahkan posting baru.
 
-1. **Formulir Buat (`app/views/create.latte`)**:
+1. **Buat Formulir (`app/views/create.latte`)**:
    ```html
    {extends 'layout.latte'}
 
@@ -274,7 +274,7 @@ Tangani pengiriman formulir untuk menambahkan pos baru.
 				<label for="content">Konten:</label>
 				<textarea name="content" id="content" required></textarea>
 			</div>
-			<button type="submit">Simpan Pos</button>
+			<button type="submit">Simpan Posting</button>
 		</form>
 	{/block}
    ```
@@ -298,12 +298,12 @@ Tangani pengiriman formulir untuk menambahkan pos baru.
 
 3. **Uji Coba**:
    - Kunjungi `http://localhost:8000/create`.
-   - Kirim pos baru (misalnya, “Pos Kedua” dengan beberapa konten).
-   - Periksa halaman utama untuk melihatnya terdaftar.
+   - Kirim posting baru (misalnya, "Second Post" dengan beberapa konten).
+   - Periksa beranda untuk melihatnya terdaftar.
 
-## Langkah 8: Perbaiki dengan Penanganan Kesalahan
+## Langkah 8: Tingkatkan dengan Penanganan Kesalahan
 
-Timpakan metode `notFound` untuk pengalaman 404 yang lebih baik.
+Timpa metode `notFound` untuk pengalaman 404 yang lebih baik.
 
 Di `index.php`:
 ```php
@@ -318,16 +318,16 @@ Buat `app/views/404.latte`:
 
 {block content}
     <h2>404 - {$title}</h2>
-    <p>Maaf, halaman tersebut tidak ada!</p>
+    <p>Maaf, halaman itu tidak ada!</p>
 {/block}
 ```
 
-## Langkah Selanjutnya
-- **Tambahkan Gaya**: Gunakan CSS di template Anda untuk tampilan yang lebih baik.
-- **Database**: Ganti `posts.json` dengan database seperti SQLite menggunakan `PdoWrapper`.
-- **Validasi**: Tambahkan cek untuk slug duplikat atau input kosong.
-- **Middleware**: Implementasikan autentikasi untuk pembuatan pos.
+## Langkah Berikutnya
+- **Tambahkan Gaya**: Gunakan CSS di templat Anda untuk tampilan yang lebih baik.
+- **Database**: Ganti `posts.json` dengan database seperti SQLite menggunakan [SimplePdo](/learn/simple-pdo).
+- **Validasi**: Tambahkan pemeriksaan untuk slug duplikat atau input kosong.
+- **Middleware**: Terapkan autentikasi untuk pembuatan posting.
 
 ## Kesimpulan
 
-Anda telah membangun blog sederhana dengan Flight PHP! Panduan ini menunjukkan fitur inti seperti routing, templating dengan Latte, dan menangani pengiriman formulir—semuanya tetap ringan. Jelajahi dokumentasi Flight untuk fitur-fitur lebih lanjut untuk membawa blog Anda lebih jauh!
+Anda telah membangun blog sederhana dengan Flight PHP! Panduan ini menunjukkan fitur inti seperti routing, templating dengan Latte, dan penanganan pengiriman formulir—semuanya dengan tetap ringan. Jelajahi dokumentasi Flight untuk fitur yang lebih lanjut guna membawa blog Anda lebih jauh!

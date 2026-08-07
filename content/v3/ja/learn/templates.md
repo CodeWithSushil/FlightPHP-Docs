@@ -1,22 +1,110 @@
-# HTML ビューとテンプレート
+# HTMLビューとテンプレート
 
 ## 概要
 
-Flight はデフォルトで基本的な HTML テンプレート機能を備えています。テンプレートは、アプリケーションのロジックをプレゼンテーション層から分離する非常に効果的な方法です。
+Flightはデフォルトでいくつかの基本的なHTMLテンプレート機能を提供しています。テンプレートは、アプリケーションロジックをプレゼンテーション層から切り離すための非常に効果的な方法です。専用エンジン（Twig、Latteなど）は、[AIコーディングツール](/learn/ai)に馴染みのある制約された構文を提供するため、ビジネスロジックをHTMLに混ぜ込みにくくなります。
 
 ## 理解
 
-アプリケーションを構築する際、エンドユーザーに返す HTML を準備する必要があるでしょう。PHP 自体がテンプレート言語ですが、データベース呼び出し、API 呼び出しなどのビジネスロジックを HTML ファイルに混ぜ込んでしまうと、テストや分離が非常に困難になります。データをテンプレートに押し込み、テンプレート自身にレンダリングさせることで、コードの分離と単体テストがはるかに容易になります。テンプレートを使用すれば、私たちに感謝するはずです！
+アプリケーションを構築するとき、エンドユーザーに返したいHTMLがあるでしょう。PHP自体はテンプレート言語ですが、データベース呼び出しやAPI呼び出しなどのビジネスロジックをHTMLファイルに簡単に埋め込めてしまい、テストや疎結合化が非常に困難になります。データをテンプレートに渡し、テンプレート自体にレンダリングさせることで、コードの疎結合化とユニットテストがはるかに容易になります。テンプレートを使えば、きっと感謝されますよ！
 
-## 基本的な使用方法
+## 基本的な使い方
 
-Flight では、デフォルトのビューエンジンを置き換えるために、独自のビュー クラスを登録するだけで簡単に切り替えられます。Smarty、Latte、Blade などの使用例を見るには、下にスクロールしてください！
+Flightでは、`render`をマップする（またはビュークラスを登録する）だけで、デフォルトのビューエンジンを別のものに置き換えることができます。Twig、Latte、Smarty、Bladeなどの詳細は下にスクロールしてください。
+
+> **スケルトンのデフォルト:** 公式の[flightphp/skeleton](https://github.com/flightphp/skeleton)は、`app/views/`（`*.twig`）配下で**Twigのみ**を使用します。コントローラーは`$this->app->render('welcome', $data)`を呼び出します（拡張子は省略可能）。これは新規プロジェクトのためのアプリケーション側の選択であり、Flightコアの要件ではありません。Latteやその他のエンジンも引き続き完全にサポートされています。
+
+### Twig
+
+<span class="badge bg-info">スケルトンのデフォルト</span>
+
+[Twig](https://twig.symfony.com/)は、Symfonyや多くのPHPプロジェクトで使用されている、柔軟で高速かつ安全なテンプレートエンジンです。AIコーディングツールは特にTwigをよく知っており、デフォルトで出力を自動エスケープするためXSS対策にも役立ちます。
+
+#### インストール
+
+```bash
+composer require twig/twig
+```
+
+（`composer create-project flightphp/skeleton`でインストールした場合は、すでに含まれています。）
+
+#### 基本設定
+
+`render`メソッドを上書きして、デフォルトのPHPレンダラーの代わりにTwigを使用します。
+
+```php
+// デフォルトのPHPレンダラーの代わりにTwigを使うようにrenderメソッドを上書きします
+Flight::map('render', function(string $template, array $data): void {
+	$loader = new \Twig\Loader\FilesystemLoader(Flight::get('flight.views.path'));
+	$twig = new \Twig\Environment($loader, [
+		// Twigがコンパイル済みテンプレートを保存する場所
+		'cache' => __DIR__ . '/../cache/twig',
+		'auto_reload' => true,
+	]);
+
+	// "welcome" または "welcome.twig" を許可します
+	if (substr($template, -5) !== '.twig') {
+		$template .= '.twig';
+	}
+
+	echo $twig->render($template, $data);
+});
+```
+
+スケルトンでは、この配線（設定）は`app/config/services.php`にあります（共有Twig環境、キャッシュパス、`base_url` / CSP nonceなどのグローバル変数）。コードを[AIフレンドリーかつテストフレンドリー](/learn/ai)に保つには、`Engine`を注入し、コントローラーから`$app->render()`を呼び出すことをお勧めします。
+
+#### FlightでのTwigの使用
+
+Twigでレンダリングできるようになったので、次のようにできます。
+
+```html
+{# app/views/home.twig #}
+<html>
+  <head>
+	<title>{% if title %}{{ title }} - {% endif %}My App</title>
+	<link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+	<h1>Hello, {{ name }}!</h1>
+  </body>
+</html>
+```
+
+```php
+// routes.php
+Flight::route('/@name', function ($name) {
+	Flight::render('home.twig', [
+		'title' => 'Home Page',
+		'name' => $name
+	]);
+});
+```
+
+ブラウザで`/Bob`にアクセスすると、出力は次のようになります。
+
+```html
+<html>
+  <head>
+	<title>Home Page - My App</title>
+	<link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+	<h1>Hello, Bob!</h1>
+  </body>
+</html>
+```
+
+#### 詳細情報
+
+Twigをレイアウトと一緒に使うより完全な例は、このドキュメントの[awesome plugins](/awesome-plugins/twig)セクションにあります。Tracyバーでレンダリング時間のメトリクスを確認するには、[Tracy ExtensionsのTwigパネル](/awesome-plugins/tracy-extensions#twig-panel-optional)を参照してください。
+
+Twigの全機能については、[公式ドキュメント](https://twig.symfony.com/doc/3.x/)をご覧ください。
 
 ### Latte
 
-<span class="badge bg-info">推奨</span>
+<span class="badge bg-secondary">優れた代替案</span>
 
-[Latte](https://latte.nette.org/) テンプレート エンジンをビューで使用する方法を以下に示します。
+[Latte](https://latte.nette.org/)は、PHPに似た構文を持つフル機能のエンジンです。Flightアプリケーションにとっても優れた選択肢です。スケルトンは、共通のデフォルトとしてTwigを採用しているだけです（特にAIツールがテンプレートを生成する場合に便利です）。
 
 #### インストール
 
@@ -24,16 +112,16 @@ Flight では、デフォルトのビューエンジンを置き換えるため�
 composer require latte/latte
 ```
 
-#### 基本的な設定
+#### 基本設定
 
-主なアイデアは、`render` メソッドをオーバーライドして、デフォルトの PHP レンダラーではなく Latte を使用することです。
+主なアイデアは、`render`メソッドを上書きして、デフォルトのPHPレンダラーの代わりにLatteを使用することです。
 
 ```php
-// overwrite the render method to use latte instead of the default PHP renderer
+// デフォルトのPHPレンダラーの代わりにLatteを使うようにrenderメソッドを上書きします
 Flight::map('render', function(string $template, array $data, ?string $block): void {
 	$latte = new Latte\Engine;
 
-	// Where latte specifically stores its cache
+	// Latteがキャッシュを保存する場所
 	$latte->setTempDirectory(__DIR__ . '/../cache/');
 	
 	$finalPath = Flight::get('flight.views.path') . $template;
@@ -42,9 +130,9 @@ Flight::map('render', function(string $template, array $data, ?string $block): v
 });
 ```
 
-#### Flight での Latte の使用
+#### FlightでのLatteの使用
 
-Latte でレンダリングできるようになったら、以下のようにできます：
+Latteでレンダリングできるようになったので、次のようにできます。
 
 ```html
 <!-- app/views/home.latte -->
@@ -69,7 +157,7 @@ Flight::route('/@name', function ($name) {
 });
 ```
 
-ブラウザで `/Bob` にアクセスすると、出力は次のようになります：
+ブラウザで`/Bob`にアクセスすると、出力は次のようになります。
 
 ```html
 <html>
@@ -83,51 +171,51 @@ Flight::route('/@name', function ($name) {
 </html>
 ```
 
-#### さらなる読み物
+#### 詳細情報
 
-Latte をレイアウトで使用するより複雑な例は、このドキュメントの [awesome plugins](/awesome-plugins/latte) セクションに示されています。
+Latteをレイアウトと一緒に使うより複雑な例は、このドキュメントの[awesome plugins](/awesome-plugins/latte)セクションにあります。
 
-Latte の完全な機能（翻訳や言語機能を含む）については、[公式ドキュメント](https://latte.nette.org/en/) を読んでください。
+翻訳や言語機能を含むLatteの全機能については、[公式ドキュメント](https://latte.nette.org/en/)をご覧ください。
 
-### ビルトインのビュー エンジン
+### 組み込みビューエンジン
 
 <span class="badge bg-warning">非推奨</span>
 
-> **注意:** これは依然としてデフォルトの機能であり、技術的には動作します。
+> **注:** これはまだデフォルトの機能であり、技術的にはまだ動作します。
 
-ビュー テンプレートを表示するには、`render` メソッドをテンプレート ファイルの名前とオプションのテンプレート データで呼び出します：
+ビューテンプレートを表示するには、テンプレートファイル名とオプションのテンプレートデータを指定して`render`メソッドを呼び出します。
 
 ```php
 Flight::render('hello.php', ['name' => 'Bob']);
 ```
 
-渡したテンプレート データは自動的にテンプレートに注入され、ローカル変数のように参照できます。テンプレート ファイルは単なる PHP ファイルです。`hello.php` テンプレート ファイルの内容が以下のようである場合：
+渡したテンプレートデータは自動的にテンプレートに注入され、ローカル変数のように参照できます。テンプレートファイルは単なるPHPファイルです。`hello.php`テンプレートファイルの内容が次の場合:
 
 ```php
 Hello, <?= $name ?>!
 ```
 
-出力は次のようになります：
+出力は次のようになります。
 
 ```text
 Hello, Bob!
 ```
 
-`set` メソッドを使用して、手動でビュー変数を設定することもできます：
+また、`set`メソッドを使用してビュー変数を手動で設定することもできます。
 
 ```php
 Flight::view()->set('name', 'Bob');
 ```
 
-変数 `name` はすべてのビューで利用可能になります。したがって、以下のように単純に実行できます：
+これで、`name`変数はすべてのビューで使用できるようになります。したがって、単純に次のようにできます。
 
 ```php
 Flight::render('hello');
 ```
 
-`render` メソッドでテンプレート名を指定する際は、`.php` 拡張子を省略できます。
+renderメソッドでテンプレートの名前を指定するとき、`.php`拡張子は省略できることに注意してください。
 
-デフォルトでは、Flight はテンプレート ファイルのために `views` ディレクトリを探します。テンプレートの代替パスを設定するには、以下の設定を実行します：
+デフォルトでは、Flightはテンプレートファイル用に`views`ディレクトリを探します。次の設定を行うことで、テンプレートの代替パスを設定できます。
 
 ```php
 Flight::set('flight.views.path', '/path/to/views');
@@ -135,34 +223,34 @@ Flight::set('flight.views.path', '/path/to/views');
 
 #### レイアウト
 
-ウェブサイトでは、交換可能なコンテンツを持つ単一のレイアウト テンプレート ファイルが一般的です。レイアウトで使用するコンテンツをレンダリングするには、`render` メソッドにオプションのパラメータを渡せます。
+Webサイトでは、コンテンツを差し替えられる単一のレイアウトテンプレートファイルを持つことが一般的です。レイアウトで使用するコンテンツをレンダリングするには、`render`メソッドにオプションのパラメータを渡します。
 
 ```php
 Flight::render('header', ['heading' => 'Hello'], 'headerContent');
 Flight::render('body', ['body' => 'World'], 'bodyContent');
 ```
 
-ビューには、`headerContent` と `bodyContent` という名前の変数が保存されます。次に、レイアウトを以下のようにレンダリングできます：
+これで、ビューには`headerContent`および`bodyContent`という変数が保存されます。次に、次のようにしてレイアウトをレンダリングできます。
 
 ```php
 Flight::render('layout', ['title' => 'Home Page']);
 ```
 
-テンプレート ファイルが以下のようである場合：
+テンプレートファイルが次のようになっている場合:
 
-`header.php`：
+`header.php`:
 
 ```php
 <h1><?= $heading ?></h1>
 ```
 
-`body.php`：
+`body.php`:
 
 ```php
 <div><?= $body ?></div>
 ```
 
-`layout.php`：
+`layout.php`:
 
 ```php
 <html>
@@ -176,7 +264,7 @@ Flight::render('layout', ['title' => 'Home Page']);
 </html>
 ```
 
-出力は次のようになります：
+出力は次のようになります。
 ```html
 <html>
   <head>
@@ -191,14 +279,14 @@ Flight::render('layout', ['title' => 'Home Page']);
 
 ### Smarty
 
-[Smarty](http://www.smarty.net/) テンプレート エンジンをビューで使用する方法を以下に示します：
+ビューに[Smarty](http://www.smarty.net/)テンプレートエンジンを使用する方法は次のとおりです。
 
 ```php
-// Load Smarty library
+// Smartyライブラリを読み込みます
 require './Smarty/libs/Smarty.class.php';
 
-// Register Smarty as the view class
-// Also pass a callback function to configure Smarty on load
+// Smartyをビュークラスとして登録します
+// また、読み込み時にSmartyを設定するコールバック関数を渡します
 Flight::register('view', Smarty::class, [], function (Smarty $smarty) {
   $smarty->setTemplateDir('./templates/');
   $smarty->setCompileDir('./templates_c/');
@@ -206,14 +294,14 @@ Flight::register('view', Smarty::class, [], function (Smarty $smarty) {
   $smarty->setCacheDir('./cache/');
 });
 
-// Assign template data
+// テンプレートデータを割り当てます
 Flight::view()->assign('name', 'Bob');
 
-// Display the template
+// テンプレートを表示します
 Flight::view()->display('hello.tpl');
 ```
 
-完全性を期すために、Flight のデフォルトの `render` メソッドもオーバーライドしてください：
+完全を期すために、Flightのデフォルトのrenderメソッドも上書きする必要があります。
 
 ```php
 Flight::map('render', function(string $template, array $data): void {
@@ -224,23 +312,23 @@ Flight::map('render', function(string $template, array $data): void {
 
 ### Blade
 
-[Blade](https://laravel.com/docs/8.x/blade) テンプレート エンジンをビューで使用する方法を以下に示します：
+ビューに[Blade](https://laravel.com/docs/8.x/blade)テンプレートエンジンを使用する方法は次のとおりです。
 
-まず、Composer 経由で BladeOne ライブラリをインストールする必要があります：
+まず、Composerを使用してBladeOneライブラリをインストールする必要があります。
 
 ```bash
 composer require eftec/bladeone
 ```
 
-次に、Flight で BladeOne をビュー クラスとして設定できます：
+次に、FlightでBladeOneをビュークラスとして設定できます。
 
 ```php
 <?php
-// Load BladeOne library
+// BladeOneライブラリを読み込みます
 use eftec\bladeone\BladeOne;
 
-// Register BladeOne as the view class
-// Also pass a callback function to configure BladeOne on load
+// BladeOneをビュークラスとして登録します
+// また、読み込み時にBladeOneを設定するコールバック関数を渡します
 Flight::register('view', BladeOne::class, [], function (BladeOne $blade) {
   $views = __DIR__ . '/../views';
   $cache = __DIR__ . '/../cache';
@@ -249,14 +337,14 @@ Flight::register('view', BladeOne::class, [], function (BladeOne $blade) {
   $blade->setCompiledPath($cache);
 });
 
-// Assign template data
+// テンプレートデータを共有します
 Flight::view()->share('name', 'Bob');
 
-// Display the template
+// テンプレートを表示します
 echo Flight::view()->run('hello', []);
 ```
 
-完全性を期すために、Flight のデフォルトの `render` メソッドもオーバーライドしてください：
+完全を期すために、Flightのデフォルトのrenderメソッドも上書きする必要があります。
 
 ```php
 <?php
@@ -265,27 +353,32 @@ Flight::map('render', function(string $template, array $data): void {
 });
 ```
 
-この例では、`hello.blade.php` テンプレート ファイルは以下のように見えるかもしれません：
+この例では、`hello.blade.php`テンプレートファイルは次のようになります。
 
 ```php
 <?php
 Hello, {{ $name }}!
 ```
 
-出力は次のようになります：
+出力は次のようになります。
 
 ```
 Hello, Bob!
 ```
 
 ## 関連項目
-- [拡張](/learn/extending) - 異なるテンプレート エンジンを使用するために `render` メソッドをオーバーライドする方法。
-- [ルーティング](/learn/routing) - ルートをコントローラーにマッピングし、ビューをレンダリングする方法。
-- [レスポンス](/learn/responses) - HTTP レスポンスをカスタマイズする方法。
-- [フレームワークとは？](/learn/why-frameworks) - テンプレートが全体像にどのように適合するか。
+- [インストール](/install) - 新規プロジェクト向けのスケルトンレイアウト（`app/views/*.twig`）。
+- [拡張](/learn/extending) - 別のテンプレートエンジンを使用するために`render`メソッドを上書きする方法。
+- [ルーティング](/learn/routing) - ルートをコントローラーにマップしてビューをレンダリングする方法。
+- [レスポンス](/learn/responses) - HTTPレスポンスをカスタマイズする方法。
+- [セキュリティ](/learn/security) - 自動エスケープとXSS。
+- [AIと開発者体験](/learn/ai) - 単一のビューエンジンのデフォルトがコーディングエージェントに役立つ理由。
+- [なぜフレームワークなのか？](/learn/why-frameworks) - テンプレートが全体像にどのように適合するか。
 
 ## トラブルシューティング
-- ミドルウェアにリダイレクトがあるのに、アプリがリダイレクトされない場合は、ミドルウェアに `exit;` 文を追加してください。
+- ミドルウェアにリダイレクトがあるのに、アプリがリダイレクトされていないように見える場合は、ミドルウェアに`exit;`ステートメントを追加してください。
+- Twigがテンプレートを見つけられない場合は、`flight.views.path`を確認し、そのパスに予期した拡張子のファイルが存在することを確認してください（スケルトン: `app/views/`）。
 
 ## 変更履歴
-- v2.0 - 初期リリース。
+- ドキュメント - Twigが公式スケルトンのデフォルトとして記載されました。Latteは引き続き第一級の代替案です。
+- v2.0 - 初回リリース。

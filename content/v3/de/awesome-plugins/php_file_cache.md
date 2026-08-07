@@ -1,23 +1,23 @@
 # flightphp/cache
 
-Leichte, einfache und eigenständige PHP-Datei-Caching-Klasse, die von [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache) geforkt wurde
+Leichte, einfache und eigenständige PHP-Datei-Caching-Klasse, abgeleitet von [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache)
 
 **Vorteile**
 - Leicht, eigenständig und einfach
-- Der gesamte Code in einer Datei - keine unnötigen Treiber.
-- Sicher - jede generierte Cache-Datei hat einen PHP-Header mit die, wodurch der direkte Zugriff unmöglich ist, selbst wenn jemand den Pfad kennt und Ihr Server nicht richtig konfiguriert ist
+- Gesamter Code in einer Datei - keine unnötigen Treiber.
+- Sicher - jede generierte Cache-Datei hat einen PHP-Header mit die, was direkten Zugriff unmöglich macht, selbst wenn jemand den Pfad kennt und Ihr Server nicht richtig konfiguriert ist
 - Gut dokumentiert und getestet
 - Behandelt Parallelität korrekt über flock
 - Unterstützt PHP 7.4+
 - Kostenlos unter einer MIT-Lizenz
 
-Diese Dokumentationsseite verwendet diese Bibliothek, um jede der Seiten zu cachen!
+Diese Dokumentationsseite verwendet diese Bibliothek zum Caching jeder Seite!
 
 Klicken Sie [hier](https://github.com/flightphp/cache), um den Code anzusehen.
 
 ## Installation
 
-Installieren Sie über Composer:
+Über Composer installieren:
 
 ```bash
 composer require flightphp/cache
@@ -43,7 +43,7 @@ $app->register('cache', Cache::class, [ __DIR__ . '/../cache/' ], function(Cache
 
 ### Einen Cache-Wert abrufen
 
-Sie verwenden die `get()`-Methode, um einen gecachten Wert abzurufen. Wenn Sie eine bequeme Methode wünschen, die den Cache aktualisiert, wenn er abgelaufen ist, können Sie `refreshIfExpired()` verwenden.
+Sie verwenden die Methode `get()`, um einen gecachten Wert abzurufen. Wenn Sie eine praktische Methode möchten, die den Cache aktualisiert, wenn er abgelaufen ist, können Sie `refreshIfExpired()` verwenden.
 
 ```php
 
@@ -63,7 +63,7 @@ if(empty($data)) {
 
 ### Einen Cache-Wert speichern
 
-Sie verwenden die `set()`-Methode, um einen Wert im Cache zu speichern.
+Sie verwenden die Methode `set()`, um einen Wert im Cache zu speichern.
 
 ```php
 Flight::cache()->set('simple-cache-test', 'my cached data', 10); // 10 Sekunden
@@ -71,7 +71,7 @@ Flight::cache()->set('simple-cache-test', 'my cached data', 10); // 10 Sekunden
 
 ### Einen Cache-Wert löschen
 
-Sie verwenden die `delete()`-Methode, um einen Wert im Cache zu löschen.
+Sie verwenden die Methode `delete()`, um einen Wert im Cache zu löschen.
 
 ```php
 Flight::cache()->delete('simple-cache-test');
@@ -79,7 +79,7 @@ Flight::cache()->delete('simple-cache-test');
 
 ### Überprüfen, ob ein Cache-Wert existiert
 
-Sie verwenden die `exists()`-Methode, um zu überprüfen, ob ein Wert im Cache existiert.
+Sie verwenden die Methode `exists()`, um zu prüfen, ob ein Wert im Cache existiert.
 
 ```php
 if(Flight::cache()->exists('simple-cache-test')) {
@@ -87,16 +87,16 @@ if(Flight::cache()->exists('simple-cache-test')) {
 }
 ```
 
-### Den Cache löschen
-Sie verwenden die `flush()`-Methode, um den gesamten Cache zu löschen.
+### Cache leeren
+Sie verwenden die Methode `flush()`, um den gesamten Cache zu leeren.
 
 ```php
 Flight::cache()->flush();
 ```
 
-### Metadaten mit Cache auslesen
+### Metadaten mit Cache abrufen
 
-Wenn Sie Zeitstempel und andere Metadaten über einen Cache-Eintrag auslesen möchten, stellen Sie sicher, dass Sie `true` als korrekten Parameter übergeben.
+Wenn Sie Zeitstempel und andere Metadaten zu einem Cache-Eintrag abrufen möchten, stellen Sie sicher, dass Sie `true` als korrekten Parameter übergeben.
 
 ```php
 $data = $cache->refreshIfExpired("simple-cache-meta-test", function () {
@@ -115,14 +115,14 @@ Beispiel für ein gecachtes Element, das mit Metadaten abgerufen wurde:
     "permanent":false
 }
 
-Mit Metadaten können wir beispielsweise berechnen, wann ein Element gespeichert wurde oder wann es abläuft
-Wir können auch über den "data"-Schlüssel auf die Daten selbst zugreifen
+Mit Metadaten können wir beispielsweise berechnen, wann das Element gespeichert wurde oder wann es abläuft
+Wir können auch über den Schlüssel "data" auf die Daten selbst zugreifen
 */
 
-$expiresin = ($data["time"] + $data["expire"]) - time(); // Unix-Zeitstempel abrufen, wann die Daten ablaufen, und den aktuellen Zeitstempel davon abziehen
-$cacheddate = $data["data"]; // wir greifen über den "data"-Schlüssel auf die Daten selbst zu
+$expiresin = ($data["time"] + $data["expire"]) - time(); // Unix-Zeitstempel abrufen, wann die Daten ablaufen, und aktuellen Zeitstempel davon abziehen
+$cacheddate = $data["data"]; // wir greifen über den Schlüssel "data" auf die Daten selbst zu
 
-echo "Letzte Cache-Speicherung: $cacheddate, läuft in $expiresin Sekunden ab";
+echo "Latest cache save: $cacheddate, expires in $expiresin seconds";
 ```
 
 ## Quellcode

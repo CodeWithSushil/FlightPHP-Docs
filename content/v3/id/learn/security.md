@@ -1,58 +1,62 @@
 # Keamanan
 
-## Gambaran Umum
+## Tinjauan
 
-Keamanan adalah hal yang sangat penting ketika berurusan dengan aplikasi web. Anda ingin memastikan bahwa aplikasi Anda aman dan data pengguna Anda 
-aman. Flight menyediakan sejumlah fitur untuk membantu Anda mengamankan aplikasi web Anda.
+Keamanan adalah hal yang sangat penting dalam aplikasi web. Anda perlu memastikan bahwa aplikasi Anda aman dan data pengguna Anda 
+terlindungi. Flight menyediakan sejumlah fitur untuk membantu Anda mengamankan aplikasi web.
 
-## Pemahaman
+[skeleton](https://github.com/flightphp/skeleton) resmi juga menyertakan **`SECURITY.md`** khusus dan middleware keamanan header sehingga [alat coding AI](/learn/ai) (dan manusia) memiliki satu tempat yang disengaja untuk secret, header, serta aturan XSS/SQL—terpisah dari gaya penulisan kode umum di `AGENTS.md`.
 
-Ada sejumlah ancaman keamanan umum yang harus Anda waspadai saat membangun aplikasi web. Beberapa ancaman paling umum
+## Memahami
+
+Ada sejumlah ancaman keamanan umum yang harus Anda waspadai saat membangun aplikasi web. Beberapa ancaman yang paling umum
 meliputi:
 - Cross Site Request Forgery (CSRF)
 - Cross Site Scripting (XSS)
 - SQL Injection
 - Cross Origin Resource Sharing (CORS)
 
-[Templates](/learn/templates) membantu XSS dengan meng-escape output secara default sehingga Anda tidak perlu mengingat untuk melakukannya. [Sessions](/awesome-plugins/session) dapat membantu CSRF dengan menyimpan token CSRF di sesi pengguna seperti yang diuraikan di bawah ini. Menggunakan prepared statements dengan PDO dapat membantu mencegah serangan SQL injection (atau menggunakan metode yang berguna di kelas [PdoWrapper](/learn/pdo-wrapper)). CORS dapat ditangani dengan hook sederhana sebelum `Flight::start()` dipanggil.
+[Templates](/learn/templates) membantu mengatasi XSS dengan melakukan escape pada output secara default (Twig dan Latte melakukan ini; manfaatkan keunggulan tersebut). [Sessions](/awesome-plugins/session) dapat membantu mengatasi CSRF dengan menyimpan token CSRF di sesi pengguna seperti yang dijelaskan di bawah. Menggunakan prepared statements dengan PDO—atau helper pada [SimplePdo](/learn/simple-pdo)—membantu mencegah SQL injection. CORS dapat ditangani dengan hook sederhana sebelum `Flight::start()` dipanggil.
 
-Semua metode ini bekerja bersama untuk membantu menjaga keamanan aplikasi web Anda. Ini harus selalu menjadi prioritas utama dalam pikiran Anda untuk mempelajari dan memahami praktik terbaik keamanan.
+Semua metode ini bekerja sama untuk membantu menjaga keamanan aplikasi web Anda. Selalu ingat untuk mempelajari dan memahami praktik terbaik keamanan. Jangan meminta asisten AI untuk "menonaktifkan CSP" atau melemahkan header hanya agar halaman dapat dimuat tanpa memahami konsekuensinya.
 
 ## Penggunaan Dasar
 
-### Headers
+### Header
 
-HTTP headers adalah salah satu cara termudah untuk mengamankan aplikasi web Anda. Anda dapat menggunakan headers untuk mencegah clickjacking, XSS, dan serangan lainnya. 
-Ada beberapa cara yang dapat Anda tambahkan headers ini ke aplikasi Anda.
+Header HTTP adalah salah satu cara termudah untuk mengamankan aplikasi web Anda. Anda dapat menggunakan header untuk mencegah clickjacking, XSS, dan serangan lainnya. 
+Ada beberapa cara untuk menambahkan header ini ke aplikasi Anda.
 
-Dua situs web yang bagus untuk memeriksa keamanan headers Anda adalah [securityheaders.com](https://securityheaders.com/) dan 
-[observatory.mozilla.org](https://observatory.mozilla.org/). Setelah Anda menyiapkan kode di bawah ini, Anda dapat dengan mudah memverifikasi bahwa headers Anda berfungsi dengan kedua situs web tersebut.
+Dua situs web yang bagus untuk memeriksa keamanan header Anda adalah [securityheaders.com](https://securityheaders.com/) dan 
+[observatory.mozilla.org](https://observatory.mozilla.org/). Setelah Anda menyiapkan kode di bawah, Anda dapat dengan mudah memverifikasi bahwa header Anda berfungsi dengan kedua situs tersebut.
+
+Skeleton menyertakan `App\Middleware\SecurityHeadersMiddleware` (CSP dengan nonce per permintaan, frame options, HSTS, dan lainnya). Preferensikan untuk memperluasnya secara sengaja daripada mematikan header.
 
 #### Tambahkan Secara Manual
 
-Anda dapat menambahkan headers ini secara manual dengan menggunakan metode `header` pada objek `Flight\Response`.
+Anda dapat menambahkan header ini secara manual menggunakan metode `header` pada objek `Flight\Response`.
 ```php
-// Set the X-Frame-Options header to prevent clickjacking
+// Setel header X-Frame-Options untuk mencegah clickjacking
 Flight::response()->header('X-Frame-Options', 'SAMEORIGIN');
 
-// Set the Content-Security-Policy header to prevent XSS
-// Note: this header can get very complex, so you'll want
-//  to consult examples on the internet for your application
+// Setel header Content-Security-Policy untuk mencegah XSS
+// Catatan: header ini bisa menjadi sangat kompleks, jadi Anda perlu
+//  berkonsultasi dengan contoh-contoh di internet untuk aplikasi Anda
 Flight::response()->header("Content-Security-Policy", "default-src 'self'");
 
-// Set the X-XSS-Protection header to prevent XSS
+// Setel header X-XSS-Protection untuk mencegah XSS
 Flight::response()->header('X-XSS-Protection', '1; mode=block');
 
-// Set the X-Content-Type-Options header to prevent MIME sniffing
+// Setel header X-Content-Type-Options untuk mencegah MIME sniffing
 Flight::response()->header('X-Content-Type-Options', 'nosniff');
 
-// Set the Referrer-Policy header to control how much referrer information is sent
+// Setel header Referrer-Policy untuk mengontrol seberapa banyak informasi referrer yang dikirim
 Flight::response()->header('Referrer-Policy', 'no-referrer-when-downgrade');
 
-// Set the Strict-Transport-Security header to force HTTPS
+// Setel header Strict-Transport-Security untuk memaksa HTTPS
 Flight::response()->header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
-// Set the Permissions-Policy header to control what features and APIs can be used
+// Setel header Permissions-Policy untuk mengontrol fitur dan API apa saja yang dapat digunakan
 Flight::response()->header('Permissions-Policy', 'geolocation=()');
 ```
 
@@ -60,10 +64,10 @@ Ini dapat ditambahkan di bagian atas file `routes.php` atau `index.php` Anda.
 
 #### Tambahkan sebagai Filter
 
-Anda juga dapat menambahkannya dalam filter/hook seperti berikut: 
+Anda juga dapat menambahkannya dalam filter/hook seperti berikut:
 
 ```php
-// Add the headers in a filter
+// Tambahkan header dalam sebuah filter
 Flight::before('start', function() {
 	Flight::response()->header('X-Frame-Options', 'SAMEORIGIN');
 	Flight::response()->header("Content-Security-Policy", "default-src 'self'");
@@ -77,12 +81,14 @@ Flight::before('start', function() {
 
 #### Tambahkan sebagai Middleware
 
-Anda juga dapat menambahkannya sebagai kelas middleware yang memberikan fleksibilitas terbesar untuk rute mana yang akan menerapkan ini. Secara umum, headers ini harus diterapkan pada semua respons HTML dan API.
+Anda juga dapat menambahkannya sebagai class middleware yang memberikan fleksibilitas terbesar untuk menentukan route mana yang akan diterapkan. Secara umum, header ini harus diterapkan ke semua respons HTML dan API.
+
+Jalur dan namespace ala skeleton (**kapitalisasi folder harus sesuai dengan `App\Middleware`**):
 
 ```php
-// app/middlewares/SecurityHeadersMiddleware.php
+// app/Middleware/SecurityHeadersMiddleware.php
 
-namespace app\middlewares;
+namespace App\Middleware;
 
 use flight\Engine;
 
@@ -98,8 +104,14 @@ class SecurityHeadersMiddleware
 	public function before(array $params): void
 	{
 		$response = $this->app->response();
+		// Preferensikan nonce CSP dari bootstrap ketika Anda memiliki skrip inline (skeleton menetapkan csp_nonce)
+		$nonce = $this->app->get('csp_nonce');
+		$csp = $nonce
+			? "default-src 'self'; script-src 'self' 'nonce-{$nonce}'; style-src 'self' 'nonce-{$nonce}'"
+			: "default-src 'self'";
+
 		$response->header('X-Frame-Options', 'SAMEORIGIN');
-		$response->header("Content-Security-Policy", "default-src 'self'");
+		$response->header('Content-Security-Policy', $csp);
 		$response->header('X-XSS-Protection', '1; mode=block');
 		$response->header('X-Content-Type-Options', 'nosniff');
 		$response->header('Referrer-Policy', 'no-referrer-when-downgrade');
@@ -108,62 +120,81 @@ class SecurityHeadersMiddleware
 	}
 }
 
-// index.php or wherever you have your routes
-// FYI, this empty string group acts as a global middleware for
-// all routes. Of course you could do the same thing and just add
-// this only to specific routes.
-Flight::group('', function(Router $router) {
-	$router->get('/users', [ 'UserController', 'getUsers' ]);
-	// more routes
-}, [ SecurityHeadersMiddleware::class ]);
+// app/config/routes.php — grup string kosong = middleware global untuk semua route
+use App\Middleware\SecurityHeadersMiddleware;
+use flight\net\Router;
+
+$router->group('', function (Router $router) {
+	$router->get('/users', [ \App\Controller\UserController::class, 'getUsers' ]);
+	// lebih banyak route
+}, [SecurityHeadersMiddleware::class]);
 ```
+
+Proyek lama mungkin masih menggunakan `app/middlewares` dan `app\middlewares`; itu berfungsi jika folder sesuai. Aplikasi skeleton baru menggunakan **`app/Middleware/`** dan **`App\Middleware`**. Lihat [Autoloading](/learn/autoloading).
 
 ### Cross Site Request Forgery (CSRF)
 
 Cross Site Request Forgery (CSRF) adalah jenis serangan di mana situs web berbahaya dapat membuat browser pengguna mengirim permintaan ke situs web Anda. 
-Ini dapat digunakan untuk melakukan tindakan di situs web Anda tanpa sepengetahuan pengguna. Flight tidak menyediakan mekanisme perlindungan CSRF bawaan, 
-tetapi Anda dapat dengan mudah menerapkan sendiri dengan menggunakan middleware.
+Ini dapat digunakan untuk melakukan tindakan di situs web Anda tanpa sepengetahuan pengguna. Flight tidak menyediakan mekanisme perlindungan CSRF 
+bawaan, tetapi Anda dapat dengan mudah menerapkannya sendiri menggunakan middleware.
 
-#### Setup
+#### Pengaturan
 
-Pertama Anda perlu menghasilkan token CSRF dan menyimpannya di sesi pengguna. Anda kemudian dapat menggunakan token ini dalam formulir Anda dan memeriksanya saat 
-formulir dikirimkan. Kami akan menggunakan plugin [flightphp/session](/awesome-plugins/session) untuk mengelola sesi.
+Pertama, Anda perlu menghasilkan token CSRF dan menyimpannya di sesi pengguna. Anda kemudian dapat menggunakan token ini di form Anda dan memeriksanya saat 
+form dikirim. Kita akan menggunakan plugin [flightphp/session](/awesome-plugins/session) untuk mengelola sesi.
 
 ```php
-// Generate a CSRF token and store it in the user's session
-// (assuming you've created a session object at attached it to Flight)
-// see the session documentation for more information
+// Hasilkan token CSRF dan simpan di sesi pengguna
+// (dengan asumsi Anda telah membuat objek sesi dan melampirkannya ke Flight)
+// lihat dokumentasi sesi untuk informasi lebih lanjut
 Flight::register('session', flight\Session::class);
 
-// You only need to generate a single token per session (so it works 
-// across multiple tabs and requests for the same user)
+// Anda hanya perlu menghasilkan satu token per sesi (sehingga berfungsi 
+// di beberapa tab dan permintaan untuk pengguna yang sama)
 if(Flight::session()->get('csrf_token') === null) {
 	Flight::session()->set('csrf_token', bin2hex(random_bytes(32)) );
 }
 ```
 
-##### Menggunakan Template Flight PHP Default
+##### Menggunakan Template PHP Flight Default
 
 ```html
-<!-- Use the CSRF token in your form -->
+<!-- Gunakan token CSRF di form Anda -->
 <form method="post">
 	<input type="hidden" name="csrf_token" value="<?= Flight::session()->get('csrf_token') ?>">
-	<!-- other form fields -->
+	<!-- field form lainnya -->
+</form>
+```
+
+##### Menggunakan Twig (default skeleton)
+
+Daftarkan fungsi Twig atau teruskan token ke setiap tampilan form. Contoh minimal dengan global + field form:
+
+```php
+// Saat mengonfigurasi Twig (misalnya services.php)
+$twig->addGlobal('csrf_token', $app->session()->get('csrf_token'));
+```
+
+```html
+{# app/views/form.twig #}
+<form method="post">
+	<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+	{# field lainnya #}
 </form>
 ```
 
 ##### Menggunakan Latte
 
-Anda juga dapat mengatur fungsi khusus untuk mengeluarkan token CSRF dalam template Latte Anda.
+Anda juga dapat mengatur fungsi khusus untuk menampilkan token CSRF di template Latte Anda.
 
 ```php
 
 Flight::map('render', function(string $template, array $data, ?string $block): void {
 	$latte = new Latte\Engine;
 
-	// other configurations...
+	// konfigurasi lainnya...
 
-	// Set a custom function to output the CSRF token
+	// Atur fungsi khusus untuk menampilkan token CSRF
 	$latte->addFunction('csrf', function() {
 		$csrfToken = Flight::session()->get('csrf_token');
 		return new \Latte\Runtime\Html('<input type="hidden" name="csrf_token" value="' . $csrfToken . '">');
@@ -173,25 +204,25 @@ Flight::map('render', function(string $template, array $data, ?string $block): v
 });
 ```
 
-Dan sekarang dalam template Latte Anda dapat menggunakan fungsi `csrf()` untuk mengeluarkan token CSRF.
+Dan sekarang di template Latte Anda dapat menggunakan fungsi `csrf()` untuk menampilkan token CSRF.
 
 ```html
 <form method="post">
 	{csrf()}
-	<!-- other form fields -->
+	<!-- field form lainnya -->
 </form>
 ```
 
-#### Periksa Token CSRF
+#### Memeriksa Token CSRF
 
 Anda dapat memeriksa token CSRF menggunakan beberapa metode.
 
 ##### Middleware
 
 ```php
-// app/middlewares/CsrfMiddleware.php
+// app/Middleware/CsrfMiddleware.php
 
-namespace app\middleware;
+namespace App\Middleware;
 
 use flight\Engine;
 
@@ -208,35 +239,36 @@ class CsrfMiddleware
 	{
 		if($this->app->request()->method == 'POST') {
 			$token = $this->app->request()->data->csrf_token;
+			// Validasi token
 			if($token !== $this->app->session()->get('csrf_token')) {
-				$this->app->halt(403, 'Invalid CSRF token');
+				$this->app->halt(403, 'Token CSRF tidak valid');
 			}
 		}
 	}
 }
 
-// index.php or wherever you have your routes
-use app\middlewares\CsrfMiddleware;
+// routes.php
+use App\Middleware\CsrfMiddleware;
 
-Flight::group('', function(Router $router) {
-	$router->get('/users', [ 'UserController', 'getUsers' ]);
-	// more routes
-}, [ CsrfMiddleware::class ]);
+$router->group('', function ($router) {
+	$router->get('/users', [ \App\Controller\UserController::class, 'getUsers' ]);
+	// lebih banyak route
+}, [CsrfMiddleware::class]);
 ```
 
 ##### Event Filters
 
 ```php
-// This middleware checks if the request is a POST request and if it is, it checks if the CSRF token is valid
+// Middleware ini memeriksa apakah permintaan adalah POST dan jika ya, ia memeriksa apakah token CSRF valid
 Flight::before('start', function() {
 	if(Flight::request()->method == 'POST') {
 
-		// capture the csrf token from the form values
+		// ambil token csrf dari nilai form
 		$token = Flight::request()->data->csrf_token;
 		if($token !== Flight::session()->get('csrf_token')) {
-			Flight::halt(403, 'Invalid CSRF token');
-			// or for a JSON response
-			Flight::jsonHalt(['error' => 'Invalid CSRF token'], 403);
+			Flight::halt(403, 'Token CSRF tidak valid');
+			// atau untuk respons JSON
+			Flight::jsonHalt(['error' => 'Token CSRF tidak valid'], 403);
 		}
 	}
 });
@@ -244,85 +276,104 @@ Flight::before('start', function() {
 
 ### Cross Site Scripting (XSS)
 
-Cross Site Scripting (XSS) adalah jenis serangan di mana input formulir berbahaya dapat menyuntikkan kode ke dalam situs web Anda. Kebanyakan peluang ini datang 
-dari nilai formulir yang akan diisi oleh pengguna akhir Anda. Anda **tidak boleh** mempercayai output dari pengguna Anda! Selalu asumsikan bahwa semua mereka adalah 
+Cross Site Scripting (XSS) adalah jenis serangan di mana input form berbahaya dapat menyuntikkan kode ke situs web Anda. Sebagian besar peluang ini berasal 
+dari nilai form yang akan diisi oleh pengguna akhir Anda. Anda **tidak boleh pernah** mempercayai output dari pengguna Anda! Selalu anggap semuanya adalah 
 peretas terbaik di dunia. Mereka dapat menyuntikkan JavaScript atau HTML berbahaya ke halaman Anda. Kode ini dapat digunakan untuk mencuri informasi dari 
-pengguna Anda atau melakukan tindakan di situs web Anda. Dengan menggunakan kelas view Flight atau mesin templating lain seperti [Latte](/awesome-plugins/latte), Anda dapat dengan mudah meng-escape output untuk mencegah serangan XSS.
+pengguna Anda atau melakukan tindakan di situs web Anda. Dengan menggunakan class view Flight atau mesin template seperti [Twig](/awesome-plugins/twig) atau [Latte](/awesome-plugins/latte), Anda dapat dengan mudah melakukan escape output untuk mencegah serangan XSS.
 
 ```php
-// Let's assume the user is clever as tries to use this as their name
+// Anggap pengguna cerdas dan mencoba menggunakan ini sebagai nama mereka
 $name = '<script>alert("XSS")</script>';
 
-// This will escape the output
+// Ini akan melakukan escape pada output
 Flight::view()->set('name', $name);
-// This will output: &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;
+// Ini akan menghasilkan output: &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;
 
-// If you use something like Latte registered as your view class, it will also auto escape this.
-Flight::view()->render('template', ['name' => $name]);
+// Twig (default skeleton) dan Latte melakukan auto-escape secara default — preferensikan daripada echo PHP mentah
+Flight::render('template', ['name' => $name]);
+// Twig: {{ name }}  → sudah di-escape
+// Hindari |raw / output yang tidak di-escape kecuali kontennya sepenuhnya tepercaya
 ```
 
 ### SQL Injection
 
-SQL Injection adalah jenis serangan di mana pengguna berbahaya dapat menyuntikkan kode SQL ke dalam database Anda. Ini dapat digunakan untuk mencuri informasi 
-dari database Anda atau melakukan tindakan pada database Anda. Sekali lagi Anda **tidak boleh** mempercayai input dari pengguna Anda! Selalu asumsikan mereka 
-sedang mencari masalah. Anda dapat menggunakan prepared statements dalam objek `PDO` Anda akan mencegah SQL injection.
+SQL Injection adalah jenis serangan di mana pengguna berbahaya dapat menyuntikkan kode SQL ke database Anda. Ini dapat digunakan untuk mencuri informasi 
+dari database Anda atau melakukan tindakan pada database Anda. Sekali lagi, Anda **tidak boleh pernah** mempercayai input dari pengguna Anda! Selalu anggap mereka 
+haus akan data. Gunakan prepared statements—helper [SimplePdo](/learn/simple-pdo) menjadikan ini jalur default.
 
 ```php
-// Assuming you have Flight::db() registered as your PDO object
+// Dengan asumsi Anda mendaftarkan Flight::db() sebagai SimplePdo (atau menginjeksi SimplePdo di controller)
 $statement = Flight::db()->prepare('SELECT * FROM users WHERE username = :username');
 $statement->execute([':username' => $username]);
 $users = $statement->fetchAll();
 
-// If you use the PdoWrapper class, this can easily be done in one line
+// SimplePdo (disarankan) — satu baris dengan parameter terikat
 $users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = :username', [ 'username' => $username ]);
 
-// You can do the same thing with a PDO object with ? placeholders
-$statement = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
+// Ide yang sama dengan placeholder ?
+$users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
 ```
+
+Di controller bergaya skeleton, preferensikan injeksi konstruktor `SimplePdo` daripada `Flight::db()` sehingga pengujian dan kode yang dihasilkan AI tetap konsisten ([DIC](/learn/dependency-injection-container)).
 
 #### Contoh Tidak Aman
 
-Berikut adalah alasan mengapa kita menggunakan prepared statements SQL untuk melindungi dari contoh-contoh tidak berbahaya seperti di bawah ini:
+Di bawah ini adalah alasan mengapa kita menggunakan SQL prepared statements untuk melindungi dari contoh sederhana seperti di bawah:
 
 ```php
-// end user fills out a web form.
-// for the value of the form, the hacker puts in something like this:
+// pengguna akhir mengisi form web.
+// untuk nilai form, peretas memasukkan sesuatu seperti ini:
 $username = "' OR 1=1; -- ";
 
 $sql = "SELECT * FROM users WHERE username = '$username' LIMIT 5";
 $users = Flight::db()->fetchAll($sql);
-// After the query is build it looks like this
+// Setelah query dibuat, hasilnya terlihat seperti ini
 // SELECT * FROM users WHERE username = '' OR 1=1; -- LIMIT 5
 
-// It looks strange, but it's a valid query that will work. In fact,
-// it's a very common SQL injection attack that will return all users.
+// Terlihat aneh, tetapi ini adalah query yang valid dan akan berhasil. Faktanya,
+// ini adalah serangan SQL injection yang sangat umum yang akan mengembalikan semua pengguna.
 
-var_dump($users); // this will dump all users in the database, not just the one single username
+var_dump($users); // ini akan menampilkan semua pengguna di database, bukan hanya satu username tersebut
 ```
+
+### Secret dan Konfigurasi
+
+- Letakkan secret di **`.env`** (atau environment asli), bukan di `config.php` contoh yang di-commit.
+- Aturan skeleton: default literal di `config.php`; gabungkan env saat bootstrap; **jangan** membaca `$_ENV` di dalam controller—injeksi konfigurasi sebagai gantinya. Lihat [Configuration](/learn/configuration).
+- Jangan pernah meng-commit API keys, password database, atau kunci enkripsi sesi. Arahkan alat AI ke **`SECURITY.md`** sehingga mereka tidak membuat jalan pintas yang tidak aman.
 
 ### Validasi Callback JSONP
 
-Jika Anda menggunakan metode `Flight::jsonp()`, perhatikan bahwa Flight memvalidasi nama parameter callback JSONP terhadap regex allowlist yang ketat (`/^[A-Za-z_$][\w$.]{0,127}$/`). Setiap nama callback yang tidak sesuai dengan pola ini akan menyebabkan Flight melemparkan exception, mencegah injeksi JavaScript sembarang melalui nilai callback berbahaya.
+Jika Anda menggunakan metode `Flight::jsonp()`, perlu diketahui bahwa Flight memvalidasi nama parameter callback JSONP terhadap regex whitelist yang ketat (`/^[A-Za-z_$][\w$.]{0,127}$/`). Nama callback apa pun yang tidak cocok dengan pola ini akan menyebabkan Flight melempar exception, mencegah injeksi JavaScript arbitrer melalui nilai callback berbahaya.
 
-Validasi ini sudah built-in dan tidak memerlukan konfigurasi tambahan, tetapi perlu diketahui saat debugging error yang tidak terduga dari endpoint JSONP.
+Validasi ini sudah tertanam dan tidak memerlukan konfigurasi tambahan, tetapi perlu diketahui saat men-debug error tak terduga dari endpoint JSONP.
 
 ### CORS
 
-Cross-Origin Resource Sharing (CORS) adalah mekanisme yang memungkinkan banyak sumber daya (misalnya, font, JavaScript, dll.) pada halaman web untuk diminta 
-dari domain lain di luar domain dari mana sumber daya berasal. Flight tidak memiliki fungsionalitas bawaan, 
+Cross-Origin Resource Sharing (CORS) adalah mekanisme yang memungkinkan banyak sumber daya (misalnya, font, JavaScript, dll.) di halaman web untuk 
+diminta dari domain lain di luar domain asal sumber daya tersebut. Flight tidak memiliki fungsionalitas bawaan, 
 tetapi ini dapat dengan mudah ditangani dengan hook yang berjalan sebelum metode `Flight::start()` dipanggil.
 
 ```php
-// app/utils/CorsUtil.php
+// app/Utils/CorsUtil.php  (skeleton: folder Utils PascalCase → App\Utils)
 
-namespace app\utils;
+namespace App\Utils;
+
+use flight\Engine;
 
 class CorsUtil
 {
-	public function set(array $params): void
+	protected Engine $app;
+
+	public function __construct(Engine $app)
 	{
-		$request = Flight::request();
-		$response = Flight::response();
+		$this->app = $app;
+	}
+
+	public function set(array $params = []): void
+	{
+		$request = $this->app->request();
+		$response = $this->app->response();
 		if ($request->getVar('HTTP_ORIGIN') !== '') {
 			$this->allowOrigins();
 			$response->header('Access-Control-Allow-Credentials', 'true');
@@ -350,7 +401,7 @@ class CorsUtil
 
 	private function allowOrigins(): void
 	{
-		// customize your allowed hosts here.
+		// sesuaikan host yang diizinkan di sini.
 		$allowed = [
 			'capacitor://localhost',
 			'ionic://localhost',
@@ -360,54 +411,53 @@ class CorsUtil
 			'http://localhost:8100',
 		];
 
-		$request = Flight::request();
+		$request = $this->app->request();
 
 		if (in_array($request->getVar('HTTP_ORIGIN'), $allowed, true) === true) {
-			$response = Flight::response();
+			$response = $this->app->response();
 			$response->header("Access-Control-Allow-Origin", $request->getVar('HTTP_ORIGIN'));
 		}
 	}
 }
 
-// index.php or wherever you have your routes
-$CorsUtil = new CorsUtil();
-
-// This needs to be run before start runs.
-Flight::before('start', [ $CorsUtil, 'setupCors' ]);
+// bootstrap / routes — jalankan sebelum start
+$app = Flight::app();
+$cors = new \App\Utils\CorsUtil($app);
+$app->before('start', [ $cors, 'set' ]);
 ```
 
-### Pengerasan Konfigurasi Flight
+### Penguatan Konfigurasi Flight
 
-Flight mengekspos beberapa pengaturan engine yang memiliki implikasi keamanan langsung. Mengatur ini dengan benar adalah salah satu cara termudah untuk mengeraskan aplikasi Anda.
+Flight mengekspos beberapa pengaturan engine yang memiliki implikasi keamanan langsung. Mengatur ini dengan benar adalah salah satu cara termudah untuk memperkuat aplikasi Anda.
 
 #### `flight.allow_method_override`
 
-Secara default, Flight mengizinkan klien untuk mengganti metode HTTP dari permintaan menggunakan header `X-HTTP-Method-Override` atau field `_method` dalam body POST. Meskipun ini berguna untuk formulir HTML yang hanya dapat mengirim `GET`/`POST`, hal ini dapat berbahaya jika Anda tidak mengharapkannya — penyerang dapat memalsukan permintaan `DELETE` atau `PUT` melalui formulir biasa.
+Secara default, Flight mengizinkan klien untuk menimpa metode HTTP dari sebuah permintaan menggunakan header `X-HTTP-Method-Override` atau field `_method` di body POST. Meskipun ini berguna untuk form HTML yang hanya dapat mengirim `GET`/`POST`, ini bisa berbahaya jika Anda tidak mengharapkannya — penyerang dapat memalsukan permintaan `DELETE` atau `PUT` melalui form biasa.
 
-Jika aplikasi Anda tidak bergantung pada perilaku ini (misalnya Anda membangun API yang dikonsumsi oleh klien modern atau frontend JavaScript yang dapat mengirim verb HTTP apa pun), Anda sebaiknya menonaktifkannya:
+Jika aplikasi Anda tidak bergantung pada perilaku ini (misalnya, Anda membangun API yang dikonsumsi oleh klien modern atau frontend JavaScript yang dapat mengirim kata kerja HTTP apa pun), Anda harus menonaktifkannya:
 
 ```php
-// In your index.php or bootstrap file, before Flight::start()
+// Di index.php atau file bootstrap Anda, sebelum Flight::start()
 Flight::set('flight.allow_method_override', false);
 ```
 
-Nilai default adalah `true` untuk kompatibilitas ke belakang, tetapi **mengatur ke `false` sangat direkomendasikan** untuk aplikasi apa pun yang tidak secara eksplisit memerlukan fitur override.
+Nilai defaultnya adalah `true` untuk kompatibilitas mundur, tetapi **sangat disarankan untuk mengaturnya ke `false`** untuk aplikasi apa pun yang tidak secara eksplisit membutuhkan fitur override.
 
 #### `flight.debug`
 
-Flight memiliki pengaturan `flight.debug` yang mengontrol apakah informasi error detail (pesan exception, kode, dan stack trace lengkap) dirender di browser ketika exception yang tidak ditangani terjadi. Defaultnya adalah `false`, yang berarti hanya pesan `500 Internal Server Error` generik yang ditampilkan — tidak ada detail internal yang bocor ke klien.
+Flight memiliki pengaturan `flight.debug` yang mengontrol apakah informasi error terperinci (pesan exception, kode, dan stack trace lengkap) ditampilkan di browser ketika exception yang tidak tertangani terjadi. Defaultnya adalah `false`, yang berarti hanya pesan `500 Internal Server Error` generik yang ditampilkan — tidak ada detail internal yang bocor ke klien.
 
-Jangan pernah mengaktifkan ini pada server produksi. Gunakan hanya secara lokal atau di lingkungan staging:
+Jangan pernah mengaktifkan ini di server produksi. Gunakan hanya secara lokal atau di lingkungan staging:
 
 ```php
-// Safe for local development only — NEVER in production
+// Aman untuk pengembangan lokal saja — JANGAN di produksi
 Flight::set('flight.debug', true);
 ```
 
 Ketika `flight.debug` adalah `false` (default), Anda masih dapat menangkap error dengan mengaktifkan `flight.log_errors`:
 
 ```php
-// Log errors server-side without exposing them to the client
+// Catat error di sisi server tanpa mengeksposnya ke klien
 Flight::set('flight.debug', false);
 Flight::set('flight.log_errors', true);
 ```
@@ -415,64 +465,64 @@ Flight::set('flight.log_errors', true);
 #### Konfigurasi produksi yang direkomendasikan
 
 ```php
-// index.php or app/config/config.php
+// index.php atau diterapkan dari konfigurasi app / bootstrap
 Flight::set('flight.allow_method_override', false);
 Flight::set('flight.debug', false);
 Flight::set('flight.log_errors', true);
 ```
 
 ### Penanganan Error
-Sembunyikan detail error sensitif di produksi untuk menghindari kebocoran info ke penyerang. Di produksi, log error alih-alih menampilkannya dengan `display_errors` diatur ke `0`.
+Sembunyikan detail error yang sensitif di produksi untuk menghindari kebocoran informasi kepada penyerang. Di produksi, catat error alih-alih menampilkannya dengan `display_errors` diatur ke `0`.
 
 ```php
-// In your bootstrap.php or index.php
+// Di bootstrap.php atau index.php Anda
 
-// add this to your app/config/config.php
+// tambahkan ini ke app/config/config.php Anda
 $environment = ENVIRONMENT;
 if ($environment === 'production') {
-    ini_set('display_errors', 0); // Disable error display
-    ini_set('log_errors', 1);     // Log errors instead
+    ini_set('display_errors', 0); // Nonaktifkan tampilan error
+    ini_set('log_errors', 1);     // Catat error sebagai gantinya
     ini_set('error_log', '/path/to/error.log');
 }
 
-// In your routes or controllers
-// Use Flight::halt() for controlled error responses
-Flight::halt(403, 'Access denied');
+// Di routes atau controller Anda
+// Gunakan Flight::halt() untuk respons error yang terkontrol
+Flight::halt(403, 'Akses ditolak');
 ```
 
 ### Sanitasi Input
-Jangan pernah mempercayai input pengguna. Sanitasi menggunakan [filter_var](https://www.php.net/manual/en/function.filter-var.php) sebelum memproses untuk mencegah data berbahaya masuk secara diam-diam.
+Jangan pernah mempercayai input pengguna. Sanitasi menggunakan [filter_var](https://www.php.net/manual/en/function.filter-var.php) sebelum diproses untuk mencegah data berbahaya masuk. Preferensikan membaca input melalui `$app->request()` (atau `Flight::request()`) daripada `$_GET` / `$_POST` mentah di kode aplikasi.
 
 ```php
 
-// Lets assume a $_POST request with $_POST['input'] and $_POST['email']
+// Anggap ada permintaan $_POST dengan $_POST['input'] dan $_POST['email']
 
-// Sanitize a string input
+// Sanitasi input string
 $clean_input = filter_var(Flight::request()->data->input, FILTER_SANITIZE_STRING);
-// Sanitize an email
+// Sanitasi email
 $clean_email = filter_var(Flight::request()->data->email, FILTER_SANITIZE_EMAIL);
 ```
 
 ### Hashing Password
-Simpan password dengan aman dan verifikasi dengan aman menggunakan fungsi bawaan PHP seperti [password_hash](https://www.php.net/manual/en/function.password-hash.php) dan [password_verify](https://www.php.net/manual/en/function.password-verify.php). Password tidak boleh disimpan dalam teks biasa, juga tidak boleh dienkripsi dengan metode yang dapat dibalik. Hashing memastikan bahwa bahkan jika database Anda disusupi, password aktual tetap dilindungi.
+Simpan password dengan aman dan verifikasi dengan aman menggunakan fungsi bawaan PHP seperti [password_hash](https://www.php.net/manual/en/function.password-hash.php) dan [password_verify](https://www.php.net/manual/en/function.password-verify.php). Password tidak boleh pernah disimpan dalam teks biasa, juga tidak boleh dienkripsi dengan metode yang dapat dibalik. Hashing memastikan bahwa bahkan jika database Anda disusupi, password sebenarnya tetap terlindungi.
 
 ```php
 $password = Flight::request()->data->password;
-// Hash a password when storing (e.g., during registration)
+// Hash password saat menyimpannya (misalnya, saat registrasi)
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// Verify a password (e.g., during login)
+// Verifikasi password (misalnya, saat login)
 if (password_verify($password, $stored_hash)) {
-    // Password matches
+    // Password cocok
 }
 ```
 
-### Rate Limiting
-Lindungi dari serangan brute force atau denial-of-service dengan membatasi tingkat permintaan menggunakan cache.
+### Pembatasan Laju (Rate Limiting)
+Lindungi dari serangan brute force atau serangan denial-of-service dengan membatasi laju permintaan menggunakan cache.
 
 ```php
-// Assuming you have flightphp/cache installed and registered
-// Using flightphp/cache in a filter
+// Dengan asumsi Anda memiliki flightphp/cache yang terinstal dan terdaftar
+// Menggunakan flightphp/cache dalam filter
 Flight::before('start', function() {
     $cache = Flight::cache();
     $ip = Flight::request()->ip;
@@ -480,28 +530,33 @@ Flight::before('start', function() {
     $attempts = (int) $cache->retrieve($key);
     
     if ($attempts >= 10) {
-        Flight::halt(429, 'Too many requests');
+        Flight::halt(429, 'Terlalu banyak permintaan');
     }
     
-    $cache->set($key, $attempts + 1, 60); // Reset after 60 seconds
+    $cache->set($key, $attempts + 1, 60); // Atur ulang setelah 60 detik
 });
 ```
 
 ## Lihat Juga
 - [Sessions](/awesome-plugins/session) - Cara mengelola sesi pengguna dengan aman.
-- [Templates](/learn/templates) - Menggunakan template untuk meng-escape output secara otomatis dan mencegah XSS.
-- [PDO Wrapper](/learn/pdo-wrapper) - Interaksi database yang disederhanakan dengan prepared statements.
-- [Middleware](/learn/middleware) - Cara menggunakan middleware untuk menyederhanakan proses menambahkan security headers.
-- [Responses](/learn/responses) - Cara menyesuaikan respons HTTP dengan secure headers.
+- [Templates](/learn/templates) - Twig/Latte auto-escape dan XSS.
+- [SimplePdo](/learn/simple-pdo) - Helper database dengan prepared statements.
+- [PdoWrapper](/learn/pdo-wrapper) - Tidak digunakan lagi; gunakan SimplePdo untuk kode baru.
+- [Middleware](/learn/middleware) - Cara menggunakan middleware untuk menyederhanakan proses penambahan header keamanan.
+- [Configuration](/learn/configuration) - `.env` vs konfigurasi literal, flag produksi.
+- [AI & Developer Experience](/learn/ai) - Jaga kebijakan keamanan di `SECURITY.md` untuk agen.
+- [Responses](/learn/responses) - Cara menyesuaikan respons HTTP dengan header yang aman.
 - [Requests](/learn/requests) - Cara menangani dan membersihkan input pengguna.
 - [filter_var](https://www.php.net/manual/en/function.filter-var.php) - Fungsi PHP untuk sanitasi input.
 - [password_hash](https://www.php.net/manual/en/function.password-hash.php) - Fungsi PHP untuk hashing password yang aman.
 - [password_verify](https://www.php.net/manual/en/function.password-verify.php) - Fungsi PHP untuk memverifikasi password yang di-hash.
 
 ## Pemecahan Masalah
-- Lihat bagian "Lihat Juga" di atas untuk informasi pemecahan masalah terkait masalah dengan komponen Flight Framework.
+- Lihat bagian "Lihat Juga" di atas untuk informasi pemecahan masalah terkait komponen Framework Flight.
+- Jika CSP memblokir skrip Anda, tambahkan nonce (pola skeleton) atau daftar putih origin spesifik—jangan atur `script-src *` tanpa rencana.
 
 ## Changelog
-- v3.18.1 - Menambahkan bagian Flight Configuration Hardening yang mencakup `flight.allow_method_override`, `flight.debug`, dan validasi callback JSONP.
-- v3.1.0 - Menambahkan bagian tentang CORS, Error Handling, Input Sanitization, Password Hashing, dan Rate Limiting.
-- v2.0 - Menambahkan escaping untuk default views untuk mencegah XSS.
+- Docs – Skeleton `App\Middleware`, catatan Twig CSRF/XSS, SimplePdo, secret/`.env`, dan `SECURITY.md` untuk proyek yang ramah AI.
+- v3.18.1 - Menambahkan bagian Penguatan Konfigurasi Flight yang mencakup `flight.allow_method_override`, `flight.debug`, dan validasi callback JSONP.
+- v3.1.0 - Menambahkan bagian tentang CORS, Penanganan Error, Sanitasi Input, Hashing Password, dan Pembatasan Laju.
+- v2.0 - Menambahkan escape untuk tampilan default guna mencegah XSS.

@@ -107,7 +107,7 @@ class UserControllerTest extends TestCase {
 Inject dependencies (like the database or mailer) into your controllers to make them easy to mock in tests:
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
@@ -137,7 +137,7 @@ use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
-        $mockDb = $this->createMock(flight\database\PdoWrapper::class);
+        $mockDb = $this->createMock(flight\database\SimplePdo::class);
         $mockDb->method('runQuery')->willReturn(true);
         $mockMailer = new class {
             public $sentEmail = null;
@@ -167,7 +167,7 @@ class UserControllerDICTest extends TestCase {
 - [Unit Testing Guide](/guides/unit-testing) - A comprehensive guide on unit testing best practices.
 - [Dependency Injection Container](/learn/dependency-injection-container) - How to use DICs to manage dependencies and improve testability.
 - [Extending](/learn/extending) - How to add your own helpers or override core classes.
-- [PDO Wrapper](/learn/pdo-wrapper) - Simplifies database interactions and is easier to mock in tests.
+- [SimplePdo](/learn/simple-pdo) - Simplifies database interactions and is easier to mock in tests.
 - [Requests](/learn/requests) - Handling HTTP requests in Flight.
 - [Responses](/learn/responses) - Sending responses to users.
 - [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) - Learn how SOLID principles can improve your unit tests.

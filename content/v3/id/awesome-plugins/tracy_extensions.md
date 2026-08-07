@@ -1,12 +1,14 @@
-Tracy Flight Panel Extensions
-=====
+# Ekstensi Panel Tracy Flight
 
-Ini adalah serangkaian ekstensi untuk membuat kerja dengan Flight menjadi sedikit lebih kaya.
+Ini adalah sekumpulan ekstensi untuk membuat bekerja dengan Flight sedikit lebih kaya.
 
-- Flight - Analisis semua variabel Flight.
-- Database - Analisis semua kueri yang telah dijalankan di halaman (jika Anda menginisialisasi koneksi database dengan benar)
-- Request - Analisis semua variabel `$_SERVER` dan periksa semua payload global (`$_GET`, `$_POST`, `$_FILES`)
-- Session - Analisis semua variabel `$_SESSION` jika sesi aktif.
+- **Flight** - Menganalisis semua variabel Flight.
+- **Database** - Menganalisis semua query yang telah dijalankan pada halaman (jika Anda menginisiasi koneksi database dengan benar)
+- **Request** - Menganalisis semua variabel `$_SERVER` dan memeriksa semua payload global (`$_GET`, `$_POST`, `$_FILES`)
+- **Session** - Menganalisis semua variabel `$_SESSION` jika sesi aktif.
+- **Twig** *(opsional)* - Menganalisis waktu render template Twig, memori, dan template/blok/makro mana yang dijalankan (memerlukan `twig/twig` dan konfigurasi `twig_profile`)
+
+Ini sangat berguna dengan [kerangka resmi](https://github.com/flightphp/skeleton), yang secara default menggunakan Twig: tata letak yang sama [alat AI](/learn/ai) ikuti juga ditampilkan dengan jelas pada bar Tracy.
 
 Ini adalah Panel
 
@@ -20,13 +22,15 @@ Dan setiap panel menampilkan informasi yang sangat membantu tentang aplikasi And
 
 Klik [di sini](https://github.com/flightphp/tracy-extensions) untuk melihat kode.
 
-Installation
--------
-Jalankan `composer require flightphp/tracy-extensions --dev` dan Anda siap melanjutkan!
+## Instalasi
 
-Configuration
--------
-Ada sangat sedikit konfigurasi yang perlu Anda lakukan untuk memulai ini. Anda perlu menginisialisasi debugger Tracy sebelum menggunakan ini [https://tracy.nette.org/en/guide](https://tracy.nette.org/en/guide):
+Jalankan `composer require flightphp/tracy-extensions --dev` dan Anda siap melangkah!
+
+Twig **bukan** dependensi keras dari paket ini. Instal `twig/twig` hanya jika Anda ingin panel Twig (kerangka sudah melakukannya untuk tampilan).
+
+## Konfigurasi
+
+Ada sangat sedikit konfigurasi yang perlu Anda lakukan untuk memulai ini. Anda perlu menginisiasi debugger Tracy sebelum menggunakan ini [https://tracy.nette.org/en/guide](https://tracy.nette.org/en/guide):
 
 ```php
 <?php
@@ -34,41 +38,42 @@ Ada sangat sedikit konfigurasi yang perlu Anda lakukan untuk memulai ini. Anda p
 use Tracy\Debugger;
 use flight\debug\tracy\TracyExtensionLoader;
 
-// bootstrap code
+// kode bootstrap
 require __DIR__ . '/vendor/autoload.php';
 
 Debugger::enable();
-// You may need to specify your environment with Debugger::enable(Debugger::DEVELOPMENT)
+// Anda mungkin perlu menentukan lingkungan Anda dengan Debugger::enable(Debugger::DEVELOPMENT)
 
-// if you use database connections in your app, there is a 
-// required PDO wrapper to use ONLY IN DEVELOPMENT (not production please!)
-// It has the same parameters as a regular PDO connection
+// jika Anda menggunakan koneksi database dalam aplikasi, ada 
+// wrapper PDO yang diperlukan untuk digunakan HANYA DALAM PENGEMBANGAN (bukan produksi mohon!)
+// Ini memiliki parameter yang sama dengan koneksi PDO biasa
 $pdo = new PdoQueryCapture('sqlite:test.db', 'user', 'pass');
-// or if you attach this to the Flight framework
+// atau jika Anda melampirkannya ke kerangka Flight
 Flight::register('db', PdoQueryCapture::class, ['sqlite:test.db', 'user', 'pass']);
-// now whenever you make a query it will capture the time, query, and parameters
+// sekarang setiap kali Anda membuat query, itu akan menangkap waktu, query, dan parameter
 
-// This connects the dots
+// Ini menghubungkan titik-titik
 if(Debugger::$showBar === true) {
-	// This needs to be false or Tracy can't actually render :(
+	// Ini perlu false atau Tracy tidak bisa benar-benar render :(
 	Flight::set('flight.content_length', false);
 	new TracyExtensionLoader(Flight::app());
 }
 
-// more code
+// kode lainnya
 
 Flight::start();
 ```
 
-## Additional Configuration
+## Konfigurasi Tambahan
 
-### Session Data
-Jika Anda memiliki handler sesi kustom (seperti ghostff/session), Anda dapat mengirimkan array data sesi apa pun ke Tracy dan itu akan secara otomatis menampilkannya untuk Anda. Anda mengirimkannya dengan kunci `session_data` di parameter kedua dari konstruktor `TracyExtensionLoader`.
+### Data Sesi
+
+Jika Anda memiliki handler sesi khusus (seperti ghostff/session), Anda dapat meneruskan array data sesi apa pun ke Tracy dan itu akan secara otomatis menampilkannya untuk Anda. Anda meneruskannya dengan kunci `session_data` dalam parameter kedua konstruktor `TracyExtensionLoader`.
 
 ```php
 
 use Ghostff\Session\Session;
-// or use flight\Session;
+// atau gunakan flight\Session;
 
 require 'vendor/autoload.php';
 
@@ -77,21 +82,77 @@ $app = Flight::app();
 $app->register('session', Session::class);
 
 if(Debugger::$showBar === true) {
-	// This needs to be false or Tracy can't actually render :(
+	// Ini perlu false atau Tracy tidak bisa benar-benar render :(
 	Flight::set('flight.content_length', false);
 	new TracyExtensionLoader(Flight::app(), [ 'session_data' => Flight::session()->getAll() ]);
 }
 
-// routes and other things...
+// rute dan hal-hal lainnya...
 
 Flight::start();
 ```
+
+### Panel Twig (opsional)
+
+Jika aplikasi Anda menggunakan [Twig](/awesome-plugins/twig) (termasuk kerangka resmi), Anda dapat menampilkan metrik template pada bar Tracy. Buat `Profile` Twig, lampirkan `ProfilerExtension` ke lingkungan Anda, lalu lewatkan profil tersebut ke loader di bawah kunci **`twig_profile`**. Lampirkan profiling hanya dalam pengembangan.
+
+```php
+<?php
+
+use flight\debug\tracy\TracyExtensionLoader;
+use flight\debug\tracy\TwigTracyExtension;
+use Tracy\Debugger;
+use Twig\Environment;
+use Twig\Extension\ProfilerExtension;
+use Twig\Loader\FilesystemLoader;
+use Twig\Profiler\Profile;
+
+$loader = new FilesystemLoader(__DIR__ . '/views');
+$twig = new Environment($loader, [
+	'debug' => true,
+	'cache' => false,
+]);
+
+// Opsional: expose helper dump Tracy dalam template
+// {{ dump(var) }}, {{ bdump(var) }}, {{ dumpe(var) }}
+$twig->addExtension(new TwigTracyExtension());
+
+$tracyConfig = [];
+if (Debugger::$showBar === true) {
+	$profile = new Profile();
+	$twig->addExtension(new ProfilerExtension($profile));
+	$tracyConfig['twig_profile'] = $profile;
+}
+
+if (Debugger::$showBar === true) {
+	Flight::set('flight.content_length', false);
+	new TracyExtensionLoader(Flight::app(), $tracyConfig);
+}
+
+// Petakan Flight::render() ke Twig (contoh)
+Flight::map('render', function (string $template, array $data = []) use ($twig) {
+	if (substr($template, -5) !== '.twig') {
+		$template .= '.twig';
+	}
+	echo $twig->render($template, $data);
+});
+```
+
+**Apa yang ditampilkan panel**
+
+- Total waktu render Twig dan memori
+- Jumlah panggilan template / blok / makro
+- Setiap template yang dirender, dengan waktu dan memorinya sendiri
+
+Tab Twig **tersembunyi** ketika tidak ada template yang dirender untuk permintaan, atau ketika Anda menghilangkan `twig_profile` (atau tidak memiliki Twig terinstal)—panel Flight lainnya tetap berfungsi.
+
+Dalam `services.php` gaya kerangka, bangun `$profile` / `ProfilerExtension` yang sama ketika debug aktif, lewatkan `twig_profile` ke `TracyExtensionLoader`, dan terus gunakan lingkungan Twig bersama Anda untuk `$app->render()`.
 
 ### Latte
 
 _PHP 8.1+ diperlukan untuk bagian ini._
 
-Jika Anda memiliki Latte yang terinstal di proyek Anda, Tracy memiliki integrasi native dengan Latte untuk menganalisis template Anda. Anda cukup mendaftarkan ekstensi dengan instance Latte Anda.
+Jika Anda memiliki Latte terinstal dalam proyek Anda, Tracy memiliki integrasi asli dengan Latte untuk menganalisis template Anda. Anda cukup mendaftarkan ekstensi dengan instance Latte Anda (ini adalah bridge Tracy Latte sendiri, bukan panel Twig di atas).
 
 ```php
 
@@ -102,14 +163,21 @@ $app = Flight::app();
 $app->map('render', function($template, $data, $block = null) {
 	$latte = new Latte\Engine;
 
-	// other configurations...
+	// konfigurasi lainnya...
 
-	// only add the extension if Tracy Debug Bar is enabled
+	// hanya tambahkan ekstensi jika Tracy Debug Bar diaktifkan
 	if(Debugger::$showBar === true) {
-		// this is where you add the Latte Panel to Tracy
+		// ini adalah tempat Anda menambahkan Latte Panel ke Tracy
 		$latte->addExtension(new Latte\Bridges\Tracy\TracyExtension);
 	}
 
 	$latte->render($template, $data, $block);
 });
 ```
+
+## Lihat Juga
+
+- [Tracy](/awesome-plugins/tracy) - Setup Tracy dasar untuk Flight
+- [Twig](/awesome-plugins/twig) - Templating yang digunakan oleh kerangka dan panel Twig
+- [Templates](/learn/templates) - Bagaimana Flight memetakan `render` ke Twig/Latte
+- [Installation](/install) - Kerangka menyertakan tracy-extensions dalam dev

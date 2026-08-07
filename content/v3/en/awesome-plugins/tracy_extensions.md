@@ -1,12 +1,14 @@
-Tracy Flight Panel Extensions
-=====
+# Tracy Flight Panel Extensions
 
 This is a set of extensions to make working with Flight a little richer.
 
-- Flight - Analyze all Flight variables.
-- Database - Analyze all queries that have run on the page (if you correctly initiate the database connection)
-- Request - Analyze all `$_SERVER` variables and examine all global payloads (`$_GET`, `$_POST`, `$_FILES`)
-- Session - Analyze all `$_SESSION` variables if sessions are active.
+- **Flight** - Analyze all Flight variables.
+- **Database** - Analyze all queries that have run on the page (if you correctly initiate the database connection)
+- **Request** - Analyze all `$_SERVER` variables and examine all global payloads (`$_GET`, `$_POST`, `$_FILES`)
+- **Session** - Analyze all `$_SESSION` variables if sessions are active.
+- **Twig** *(optional)* - Analyze Twig template render time, memory, and which templates/blocks/macros ran (requires `twig/twig` and a `twig_profile` config)
+
+This is especially handy with the [official skeleton](https://github.com/flightphp/skeleton), which defaults to Twig: the same layout [AI tools](/learn/ai) follow also shows up clearly on the Tracy bar.
 
 This is the Panel
 
@@ -20,12 +22,14 @@ And each panel displays very helpful information about your application!
 
 Click [here](https://github.com/flightphp/tracy-extensions) to view the code.
 
-Installation
--------
+## Installation
+
 Run `composer require flightphp/tracy-extensions --dev` and you're on your way!
 
-Configuration
--------
+Twig is **not** a hard dependency of the package. Install `twig/twig` only if you want the Twig panel (the skeleton already does for views).
+
+## Configuration
+
 There is very little configuration you need to do to get this started. You will need to initiate the Tracy debugger prior to using this [https://tracy.nette.org/en/guide](https://tracy.nette.org/en/guide):
 
 ```php
@@ -63,6 +67,7 @@ Flight::start();
 ## Additional Configuration
 
 ### Session Data
+
 If you have a custom session handler (such as ghostff/session), you can pass any array of session data to Tracy and it will automatically output it for you. You pass it in with the `session_data` key in the second parameter of the `TracyExtensionLoader` constructor.
 
 ```php
@@ -87,11 +92,67 @@ if(Debugger::$showBar === true) {
 Flight::start();
 ```
 
+### Twig panel (optional)
+
+If your app uses [Twig](/awesome-plugins/twig) (including the official skeleton), you can show template metrics on the Tracy bar. Create a Twig `Profile`, attach `ProfilerExtension` to your environment, then pass that profile into the loader under the **`twig_profile`** key. Attach profiling only in development.
+
+```php
+<?php
+
+use flight\debug\tracy\TracyExtensionLoader;
+use flight\debug\tracy\TwigTracyExtension;
+use Tracy\Debugger;
+use Twig\Environment;
+use Twig\Extension\ProfilerExtension;
+use Twig\Loader\FilesystemLoader;
+use Twig\Profiler\Profile;
+
+$loader = new FilesystemLoader(__DIR__ . '/views');
+$twig = new Environment($loader, [
+	'debug' => true,
+	'cache' => false,
+]);
+
+// Optional: expose Tracy dump helpers in templates
+// {{ dump(var) }}, {{ bdump(var) }}, {{ dumpe(var) }}
+$twig->addExtension(new TwigTracyExtension());
+
+$tracyConfig = [];
+if (Debugger::$showBar === true) {
+	$profile = new Profile();
+	$twig->addExtension(new ProfilerExtension($profile));
+	$tracyConfig['twig_profile'] = $profile;
+}
+
+if (Debugger::$showBar === true) {
+	Flight::set('flight.content_length', false);
+	new TracyExtensionLoader(Flight::app(), $tracyConfig);
+}
+
+// Map Flight::render() to Twig (example)
+Flight::map('render', function (string $template, array $data = []) use ($twig) {
+	if (substr($template, -5) !== '.twig') {
+		$template .= '.twig';
+	}
+	echo $twig->render($template, $data);
+});
+```
+
+**What the panel shows**
+
+- Total Twig render time and memory
+- Template / block / macro call counts
+- Each template that rendered, with its own time and memory
+
+The Twig tab is **hidden** when no templates were rendered for the request, or when you omit `twig_profile` (or do not have Twig installed)—other Flight panels keep working.
+
+In a skeleton-style `services.php`, build the same `$profile` / `ProfilerExtension` when debug is on, pass `twig_profile` into `TracyExtensionLoader`, and keep using your shared Twig environment for `$app->render()`.
+
 ### Latte
 
 _PHP 8.1+ is required for this section._
 
-If you have Latte installed in your project, Tracy has a native integration with Latte to analyze your templates. You simple register the extension with your Latte instance.
+If you have Latte installed in your project, Tracy has a native integration with Latte to analyze your templates. You simply register the extension with your Latte instance (this is Latte’s own Tracy bridge, not the Twig panel above).
 
 ```php
 
@@ -113,3 +174,10 @@ $app->map('render', function($template, $data, $block = null) {
 	$latte->render($template, $data, $block);
 });
 ```
+
+## See Also
+
+- [Tracy](/awesome-plugins/tracy) - Base Tracy setup for Flight
+- [Twig](/awesome-plugins/twig) - Templating used by the skeleton and the Twig panel
+- [Templates](/learn/templates) - How Flight maps `render` to Twig/Latte
+- [Installation](/install) - Skeleton includes tracy-extensions in dev

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Flight provides some basic HTML templating functionality by default. Templating is a very effective way for you to disconnect your application logic from your presentation layer.
+Flight provides some basic HTML templating functionality by default. Templating is a very effective way for you to disconnect your application logic from your presentation layer. A dedicated engine (Twig, Latte, etc.) also gives [AI coding tools](/learn/ai) a familiar, constrained syntax so they are less likely to dump business logic into your HTML.
 
 ## Understanding
 
@@ -10,15 +10,101 @@ When you are building an application, you'll likely have HTML that you'll want t
 
 ## Basic Usage
 
-Flight allows you to swap out the default view engine simply by registering your
-own view class. Scroll down to see examples of how to use Smarty, Latte, Blade, and more!
+Flight allows you to swap out the default view engine simply by mapping `render` (or registering a view class). Scroll down for Twig, Latte, Smarty, Blade, and more.
+
+> **Skeleton default:** The official [flightphp/skeleton](https://github.com/flightphp/skeleton) uses **Twig only** under `app/views/` (`*.twig`). Controllers call `$this->app->render('welcome', $data)` (extension optional). That is an application choice for new projects—not a requirement of Flight core. Latte and other engines remain fully supported.
+
+### Twig
+
+<span class="badge bg-info">skeleton default</span>
+
+[Twig](https://twig.symfony.com/) is a flexible, fast, and secure template engine used by Symfony and many other PHP projects. AI coding tools tend to know Twig especially well, and it auto-escapes output by default which helps protect against XSS.
+
+#### Installation
+
+```bash
+composer require twig/twig
+```
+
+(Already included when you `composer create-project flightphp/skeleton`.)
+
+#### Basic Configuration
+
+Overwrite the `render` method to use Twig instead of the default PHP renderer:
+
+```php
+// overwrite the render method to use Twig instead of the default PHP renderer
+Flight::map('render', function(string $template, array $data): void {
+	$loader = new \Twig\Loader\FilesystemLoader(Flight::get('flight.views.path'));
+	$twig = new \Twig\Environment($loader, [
+		// Where Twig stores its compiled templates
+		'cache' => __DIR__ . '/../cache/twig',
+		'auto_reload' => true,
+	]);
+
+	// Allow "welcome" or "welcome.twig"
+	if (substr($template, -5) !== '.twig') {
+		$template .= '.twig';
+	}
+
+	echo $twig->render($template, $data);
+});
+```
+
+In the skeleton, this wiring lives in `app/config/services.php` (shared Twig environment, cache path, globals like `base_url` / CSP nonce). Prefer injecting `Engine` and calling `$app->render()` from controllers so the code stays [AI- and test-friendly](/learn/ai).
+
+#### Using Twig in Flight
+
+Now that you can render with Twig, you can do something like this:
+
+```html
+{# app/views/home.twig #}
+<html>
+  <head>
+	<title>{% if title %}{{ title }} - {% endif %}My App</title>
+	<link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+	<h1>Hello, {{ name }}!</h1>
+  </body>
+</html>
+```
+
+```php
+// routes.php
+Flight::route('/@name', function ($name) {
+	Flight::render('home.twig', [
+		'title' => 'Home Page',
+		'name' => $name
+	]);
+});
+```
+
+When you visit `/Bob` in your browser, the output would be:
+
+```html
+<html>
+  <head>
+	<title>Home Page - My App</title>
+	<link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+	<h1>Hello, Bob!</h1>
+  </body>
+</html>
+```
+
+#### Further Reading
+
+A more complete example of using Twig with layouts is shown in the [awesome plugins](/awesome-plugins/twig) section of this documentation. For render-time metrics on the Tracy bar, see the [Twig panel in Tracy Extensions](/awesome-plugins/tracy-extensions#twig-panel-optional).
+
+You can learn more about Twig's full capabilities by reading the [official documentation](https://twig.symfony.com/doc/3.x/).
 
 ### Latte
 
-<span class="badge bg-info">recommended</span>
+<span class="badge bg-secondary">great alternative</span>
 
-Here's how you would use the [Latte](https://latte.nette.org/)
-template engine for your views.
+[Latte](https://latte.nette.org/) is a full-featured engine with a PHP-like syntax. It is still an excellent choice for Flight apps; the skeleton simply standardizes on Twig for one shared default (especially helpful when AI tools generate templates).
 
 #### Installation
 
@@ -290,13 +376,18 @@ Hello, Bob!
 ```
 
 ## See Also
+- [Installation](/install) - Skeleton layout (`app/views/*.twig`) for new projects.
 - [Extending](/learn/extending) - How to overwrite the `render` method to use a different template engine.
 - [Routing](/learn/routing) - How to map routes to controllers and render views.
 - [Responses](/learn/responses) - How to customize HTTP responses.
+- [Security](/learn/security) - Auto-escaping and XSS.
+- [AI & Developer Experience](/learn/ai) - Why one view engine default helps coding agents.
 - [Why a Framework?](/learn/why-frameworks) - How templates fit into the big picture.
 
 ## Troubleshooting
 - If you have a redirect in your middleware, but your app doesn't seem to be redirecting, make sure you add an `exit;` statement in your middleware.
+- If Twig cannot find a template, check `flight.views.path` and that the file exists under that path with the expected extension (skeleton: `app/views/`).
 
 ## Changelog
+- Docs – Twig documented as the official skeleton default; Latte remains a first-class alternative.
 - v2.0 - Initial release.

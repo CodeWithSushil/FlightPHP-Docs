@@ -1,20 +1,24 @@
 # Runway
 
-Runway es una aplicación CLI que te ayuda a gestionar tus aplicaciones Flight. Puede generar controladores, mostrar todas las rutas y más. Se basa en la excelente biblioteca [adhocore/php-cli](https://github.com/adhocore/php-cli).
+Runway es una aplicación CLI que te ayuda a gestionar tus aplicaciones Flight. Puede generar controladores, mostrar todas las rutas, ejecutar ayudantes de configuración de IA, migraciones (en el esqueleto) y más. Está basado en la excelente biblioteca [adhocore/php-cli](https://github.com/adhocore/php-cli).
 
 Haz clic [aquí](https://github.com/flightphp/runway) para ver el código.
 
+Los comandos de scaffolding están intencionalmente alineados con el [esqueleto oficial](https://github.com/flightphp/skeleton) para que las [herramientas de codificación de IA](/learn/ai) y los humanos obtengan las mismas rutas, espacios de nombres y estilo de inyección de constructor cada vez.
+
 ## Instalación
 
-Instala con composer.
+Instalar con composer.
 
 ```bash
 composer require flightphp/runway
 ```
 
+El esqueleto ya depende de Runway; usa `php runway` desde la raíz del proyecto.
+
 ## Configuración Básica
 
-La primera vez que ejecutes Runway, intentará encontrar una configuración `runway` en `app/config/config.php` a través de la clave `'runway'`.
+La primera vez que ejecutes Runway, intentará encontrar una configuración `runway` en `app/config/config.php` mediante la clave `'runway'`.
 
 ```php
 <?php
@@ -23,22 +27,24 @@ return [
     'runway' => [
         'app_root' => 'app/',
 		'public_root' => 'public/',
+		// opcional; el esqueleto también usa index_root para la entrada pública
+		'index_root' => 'public/index.php',
     ],
 ];
 ```
 
-> **NOTA** - A partir de **v1.2.0**, `.runway-config.json` está obsoleto. Por favor, migra tu configuración a `app/config/config.php`. Puedes hacerlo fácilmente con el comando `php runway config:migrate`.
+> **NOTA** - A partir de **v1.2.0**, `.runway-config.json` está obsoleto en favor de `app/config/config.php`. Migra con `php runway config:migrate` al actualizar proyectos antiguos. El esqueleto puede seguir escribiendo un pequeño `.runway-config.json` al crear el proyecto para compatibilidad; prefiere la clave `runway` en `config.php` de ahora en adelante.
 
-### Detección de la Raíz del Proyecto
+### Detección de Raíz del Proyecto
 
-Runway es lo suficientemente inteligente como para detectar la raíz de tu proyecto, incluso si lo ejecutas desde un subdirectorio. Busca indicadores como `composer.json`, `.git` o `app/config/config.php` para determinar dónde está la raíz del proyecto. Esto significa que puedes ejecutar comandos de Runway desde cualquier lugar en tu proyecto!
+Runway es lo suficientemente inteligente para detectar la raíz de tu proyecto, incluso si lo ejecutas desde un subdirectorio. Busca indicadores como `composer.json`, `.git`, o `app/config/config.php` para determinar dónde está la raíz del proyecto. ¡Esto significa que puedes ejecutar comandos de Runway desde cualquier lugar de tu proyecto!
 
 ## Uso
 
 Runway tiene una serie de comandos que puedes usar para gestionar tu aplicación Flight. Hay dos formas fáciles de usar Runway.
 
-1. Si estás usando el proyecto esqueleto, puedes ejecutar `php runway [command]` desde la raíz de tu proyecto.
-1. Si estás usando Runway como un paquete instalado vía composer, puedes ejecutar `vendor/bin/runway [command]` desde la raíz de tu proyecto.
+1. Si estás usando el proyecto esqueleto, puedes ejecutar `php runway [comando]` desde la raíz de tu proyecto.
+1. Si estás usando Runway como un paquete instalado vía composer, puedes ejecutar `vendor/bin/runway [comando]` desde la raíz de tu proyecto.
 
 ### Lista de Comandos
 
@@ -48,71 +54,134 @@ Puedes ver una lista de todos los comandos disponibles ejecutando el comando `ph
 php runway
 ```
 
-### Ayuda de Comando
+Solo confía en los comandos que realmente aparezcan en esa lista para tu instalación (comandos principales de Runway vs comandos específicos del proyecto como `migrate` del esqueleto).
 
-Para cualquier comando, puedes pasar la bandera `--help` para obtener más información sobre cómo usar el comando.
+### Ayuda de Comandos
+
+Para cualquier comando, puedes pasar el flag `--help` para obtener más información sobre cómo usar el comando.
 
 ```bash
 php runway routes --help
+php runway make:controller --help
 ```
 
 Aquí hay algunos ejemplos:
 
 ### Generar un Controlador
 
-Basado en la configuración en `runway.app_root`, la ubicación generará un controlador para ti en el directorio `app/controllers/`.
+`make:controller` genera un controlador que coincide con el diseño del esqueleto oficial:
+
+| | |
+|--|--|
+| **Ruta** | `app/Controller/{Nombre}.php` |
+| **Espacio de nombres** | `App\Controller` |
+| **Estilo** | Inyección de constructor de `flight\Engine` (sin `Flight::` en el cuerpo de la clase) |
 
 ```bash
-php runway make:controller MyController
+php runway make:controller MiControlador
+# → app/Controller/MiControlador.php
+#   namespace App\Controller;
 ```
 
-### Generar un Modelo Active Record
-
-Primero asegúrate de haber instalado el plugin [Active Record](/awesome-plugins/active-record). Basado en la configuración en `runway.app_root`, la ubicación generará un registro para ti en el directorio `app/records/`.
-
-```bash
-php runway make:record users
-```
-
-Si, por ejemplo, tienes la tabla `users` con el siguiente esquema: `id`, `name`, `email`, `created_at`, `updated_at`, se creará un archivo similar al siguiente en el archivo `app/records/UserRecord.php`:
+Ejemplo de la estructura que debes esperar (simplificada):
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace app\records;
+namespace App\Controller;
 
-/**
- * Clase ActiveRecord para la tabla users.
- * @link https://docs.flightphp.com/awesome-plugins/active-record
- * 
- * @property int $id
- * @property string $name
- * @property string $email
- * @property string $created_at
- * @property string $updated_at
- * // también podrías agregar relaciones aquí una vez que las definas en el array $relations
- * @property CompanyRecord $company Ejemplo de una relación
- */
-class UserRecord extends \flight\ActiveRecord
+use flight\Engine;
+
+class MiControlador
 {
-    /**
-     * @var array $relations Establece las relaciones para el modelo
-     *   https://docs.flightphp.com/awesome-plugins/active-record#relationships
-     */
-    protected array $relations = [];
+	protected Engine $app;
 
-    /**
-     * Constructor
-     * @param mixed $databaseConnection La conexión a la base de datos
-     */
-    public function __construct($databaseConnection)
-    {
-        parent::__construct($databaseConnection, 'users');
-    }
+	public function __construct(Engine $app)
+	{
+		$this->app = $app;
+	}
+
+	public function index(): void
+	{
+		// ej. $this->app->render('…', […]);
+	}
 }
 ```
+
+Regístralo con un callable de clase para que Dice pueda construir el controlador:
+
+```php
+// app/config/routes.php
+use App\Controller\MiControlador;
+
+$router->get('/mio', [MiControlador::class, 'index']);
+```
+
+**¿Por qué este diseño?** La **mayúscula** de la carpeta debe coincidir con el espacio de nombres (`Controller` no `controllers`) para Composer PSR-4 en Linux—ver [Autocarga](/learn/autoloading). La misma ruta es la que los archivos `AGENTS.md` raíz y con alcance indican a las herramientas de IA que usen, así que los controladores generados y escritos a mano permanecen idénticos.
+
+> Documentación antigua y proyectos comunitarios a veces usaban `app/controllers/` y `app\controllers`. Eso sigue siendo válido si *tu* árbol aún usa carpetas en minúsculas. **Los nuevos proyectos esqueleto y la salida actual de `make:controller` usan `app/Controller/` + `App\Controller`.**
+
+### Generar un Modelo Active Record
+
+Primero asegúrate de haber instalado el plugin [Active Record](/awesome-plugins/active-record).
+
+```bash
+php runway make:record usuarios
+```
+
+En el esqueleto oficial, los modelos viven bajo **`app/Model/`** con espacio de nombres **`App\Model`**, y la conexión a la base de datos es **[SimplePdo](/learn/simple-pdo)** (inyéctalo o pásalo al constructor de ActiveRecord). Los nombres de archivo/espacios de nombres generados siguen los valores predeterminados actuales de Runway y tu configuración `runway`—prefiere alinear los nuevos modelos con `App\Model` para que coincidan con [autocarga](/learn/autoloading) y `AGENTS.md`.
+
+Ejemplo de un modelo consistente con la demostración de posts del esqueleto:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Model;
+
+use flight\ActiveRecord;
+
+/**
+ * @property int $id
+ * @property string $título
+ * // …
+ */
+class Post extends ActiveRecord
+{
+	protected array $relations = [];
+
+	public function __construct($databaseConnection)
+	{
+		parent::__construct($databaseConnection, 'posts');
+	}
+}
+```
+
+Si un generador más antiguo aún emite `app/records` / `app\records`, puedes mantener esa convención en aplicaciones heredadas o mover archivos a `app/Model/` y actualizar el espacio de nombres para que coincida con la mayúscula de la carpeta.
+
+### Migraciones (esqueleto)
+
+El esqueleto oficial incluye un comando de proyecto (descubierto desde `app/commands/`) como:
+
+```bash
+php runway migrate
+```
+
+Las migraciones son archivos SQL bajo `migrations/` (por ejemplo `YYYYMMDDHHMMSS_descripcion.sql` para SQLite y `…_descripcion.mysql.sql` para MySQL), seleccionados desde la configuración del controlador de base de datos / env. Los flags y comportamiento exactos están definidos por ese comando de proyecto—ejecuta `php runway migrate --help` en tu app.
+
+### Ayudantes de IA
+
+Runway expone comandos orientados a IA usados con [IA y experiencia de desarrollador](/learn/ai):
+
+```bash
+php runway ai:init
+php runway ai:generate-instructions
+```
+
+Estos almacenan credenciales LLM y generan instrucciones de proyecto (principalmente **`AGENTS.md`**). En el esqueleto, trata `AGENTS.md` (y copias con alcance bajo `app/`) más **`SECURITY.md`** como la fuente de verdad para agentes.
 
 ### Mostrar Todas las Rutas
 
@@ -122,7 +191,7 @@ Esto mostrará todas las rutas que están actualmente registradas con Flight.
 php runway routes
 ```
 
-Si deseas ver solo rutas específicas, puedes pasar una bandera para filtrar las rutas.
+Si deseas ver solo rutas específicas, puedes pasar un flag para filtrar las rutas.
 
 ```bash
 # Mostrar solo rutas GET
@@ -136,28 +205,32 @@ php runway routes --post
 
 ## Agregar Comandos Personalizados a Runway
 
-Si estás creando un paquete para Flight, o quieres agregar tus propios comandos personalizados a tu proyecto, puedes hacerlo creando un directorio `src/commands/`, `flight/commands/`, `app/commands/` o `commands/` para tu proyecto/paquete. Si necesitas una personalización adicional, consulta la sección a continuación sobre Configuración.
+Si estás creando un paquete para Flight, o quieres agregar tus propios comandos personalizados a tu proyecto, puedes hacerlo creando un directorio `src/commands/`, `flight/commands/`, `app/commands/`, o `commands/` para tu proyecto/paquete. Si necesitas más personalización, consulta la sección de Configuración a continuación.
 
-Para crear un comando, simplemente extiende la clase `AbstractBaseCommand` e implementa al menos un método `__construct` y un método `execute`.
+En el esqueleto, los comandos de proyecto viven en **`app/commands/`** con espacio de nombres **`App\Command`**. Runway los descubre por ruta; mantén esa carpeta sincronizada con el classmap/PSR-4 de Composer como ya hace tu proyecto.
+
+Para crear un comando, simplemente extiende la clase `AbstractBaseCommand`, e implementa como mínimo un método `__construct` y un método `execute`.
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace flight\commands;
+namespace App\Command;
 
-class ExampleCommand extends AbstractBaseCommand
+use flight\commands\AbstractBaseCommand;
+
+class ComandoEjemplo extends AbstractBaseCommand
 {
 	/**
-     * Constructor
+     * Construct
      *
-     * @param array<string,mixed> $config Configuración de app/config/config.php
+     * @param array<string,mixed> $config Configuración desde app/config/config.php
      */
     public function __construct(array $config)
     {
         parent::__construct('make:example', 'Crear un ejemplo para la documentación', $config);
-        $this->argument('<funny-gif>', 'El nombre del gif gracioso');
+        $this->argument('<gif-divertido>', 'El nombre del gif divertido');
     }
 
 	/**
@@ -171,18 +244,20 @@ class ExampleCommand extends AbstractBaseCommand
 
 		$io->info('Creando ejemplo...');
 
-		// Haz algo aquí
+		// Hacer algo aquí
 
 		$io->ok('¡Ejemplo creado!');
 	}
 }
 ```
 
-Consulta la [Documentación de adhocore/php-cli](https://github.com/adhocore/php-cli) para obtener más información sobre cómo construir tus propios comandos personalizados en tu aplicación Flight!
+¡Consulta la [Documentación de adhocore/php-cli](https://github.com/adhocore/php-cli) para más información sobre cómo construir tus propios comandos personalizados en tu aplicación Flight!
 
 ## Gestión de Configuración
 
 Dado que la configuración se ha movido a `app/config/config.php` a partir de `v1.2.0`, hay algunos comandos de ayuda para gestionar la configuración.
+
+> **Consejo del esqueleto:** Mantén `config.php` como valores PHP **literales**. Los secretos pertenecen a `.env`. Evita expresiones `$_ENV[...]` dentro de `config.php`—`config:set` reescribe ese archivo como datos estáticos y podría incrustar secretos en el archivo. Ver [Configuración](/learn/configuration).
 
 ### Migrar Configuración Antigua
 
@@ -210,7 +285,7 @@ php runway config:get app_root
 
 ## Todas las Configuraciones de Runway
 
-Si necesitas personalizar la configuración para Runway, puedes establecer estos valores en `app/config/config.php`. A continuación se muestran algunas configuraciones adicionales que puedes establecer:
+Si necesitas personalizar la configuración para Runway, puedes establecer estos valores en `app/config/config.php`. A continuación hay algunas configuraciones adicionales que puedes establecer:
 
 ```php
 <?php
@@ -219,10 +294,10 @@ return [
     // ... otros valores de configuración ...
 
     'runway' => [
-        // Aquí es donde se encuentra tu directorio de aplicación
+        // Aquí es donde está ubicado el directorio de tu aplicación
         'app_root' => 'app/',
 
-        // Este es el directorio donde se encuentra tu archivo index raíz
+        // Este es el directorio donde está ubicado tu archivo index raíz
         'index_root' => 'public/',
 
         // Estas son las rutas a las raíces de otros proyectos
@@ -233,16 +308,16 @@ return [
 
         // Las rutas base probablemente no necesiten configurarse, pero está aquí si lo quieres
         'base_paths' => [
-            '/includes/libs/vendor', // si tienes una ruta realmente única para tu directorio vendor o algo
+            '/includes/libs/vendor', // si tienes una ruta realmente única para tu directorio vendor o algo similar
         ],
 
-        // Las rutas finales son ubicaciones dentro de un proyecto para buscar los archivos de comandos
+        // Las rutas finales son ubicaciones dentro de un proyecto para buscar los archivos de comando
         'final_paths' => [
             'src/diff-path/commands',
             'app/module/admin/commands',
         ],
 
-        // Si quieres agregar solo la ruta completa, adelante (absoluta o relativa a la raíz del proyecto)
+        // Si quieres agregar la ruta completa, adelante (absoluta o relativa a la raíz del proyecto)
         'paths' => [
             '/home/user/different-project/src/diff-path/commands',
             '/var/www/another-project/app/module/admin/commands',
@@ -252,9 +327,9 @@ return [
 ];
 ```
 
-### Acceso a la Configuración
+### Accediendo a la Configuración
 
-Si necesitas acceder a los valores de configuración de manera efectiva, puedes acceder a ellos a través del método `__construct` o el método `app()`. También es importante notar que si tienes un archivo `app/config/services.php`, esos servicios también estarán disponibles para tu comando.
+Si necesitas acceder a los valores de configuración efectivamente, puedes acceder a ellos a través del método `__construct` o el método `app()`. También es importante notar que si tienes un archivo `app/config/services.php`, esos servicios también estarán disponibles para tu comando.
 
 ```php
 public function execute()
@@ -264,23 +339,32 @@ public function execute()
     // Acceder a la configuración
     $app_root = $this->config['runway']['app_root'];
     
-    // Acceder a servicios como quizás una conexión a la base de datos
+    // Acceder a servicios como posiblemente una conexión a base de datos
     $database = $this->config['database']
     
     // ...
 }
 ```
 
-## Envoltorios de Ayudante de IA
+## Envoltorios de Ayudantes de IA
 
-Runway tiene algunos envoltorios de ayudante que facilitan que la IA genere comandos. Puedes usar `addOption` y `addArgument` de una manera que se sienta similar a Symfony Console. Esto es útil si estás usando herramientas de IA para generar tus comandos.
+Runway tiene algunos envoltorios de ayudantes que facilitan que la IA genere comandos. Puedes usar `addOption` y `addArgument` de una manera que se sienta similar a Symfony Console. Esto es útil si estás usando herramientas de IA para generar tus comandos.
 
 ```php
 public function __construct(array $config)
 {
     parent::__construct('make:example', 'Crear un ejemplo para la documentación', $config);
     
-    // El argumento mode es nullable y por defecto completamente opcional
+    // El argumento mode es nullable y por defecto es completamente opcional
     $this->addOption('name', 'El nombre del ejemplo', null);
 }
 ```
+
+## Ver También
+
+- [Instalación](/install) - Árbol del esqueleto y valores predeterminados de create-project
+- [Autocarga](/learn/autoloading) - `App\` y mayúscula de carpeta
+- [Inyección de Dependencias](/learn/dependency-injection-container) - Inyección Dice + Engine para controladores generados
+- [IA y Experiencia de Desarrollador](/learn/ai) - `ai:init`, `ai:generate-instructions`, `AGENTS.md`
+- [Active Record](/awesome-plugins/active-record) - Modelos usados con `make:record` / `App\Model` del esqueleto
+- [SimplePdo](/learn/simple-pdo) - Conexión a BD usada por migraciones y modelos del esqueleto

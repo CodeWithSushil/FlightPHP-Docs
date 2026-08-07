@@ -1,14 +1,14 @@
 # Vienkārša emuāra izveide ar Flight PHP
 
-Šis ceļvedis nodrošina soļus, kā izveidot pamata emuāru, izmantojot Flight PHP ietvaru. Jūs izveidosiet projektu, definēsiet maršrutus, pārvaldīsiet ierakstus, izmantojot JSON, un attēlosiet tos ar Latte veidņu dzinēju, tādējādi demonstrējot Flight vienkāršību un elastību. Ceļojuma beigās jums būs funkcionāls emuārs ar sākumlapu, individuālām ierakstu lapām un izveides formu.
+Šis ceļvedis palīdzēs jums izveidot vienkāršu emuāru, izmantojot Flight PHP ietvaru. Jūs izveidosiet projektu, definēsiet maršrutus, pārvaldīsiet ierakstus ar JSON un atveidosiet tos ar Latte šablonu dzinēju—vienlaikus parādot Flight vienkāršību un elastīgumu. Līdz beigām jums būs funkcionējošs emuārs ar sākumlapu, atsevišķu ierakstu lapām un izveides formu.
 
-## Prasības
+## Priekšnosacījumi
 - **PHP 7.4+**: Instalēts jūsu sistēmā.
 - **Composer**: Atkarību pārvaldībai.
 - **Teksta redaktors**: Jebkurš redaktors, piemēram, VS Code vai PHPStorm.
-- Pamata zināšanas par PHP un tīmekļa izstrādi.
+- Pamatzināšanas par PHP un tīmekļa izstrādi.
 
-## 1. solis: Iestatiet savu projektu
+## 1. solis: Projekta iestatīšana
 
 Sāciet, izveidojot jaunu projekta direktoriju un instalējot Flight, izmantojot Composer.
 
@@ -24,34 +24,34 @@ Sāciet, izveidojot jaunu projekta direktoriju un instalējot Flight, izmantojot
    ```
 
 3. **Izveidojiet publisko direktoriju**:
-   Flight izmanto vienu ieejas punktu (`index.php`). Izveidojiet `public/` mapi tam:
+   Flight izmanto vienu ieejas punktu (`index.php`). Izveidojiet tam `public/` mapi:
    ```bash
    mkdir public
    ```
 
-4. **Pamata `index.php`**:
+4. **Vienkāršs `index.php`**:
    Izveidojiet `public/index.php` ar vienkāršu “hello world” maršrutu:
    ```php
    <?php
    require '../vendor/autoload.php';
 
    Flight::route('/', function () {
-       echo 'Sveiki, Flight!';
+       echo 'Hello, Flight!';
    });
 
    Flight::start();
    ```
 
 5. **Palaidiet iebūvēto serveri**:
-   Pārbaudiet savu iestatījumu, izmantojot PHP izstrādes serveri:
+   Pārbaudiet savu iestatījumu ar PHP izstrādes serveri:
    ```bash
    php -S localhost:8000 -t public/
    ```
-   Apmeklējiet `http://localhost:8000`, lai redzētu “Sveiki, Flight!”.
+   Apmeklējiet `http://localhost:8000`, lai redzētu “Hello, Flight!”.
 
-## 2. solis: Organizējiet sava projekta struktūru
+## 2. solis: Projekta struktūras organizēšana
 
-Lai nodrošinātu tīru iestatījumu, strukturējiet savu projektu šādi:
+Lai iegūtu tīru iestatījumu, strukturējiet projektu šādi:
 
 ```text
 flight-blog/
@@ -66,13 +66,13 @@ flight-blog/
 ```
 
 - `app/config/`: Konfigurācijas faili (piemēram, notikumi, maršruti).
-- `app/views/`: Veidnes lapu attēlošanai.
-- `data/`: JSON fails emuāru ierakstu glabāšanai.
+- `app/views/`: Veidnes lapu atveidošanai.
+- `data/`: JSON fails emuāra ierakstu glabāšanai.
 - `public/`: Tīmekļa sakne ar `index.php`.
 
-## 3. solis: Instalējiet un konfigurējiet Latte
+## 3. solis: Latte instalēšana un konfigurēšana
 
-Latte ir viegla veidņu dzinēja, kas labi integrējas ar Flight.
+Latte ir viegls šablonu dzinējs, kas labi integrējas ar Flight.
 
 1. **Instalējiet Latte**:
    ```bash
@@ -80,7 +80,7 @@ Latte ir viegla veidņu dzinēja, kas labi integrējas ar Flight.
    ```
 
 2. **Konfigurējiet Latte Flight**:
-   Atjauniniet `public/index.php`, lai reģistrētu Latte kā skata dzinēju:
+   Atjauniniet `public/index.php`, lai reģistrētu Latte kā skatu dzinēju:
    ```php
    <?php
    require '../vendor/autoload.php';
@@ -93,40 +93,40 @@ Latte ir viegla veidņu dzinēja, kas labi integrējas ar Flight.
    });
 
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => 'Mans emuārs']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::start();
    ```
 
-3. **Izveidojiet izkārtojuma veidni: 
-   `app/views/layout.latte`**:
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{$title}</title>
-</head>
-<body>
-    <header>
-        <h1>Mans emuārs</h1>
-        <nav>
-            <a href="/">Sākums</a> | 
-            <a href="/create">Izveidot ierakstu</a>
-        </nav>
-    </header>
-    <main>
-        {block content}{/block}
-    </main>
-    <footer>
-        <p>&copy; {date('Y')} Flight emuārs</p>
-    </footer>
-</body>
-</html>
-```
+3. **Izveidojiet izkārtojuma veidni**:
+   Failā `app/views/layout.latte`:
+   ```html
+   <!DOCTYPE html>
+   <html>
+   <head>
+       <title>{$title}</title>
+   </head>
+   <body>
+       <header>
+           <h1>My Blog</h1>
+           <nav>
+               <a href="/">Home</a> | 
+               <a href="/create">Create a Post</a>
+           </nav>
+       </header>
+       <main>
+           {block content}{/block}
+       </main>
+       <footer>
+           <p>&copy; {date('Y')} Flight Blog</p>
+       </footer>
+   </body>
+   </html>
+   ```
 
-4. **Izveidojiet sākumlapa veidni**:
-   `app/views/home.latte`:
+4. **Izveidojiet sākumlapas veidni**:
+   Failā `app/views/home.latte`:
    ```html
   {extends 'layout.latte'}
 
@@ -139,41 +139,39 @@ Latte ir viegla veidņu dzinēja, kas labi integrējas ar Flight.
 		</ul>
 	{/block}
    ```
-   Restartējiet serveri, ja esat to izslēguši, un apmeklējiet `http://localhost:8000`, lai redzētu attēloto lapu.
+   Restartējiet serveri, ja esat no tā izgājis, un apmeklējiet `http://localhost:8000`, lai redzētu atveidoto lapu.
 
 5. **Izveidojiet datu failu**:
-
-   Izmantojiet JSON failu, lai simulētu datu bāzi vienkāršības labad.
-
-   `data/posts.json`:
+   Izmantojiet JSON failu, lai vienkāršības labad simulētu datubāzi.
+   Failā `data/posts.json`:
    ```json
    [
        {
-           "slug": "pirmais-ieraksts",
-           "title": "Mans pirmais ieraksts",
-           "content": "Šis ir mans pirmais emuāra ieraksts ar Flight PHP!"
+           "slug": "first-post",
+           "title": "My First Post",
+           "content": "This is my very first blog post with Flight PHP!"
        }
    ]
    ```
 
-## 4. solis: Definējiet maršrutus
+## 4. solis: Maršrutu definēšana
 
-Atsevišķiet savus maršrutus konfigurācijas failā labākai organizācijai.
+Atdaliet savus maršrutus konfigurācijas failā, lai nodrošinātu labāku organizāciju.
 
 1. **Izveidojiet `routes.php`**:
-   `app/config/routes.php`:
+   Failā `app/config/routes.php`:
    ```php
    <?php
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => 'Mans emuārs']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::route('/post/@slug', function ($slug) {
-       Flight::view()->render('post.latte', ['title' => 'Ieraksts: ' . $slug, 'slug' => $slug]);
+       Flight::view()->render('post.latte', ['title' => 'Post: ' . $slug, 'slug' => $slug]);
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => 'Izveidot ierakstu']);
+       Flight::view()->render('create.latte', ['title' => 'Create a Post']);
    });
    ```
 
@@ -195,12 +193,12 @@ Atsevišķiet savus maršrutus konfigurācijas failā labākai organizācijai.
    Flight::start();
    ```
 
-## 5. solis: Glabājiet un iegūstiet emuāru ierakstus
+## 5. solis: Emuāra ierakstu glabāšana un ielāde
 
-Pievienojiet metodes, lai ielādētu un saglabātu ierakstus.
+Pievienojiet metodes ierakstu ielādei un saglabāšanai.
 
 1. **Pievienojiet ierakstu metodi**:
-   `index.php` pievienojiet metodi ierakstu ielādei:
+   Failā `index.php` pievienojiet metodi ierakstu ielādei:
    ```php
    Flight::map('posts', function () {
        $file = __DIR__ . '/../data/posts.json';
@@ -209,13 +207,13 @@ Pievienojiet metodes, lai ielādētu un saglabātu ierakstus.
    ```
 
 2. **Atjauniniet maršrutus**:
-   Izmainiet `app/config/routes.php`, lai izmantotu ierakstus:
+   Modificējiet `app/config/routes.php`, lai izmantotu ierakstus:
    ```php
    <?php
    Flight::route('/', function () {
        $posts = Flight::posts();
        Flight::view()->render('home.latte', [
-           'title' => 'Mans emuārs',
+           'title' => 'My Blog',
            'posts' => $posts
        ]);
    });
@@ -235,11 +233,11 @@ Pievienojiet metodes, lai ielādētu un saglabātu ierakstus.
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => 'Izveidot ierakstu']);
+       Flight::view()->render('create.latte', ['title' => 'Create a Post']);
    });
    ```
 
-## 6. solis: Izveidojiet veidnes
+## 6. solis: Veidņu izveide
 
 Atjauniniet savas veidnes, lai attēlotu ierakstus.
 
@@ -255,11 +253,11 @@ Atjauniniet savas veidnes, lai attēlotu ierakstus.
 	{/block}
    ```
 
-## 7. solis: Pievienojiet ierakstu izveidi
+## 7. solis: Ierakstu izveides pievienošana
 
-Rīkojieties ar formas iesniegšanu, lai pievienotu jaunus ierakstus.
+Apstrādājiet veidlapas iesniegšanu, lai pievienotu jaunus ierakstus.
 
-1. **Izveidojiet formu (`app/views/create.latte`)**:
+1. **Izveidojiet veidlapu (`app/views/create.latte`)**:
    ```html
    {extends 'layout.latte'}
 
@@ -267,20 +265,20 @@ Rīkojieties ar formas iesniegšanu, lai pievienotu jaunus ierakstus.
 		<h2>{$title}</h2>
 		<form method="POST" action="/create">
 			<div class="form-group">
-				<label for="title">Nosaukums:</label>
+				<label for="title">Title:</label>
 				<input type="text" name="title" id="title" required>
 			</div>
 			<div class="form-group">
-				<label for="content">Saturs:</label>
+				<label for="content">Content:</label>
 				<textarea name="content" id="content" required></textarea>
 			</div>
-			<button type="submit">Saglabāt ierakstu</button>
+			<button type="submit">Save Post</button>
 		</form>
 	{/block}
    ```
 
 2. **Pievienojiet POST maršrutu**:
-   `app/config/routes.php`:
+   Failā `app/config/routes.php`:
    ```php
    Flight::route('POST /create', function () {
        $request = Flight::request();
@@ -296,19 +294,19 @@ Rīkojieties ar formas iesniegšanu, lai pievienotu jaunus ierakstus.
    });
    ```
 
-3. **Pārbaudiet to**:
+3. **Izmēģiniet to**:
    - Apmeklējiet `http://localhost:8000/create`.
    - Iesniedziet jaunu ierakstu (piemēram, “Otrais ieraksts” ar kādu saturu).
    - Pārbaudiet sākumlapu, lai redzētu to sarakstā.
 
-## 8. solis: Uzlabojiet ar kļūdu apstrādi
+## 8. solis: Kļūdu apstrādes uzlabošana
 
-Pārdefinējiet `notFound` metodi, lai uzlabotu 404 pieredzi.
+Pārdefinējiet `notFound` metodi, lai nodrošinātu labāku 404 pieredzi.
 
-`index.php`:
+Failā `index.php`:
 ```php
 Flight::map('notFound', function () {
-    Flight::view()->render('404.latte', ['title' => 'Lapa nav atrasta']);
+    Flight::view()->render('404.latte', ['title' => 'Page Not Found']);
 });
 ```
 
@@ -318,16 +316,16 @@ Izveidojiet `app/views/404.latte`:
 
 {block content}
     <h2>404 - {$title}</h2>
-    <p>Atvainojiet, šī lapa neeksistē!</p>
+    <p>Sorry, that page doesn't exist!</p>
 {/block}
 ```
 
-## Nākamie soļi
-- **Pievienojiet stilu**: Izmantojiet CSS savās veidnēs labākam izskatam.
-- **Datu bāze**: Aizvietojiet `posts.json` ar datu bāzi, piemēram, SQLite, izmantojot `PdoWrapper`.
-- **Validācija**: Pievienojiet pārbaudes dublēto slogu vai tukšu ievadi.
-- **Middleware**: Ieviesiet autentifikāciju ierakstu izveidei.
+## Turpmākās darbības
+- **Pievienojiet stilus**: Izmantojiet CSS savās veidnēs, lai iegūtu labāku izskatu.
+- **Datubāze**: Aizstājiet `posts.json` ar datubāzi, piemēram, SQLite, izmantojot [SimplePdo](/learn/simple-pdo).
+- **Validācija**: Pievienojiet pārbaudes dublikātu slug vai tukšu ievades lauku noteikšanai.
+- **Starpniekprogrammatūra**: Ieviesiet autentifikāciju ierakstu izveidei.
 
 ## Secinājums
 
-Jūs esat izveidojis vienkāršu emuāru ar Flight PHP! Šis ceļvedis demonstrē pamatfunkcijas, piemēram, maršrutēšanu, veidņu veidošanu ar Latte un formu iesniegšanu, vienlaikus saglabājot lietas vieglas. Izpētiet Flight dokumentāciju, lai uzzinātu vairāk par uzlabotām funkcijām, kas palīdzēs attīstīt jūsu emuāru tālāk!
+Jūs esat izveidojuši vienkāršu emuāru ar Flight PHP! Šis ceļvedis demonstrē galvenās funkcijas, piemēram, maršrutēšanu, šablonu izmantošanu ar Latte un veidlapu iesniegumu apstrādi—vienlaikus saglabājot vieglumu. Izpētiet Flight dokumentāciju, lai uzzinātu par papildu funkcijām, kas palīdzēs attīstīt jūsu emuāru tālāk!

@@ -1,17 +1,17 @@
 # 路由
 
 ## 概述
-Flight PHP 中的路由将 URL 模式映射到回调函数或类方法，从而实现快速且简单的请求处理。它设计用于最小开销、适合初学者的使用方式，并且无需外部依赖即可扩展。
+Flight 框架中的路由将 URL 模式映射到回调函数或类方法，使请求处理变得快速而简单。它设计为低开销、对初学者友好，并且无需外部依赖即可扩展。
 
 ## 理解
-路由是 Flight 中将 HTTP 请求连接到应用程序逻辑的核心机制。通过定义路由，您可以指定不同 URL 如何触发特定代码，无论是通过函数、类方法还是控制器操作。Flight 的路由系统灵活，支持基本模式、命名参数、正则表达式，以及依赖注入和资源路由等高级功能。这种方法使您的代码保持组织性和易维护性，同时对初学者快速简单，对高级用户可扩展。
+路由是 Flight 中将 HTTP 请求连接到应用逻辑的核心机制。通过定义路由，你可以指定不同的 URL 如何触发特定的代码，无论是通过函数、类方法还是控制器动作。Flight 的路由系统非常灵活，支持基本模式、命名参数、正则表达式，以及依赖注入和资源路由等高级功能。这种方法使你的代码保持组织良好且易于维护，同时对于初学者来说快速简单，对于高级用户来说可扩展。
 
-> **注意：** 想了解更多关于路由的信息？请查看 ["为什么使用框架？"](/learn/why-frameworks) 页面以获取更深入的解释。
+> **注意：** 想进一步了解路由吗？请查看 [“为什么需要框架？”](/learn/why-frameworks) 页面获取更深入的解释。
 
 ## 基本用法
 
-### 定义简单路由
-Flight 中的基本路由是通过将 URL 模式与回调函数或类和方法的数组匹配来完成的。
+### 定义一个简单路由
+在 Flight 中，基本的路由通过将一个 URL 模式与一个回调函数或一个类与方法的数组进行匹配来实现。
 
 ```php
 Flight::route('/', function(){
@@ -22,7 +22,7 @@ Flight::route('/', function(){
 > 路由按照定义的顺序进行匹配。第一个匹配请求的路由将被调用。
 
 ### 使用函数作为回调
-回调可以是任何可调用的对象。因此，您可以使用普通函数：
+回调可以是任何可调用的对象。因此你可以使用普通函数：
 
 ```php
 function hello() {
@@ -33,7 +33,7 @@ Flight::route('/', 'hello');
 ```
 
 ### 使用类和方法作为控制器
-您也可以使用类的方法（静态或非静态）：
+你也可以使用类的方法（静态或非静态）：
 
 ```php
 class GreetingController {
@@ -44,14 +44,14 @@ class GreetingController {
 
 Flight::route('/', [ 'GreetingController','hello' ]);
 // 或
-Flight::route('/', [ GreetingController::class, 'hello' ]); // 首选方法
+Flight::route('/', [ GreetingController::class, 'hello' ]); // 推荐写法
 // 或
 Flight::route('/', [ 'GreetingController::hello' ]);
 // 或 
 Flight::route('/', [ 'GreetingController->hello' ]);
 ```
 
-或者先创建一个对象，然后调用该方法：
+或者先创建一个对象，然后再调用方法：
 
 ```php
 use flight\Engine;
@@ -77,78 +77,77 @@ $greeting = new GreetingController($app);
 Flight::route('/', [ $greeting, 'hello' ]);
 ```
 
-> **注意：** 默认情况下，当框架内调用控制器时，总是注入 `flight\Engine` 类，除非您通过 [依赖注入容器](/learn/dependency-injection-container) 指定。
+> **注意：** 默认情况下，当在框架内部调用控制器时，`flight\Engine` 类总是被注入，除非你通过[依赖注入容器](/learn/dependency-injection-container)另行指定。
 
-### 方法特定路由
+### 方法与路由绑定
 
-默认情况下，路由模式会匹配所有请求方法。您可以通过在 URL 前放置标识符来响应特定方法。
+默认情况下，路由模式会匹配所有请求方法。你可以通过在 URL 前面放置一个标识符来响应特定的方法。
 
 ```php
 Flight::route('GET /', function () {
-  echo 'I received a GET request.';
+  echo '我收到一个 GET 请求。';
 });
 
 Flight::route('POST /', function () {
-  echo 'I received a POST request.';
+  echo '我收到一个 POST 请求。';
 });
 
-// 您不能使用 Flight::get() 来定义路由，因为那是获取变量的方法，
-// 而不是创建路由。
-Flight::post('/', function() { /* code */ });
-Flight::patch('/', function() { /* code */ });
-Flight::put('/', function() { /* code */ });
-Flight::delete('/', function() { /* code */ });
+// 你不能使用 Flight::get() 来创建路由，因为该方法是用来获取变量的，而不是创建路由。
+Flight::post('/', function() { /* 代码 */ });
+Flight::patch('/', function() { /* 代码 */ });
+Flight::put('/', function() { /* 代码 */ });
+Flight::delete('/', function() { /* 代码 */ });
 ```
 
-您也可以使用 `|` 分隔符将多个方法映射到单个回调：
+你也可以使用 `|` 分隔符将多个方法映射到同一个回调：
 
 ```php
 Flight::route('GET|POST /', function () {
-  echo 'I received either a GET or a POST request.';
+  echo '我收到一个 GET 或 POST 请求。';
 });
 ```
 
-### HEAD 和 OPTIONS 请求的特殊处理
+### 对 HEAD 和 OPTIONS 请求的特殊处理
 
-Flight 为 `HEAD` 和 `OPTIONS` HTTP 请求提供内置处理：
+Flight 提供了对 `HEAD` 和 `OPTIONS` HTTP 请求的内置处理：
 
 #### HEAD 请求
 
-- **HEAD 请求** 被视为与 `GET` 请求相同，但 Flight 在发送到客户端之前自动移除响应主体。
-- 这意味着您可以为 `GET` 定义一个路由，HEAD 请求到同一 URL 将仅返回标头（无内容），符合 HTTP 标准。
+- **HEAD 请求**与 `GET` 请求的处理方式相同，但 Flight 会在发送给客户端之前自动移除响应主体。
+- 这意味着你可以为 `GET` 定义一个路由，而对同一 URL 的 HEAD 请求将只返回头部（没有内容），符合 HTTP 标准。
 
 ```php
 Flight::route('GET /info', function() {
-    echo 'This is some info!';
+    echo '这是一些信息！';
 });
-// HEAD 请求到 /info 将返回相同的标头，但无主体。
+// 对 /info 的 HEAD 请求将返回相同的头部，但没有主体。
 ```
 
 #### OPTIONS 请求
 
-`OPTIONS` 请求由 Flight 为任何定义的路由自动处理。
-- 当收到 OPTIONS 请求时，Flight 以 `204 No Content` 状态响应，并包含 `Allow` 标头，列出该路由支持的所有 HTTP 方法。
-- 您无需为 OPTIONS 定义单独的路由。
+对于任何已定义的路由，Flight 会自动处理 `OPTIONS` 请求。
+- 当收到 OPTIONS 请求时，Flight 会返回 `204 No Content` 状态，并带有一个 `Allow` 头，列出该路由支持的所有 HTTP 方法。
+- 你不需要为 OPTIONS 单独定义路由。
 
 ```php
-// 对于定义为：
+// 对于定义为以下形式的路由：
 Flight::route('GET|POST /users', function() { /* ... */ });
 
-// OPTIONS 请求到 /users 将响应：
+// 对 /users 的 OPTIONS 请求将返回：
 //
-// Status: 204 No Content
-// Allow: GET, POST, HEAD, OPTIONS
+// 状态：204 No Content
+// Allow：GET, POST, HEAD, OPTIONS
 ```
 
-### 使用路由器对象
+### 使用 Router 对象
 
-此外，您可以获取路由器对象，它有一些辅助方法供您使用：
+此外，你可以获取 Router 对象，其中包含一些可供使用的辅助方法：
 
 ```php
 
 $router = Flight::router();
 
-// 映射所有方法，就像 Flight::route() 一样
+// 像 Flight::route() 一样映射所有方法
 $router->map('/', function() {
 	echo 'hello world!';
 });
@@ -157,14 +156,14 @@ $router->map('/', function() {
 $router->get('/users', function() {
 	echo 'users';
 });
-$router->post('/users', 			function() { /* code */});
-$router->put('/users/update/@id', 	function() { /* code */});
-$router->delete('/users/@id', 		function() { /* code */});
-$router->patch('/users/@id', 		function() { /* code */});
+$router->post('/users', 			function() { /* 代码 */});
+$router->put('/users/update/@id', 	function() { /* 代码 */});
+$router->delete('/users/@id', 		function() { /* 代码 */});
+$router->patch('/users/@id', 		function() { /* 代码 */});
 ```
 
-### 正则表达式 (Regex)
-您可以在路由中使用正则表达式：
+### 正则表达式（Regex）
+你可以在路由中使用正则表达式：
 
 ```php
 Flight::route('/user/[0-9]+', function () {
@@ -172,10 +171,10 @@ Flight::route('/user/[0-9]+', function () {
 });
 ```
 
-虽然此方法可用，但推荐使用命名参数，或带有正则表达式的命名参数，因为它们更易读且易于维护。
+虽然可以使用这种方法，但推荐使用命名参数，或带有正则表达式的命名参数，因为它们更具可读性和可维护性。
 
 ### 命名参数
-您可以在路由中指定命名参数，这些参数将被传递到您的回调函数。**这主要是为了路由的可读性。请参阅下面的重要注意事项。**
+你可以在路由中指定命名参数，这些参数将会传递给回调函数。**这更多是为了路由的可读性，而不是其他。请参阅下面关于重要注意事项的部分。**
 
 ```php
 Flight::route('/@name/@id', function (string $name, string $id) {
@@ -183,7 +182,7 @@ Flight::route('/@name/@id', function (string $name, string $id) {
 });
 ```
 
-您也可以使用 `:` 分隔符在命名参数中包含正则表达式：
+你还可以通过使用 `:` 分隔符在命名参数中包含正则表达式：
 
 ```php
 Flight::route('/@name/@id:[0-9]{3}', function (string $name, string $id) {
@@ -192,11 +191,11 @@ Flight::route('/@name/@id:[0-9]{3}', function (string $name, string $id) {
 });
 ```
 
-> **注意：** 不支持使用位置参数匹配正则组 `()`。例如：`:'\(`
+> **注意：** 不支持将正则分组 `()` 与位置参数匹配。例如：`:'\(`
 
 #### 重要注意事项
 
-在上面的示例中，`@name` 似乎直接绑定到变量 `$name`，但实际上并非如此。回调函数中参数的顺序决定了传递给它的内容。如果您在回调函数中切换参数顺序，变量也会相应切换。以下是一个示例：
+虽然在上面的例子中，看起来 `@name` 直接与变量 `$name` 相关联，但事实并非如此。回调函数中参数的顺序决定了传递给它的内容。如果你交换回调函数中参数的顺序，变量也会随之交换。示例如下：
 
 ```php
 Flight::route('/@name/@id', function (string $id, string $name) {
@@ -204,11 +203,11 @@ Flight::route('/@name/@id', function (string $id, string $name) {
 });
 ```
 
-如果您访问以下 URL：`/bob/123`，输出将是 `hello, 123 (bob)!`。 
-_请小心_ 设置路由和回调函数时！
+如果你访问以下 URL：`/bob/123`，输出将是 `hello, 123 (bob)!`。
+_请务必小心_ 在设置路由和回调函数时！
 
 ### 可选参数
-您可以通过将段括在括号中来指定可选的命名参数，用于匹配。
+你可以通过将片段包裹在括号中来指定可选的命名参数。
 
 ```php
 Flight::route(
@@ -223,10 +222,10 @@ Flight::route(
 );
 ```
 
-未匹配的任何可选参数将被传递为 `NULL`。
+任何未匹配的可选参数将作为 `NULL` 传入。
 
 ### 通配符路由
-匹配仅在单个 URL 段上进行。如果您想匹配多个段，可以使用 `*` 通配符。
+匹配只在单个 URL 片段上进行。如果你想匹配多个片段，可以使用 `*` 通配符。
 
 ```php
 Flight::route('/blog/*', function () {
@@ -234,27 +233,26 @@ Flight::route('/blog/*', function () {
 });
 ```
 
-要将所有请求路由到单个回调，您可以这样做：
+要将所有请求路由到同一个回调，你可以这样做：
 
 ```php
 Flight::route('*', function () {
-  // 做些什么
+  // 做某些事情
 });
 ```
 
-### 404 未找到处理程序
+### 404 未找到处理器
 
-默认情况下，如果找不到 URL，Flight 将发送一个非常简单且朴素的 `HTTP 404 Not Found` 响应。
-如果您想要更自定义的 404 响应，您可以 [映射](/learn/extending) 自己的 `notFound` 方法：
+默认情况下，如果找不到 URL，Flight 会发送一个非常简单的 `HTTP 404 Not Found` 响应。如果你想要更自定义的 404 响应，你可以[映射](/learn/extending)自己的 `notFound` 方法：
 
 ```php
 Flight::map('notFound', function() {
 	$url = Flight::request()->url;
 
-	// 您也可以使用 Flight::render() 与自定义模板。
+	// 你也可以使用 Flight::render() 配合自定义模板。
     $output = <<<HTML
-		<h1>My Custom 404 Not Found</h1>
-		<h3>The page you have requested {$url} could not be found.</h3>
+		<h1>我的自定义 404 Not Found</h1>
+		<h3>你请求的页面 {$url} 无法找到。</h3>
 		HTML;
 
 	$this->response()
@@ -265,11 +263,11 @@ Flight::map('notFound', function() {
 });
 ```
 
-### 方法未找到处理程序
+### 方法未找到处理器
 
-默认情况下，如果找到 URL 但方法不允许，Flight 将发送一个非常简单且朴素的 `HTTP 405 Method Not Allowed` 响应（例如：方法不允许。允许的方法是：GET, POST）。它还将包含一个 `Allow` 标头，带有该 URL 的允许方法。
+默认情况下，如果找到 URL 但方法不被允许，Flight 会发送一个非常简单的 `HTTP 405 Method Not Allowed` 响应（例如：Method Not Allowed. Allowed Methods are: GET, POST）。它还会为该 URL 包含一个带有允许方法的 `Allow` 头。
 
-如果您想要更自定义的 405 响应，您可以 [映射](/learn/extending) 自己的 `methodNotFound` 方法：
+如果你想要更自定义的 405 响应，你可以[映射](/learn/extending)自己的 `methodNotFound` 方法：
 
 ```php
 use flight\net\Route;
@@ -278,11 +276,11 @@ Flight::map('methodNotFound', function(Route $route) {
 	$url = Flight::request()->url;
 	$methods = implode(', ', $route->methods);
 
-	// 您也可以使用 Flight::render() 与自定义模板。
+	// 你也可以使用 Flight::render() 配合自定义模板。
 	$output = <<<HTML
-		<h1>My Custom 405 Method Not Allowed</h1>
-		<h3>The method you have requested for {$url} is not allowed.</h3>
-		<p>Allowed Methods are: {$methods}</p>
+		<h1>我的自定义 405 Method Not Allowed</h1>
+		<h3>你请求的方法 {$url} 不被允许。</h3>
+		<p>允许的方法有：{$methods}</p>
 		HTML;
 
 	$this->response()
@@ -297,37 +295,37 @@ Flight::map('methodNotFound', function(Route $route) {
 ## 高级用法
 
 ### 路由中的依赖注入
-如果您想通过容器（PSR-11、PHP-DI、Dice 等）使用依赖注入，则唯一可用的路由类型是直接自己创建对象并使用容器创建您的对象，或者使用字符串定义要调用的类和方法。您可以转到 [依赖注入](/learn/dependency-injection-container) 页面获取更多信息。
+如果你想通过容器（PSR-11、PHP-DI、Dice 等）使用依赖注入，唯一可用的路由类型是直接自己创建对象并使用容器来创建你的对象，或者你可以使用字符串来定义要调用的类和方法。你可以在[依赖注入](/learn/dependency-injection-container)页面查看更多信息。
 
-以下是一个快速示例：
+这里有一个快速示例：
 
 ```php
 
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 // Greeting.php
 class Greeting
 {
-	protected PdoWrapper $pdoWrapper;
-	public function __construct(PdoWrapper $pdoWrapper) {
-		$this->pdoWrapper = $pdoWrapper;
+	protected SimplePdo $db;
+	public function __construct(SimplePdo $db) {
+		$this->db = $db;
 	}
 
 	public function hello(int $id) {
-		// 使用 $this->pdoWrapper 做些什么
-		$name = $this->pdoWrapper->fetchField("SELECT name FROM users WHERE id = ?", [ $id ]);
+		// 使用 $this->db 做某些事情
+		$name = $this->db->fetchField("SELECT name FROM users WHERE id = ?", [ $id ]);
 		echo "Hello, world! My name is {$name}!";
 	}
 }
 
 // index.php
 
-// 使用所需的任何参数设置容器
-// 请参阅依赖注入页面以获取有关 PSR-11 的更多信息
+// 使用你需要的参数设置容器
+// 有关 PSR-11 的更多信息，请参阅依赖注入页面
 $dice = new \Dice\Dice();
 
-// 不要忘记使用 '$dice = ' 重新赋值变量！！！！
-$dice = $dice->addRule('flight\database\PdoWrapper', [
+// 别忘了使用 '$dice = ' 重新赋值变量!!!!!
+$dice = $dice->addRule(SimplePdo::class, [
 	'shared' => true,
 	'constructParams' => [ 
 		'mysql:host=localhost;dbname=test', 
@@ -336,12 +334,12 @@ $dice = $dice->addRule('flight\database\PdoWrapper', [
 	]
 ]);
 
-// 注册容器处理程序
+// 注册容器处理器
 Flight::registerContainerHandler(function($class, $params) use ($dice) {
 	return $dice->create($class, $params);
 });
 
-// 像往常一样定义路由
+// 正常定义路由
 Flight::route('/hello/@id', [ 'Greeting', 'hello' ]);
 // 或
 Flight::route('/hello/@id', 'Greeting->hello');
@@ -351,9 +349,9 @@ Flight::route('/hello/@id', 'Greeting::hello');
 Flight::start();
 ```
 
-### 将执行传递到下一个路由
-<span class="badge bg-warning">已弃用</span>
-您可以通过从回调函数返回 `true` 将执行传递到下一个匹配的路由。
+### 传递执行权给下一个路由
+<span class="badge bg-warning">已废弃</span>
+你可以通过从回调函数中返回 `true` 来将执行权传递给下一个匹配的路由。
 
 ```php
 Flight::route('/user/@name', function (string $name) {
@@ -365,21 +363,21 @@ Flight::route('/user/@name', function (string $name) {
 });
 
 Flight::route('/user/*', function () {
-  // 这将被调用
+  // 这将会被调用
 });
 ```
 
-现在推荐使用 [中间件](/learn/middleware) 来处理这种情况的复杂用例。
+现在推荐使用[中间件](/learn/middleware)来处理类似这种复杂情况。
 
 ### 路由别名
-通过为路由分配别名，您可以在应用程序中动态调用该别名，以便稍后在代码中生成（例如：HTML 模板中的链接，或生成重定向 URL）。
+通过为路由分配别名，你可以稍后在应用中以动态方式调用该别名，以便在代码中生成（例如：HTML 模板中的链接，或生成重定向 URL）。
 
 ```php
 Flight::route('/users/@id', function($id) { echo 'user:'.$id; }, false, 'user_view');
 // 或 
 Flight::route('/users/@id', function($id) { echo 'user:'.$id; })->setAlias('user_view');
 
-// 稍后在代码中的某处
+// 稍后在代码中的某个位置
 class UserController {
 	public function update() {
 
@@ -393,10 +391,9 @@ class UserController {
 
 ```
 
-这在 URL 发生变化时特别有用。在上面的示例中，假设用户已移动到 `/admin/users/@id`。
-使用别名设置路由后，您无需在代码中查找所有旧 URL 并更改它们，因为别名现在将返回 `/admin/users/5`，如上面的示例。
+当你的 URL 发生改变时，这会特别有帮助。在上面的例子中，假设 users 被移到了 `/admin/users/@id`。由于路由已经使用了别名，你不再需要在代码中找到所有旧的 URL 并修改它们，因为别名现在将返回 `/admin/users/5`，就像上面的例子一样。
 
-路由别名在组中仍然有效：
+路由别名在分组中同样有效：
 
 ```php
 Flight::group('/users', function() {
@@ -407,16 +404,16 @@ Flight::group('/users', function() {
 ```
 
 ### 检查路由信息
-如果您想检查匹配的路由信息，有两种方式可以做到：
+如果你想检查匹配的路由信息，有两种方法：
 
-1. 您可以使用 `Flight::router()` 对象上的 `executedRoute` 属性。
-2. 您可以通过在路由方法中将第三个参数传递为 `true` 来请求将路由对象传递到您的回调。路由对象将始终作为传递到回调函数的最后一个参数。
+1. 你可以在 `Flight::router()` 对象上使用 `executedRoute` 属性。
+2. 你可以通过在路由方法中传入 `true` 作为第三个参数，请求将路由对象传递给回调函数。路由对象将始终作为回调函数的最后一个参数传递。
 
 #### `executedRoute`
 ```php
 Flight::route('/', function() {
   $route = Flight::router()->executedRoute;
-  // 使用 $route 做些什么
+  // 对 $route 做某些事情
   // 匹配的 HTTP 方法数组
   $route->methods;
 
@@ -426,13 +423,13 @@ Flight::route('/', function() {
   // 匹配的正则表达式
   $route->regex;
 
-  // 包含 URL 模式中任何 '*' 的内容
+  // 包含 URL 模式中使用的任何 '*' 的内容
   $route->splat;
 
-  // 显示 URL 路径...如果您真的需要它
+  // 显示 URL 路径....如果你确实需要的话
   $route->pattern;
 
-  // 显示分配给此的中介软件
+  // 显示分配给此路由的中间件
   $route->middleware;
 
   // 显示分配给此路由的别名
@@ -440,9 +437,9 @@ Flight::route('/', function() {
 });
 ```
 
-> **注意：** `executedRoute` 属性仅在路由执行后设置。如果您在路由执行前尝试访问它，将为 `NULL`。您也可以在 [中间件](/learn/middleware) 中使用 executedRoute！
+> **注意：** `executedRoute` 属性只会在路由执行后被设置。如果你在路由执行之前尝试访问它，它将是 `NULL`。你也可以在[中间件](/learn/middleware)中使用 executedRoute！
 
-#### 在路由定义中传递 `true`
+#### 在路由定义中传入 `true`
 ```php
 Flight::route('/', function(\flight\net\Route $route) {
   // 匹配的 HTTP 方法数组
@@ -454,23 +451,22 @@ Flight::route('/', function(\flight\net\Route $route) {
   // 匹配的正则表达式
   $route->regex;
 
-  // 包含 URL 模式中任何 '*' 的内容
+  // 包含 URL 模式中使用的任何 '*' 的内容
   $route->splat;
 
-  // 显示 URL 路径...如果您真的需要它
+  // 显示 URL 路径....如果你确实需要的话
   $route->pattern;
 
-  // 显示分配给此的中介软件
+  // 显示分配给此路由的中间件
   $route->middleware;
 
   // 显示分配给此路由的别名
   $route->alias;
-}, true);// <-- 这个 true 参数就是让它发生的原因
+}, true);// <-- 这个 true 参数就是实现这一点的关键
 ```
 
 ### 路由分组和中间件
-有时您可能想将相关路由分组在一起（例如 `/api/v1`）。
-您可以通过使用 `group` 方法来实现：
+有时你可能想要将相关的路由分组在一起（例如 `/api/v1`）。你可以使用 `group` 方法来实现：
 
 ```php
 Flight::group('/api/v1', function () {
@@ -484,12 +480,12 @@ Flight::group('/api/v1', function () {
 });
 ```
 
-您甚至可以嵌套组的组：
+你甚至可以嵌套分组：
 
 ```php
 Flight::group('/api', function () {
   Flight::group('/v1', function () {
-	// Flight::get() 获取变量，它不设置路由！请参阅下面的对象上下文
+	// Flight::get() 是获取变量的，不是设置路由的！请看下面的对象上下文
 	Flight::route('GET /users', function () {
 	  // 匹配 GET /api/v1/users
 	});
@@ -504,7 +500,7 @@ Flight::group('/api', function () {
   });
   Flight::group('/v2', function () {
 
-	// Flight::get() 获取变量，它不设置路由！请参阅下面的对象上下文
+	// Flight::get() 是获取变量的，不是设置路由的！请看下面的对象上下文
 	Flight::route('GET /users', function () {
 	  // 匹配 GET /api/v2/users
 	});
@@ -512,9 +508,9 @@ Flight::group('/api', function () {
 });
 ```
 
-#### 使用对象上下文的分组
+#### 使用对象上下文分组
 
-您仍然可以使用以下方式与 `Engine` 对象一起使用路由分组：
+你仍然可以通过以下方式使用 `Engine` 对象进行路由分组：
 
 ```php
 $app = Flight::app();
@@ -532,24 +528,24 @@ $app->group('/api/v1', function (Router $router) {
 });
 ```
 
-> **注意：** 这是使用 `$router` 对象定义路由和组的首选方法。
+> **注意：** 这是使用 `$router` 对象定义路由和分组的推荐方法。
 
-#### 使用中间件的分组
+#### 使用中间件分组
 
-您也可以为路由组分配中间件：
+你也可以为路由组分配中间件：
 
 ```php
 Flight::group('/api/v1', function () {
   Flight::route('/users', function () {
 	// 匹配 /api/v1/users
   });
-}, [ MyAuthMiddleware::class ]); // 或 [ new MyAuthMiddleware() ] 如果您想使用实例
+}, [ MyAuthMiddleware::class ]); // 或者 [ new MyAuthMiddleware() ] 如果你想使用实例
 ```
 
-请参阅 [组中间件](/learn/middleware#grouping-middleware) 页面的更多细节。
+查看更多关于[分组中间件](/learn/middleware#grouping-middleware)页面的详细信息。
 
 ### 资源路由
-您可以使用 `resource` 方法为资源创建一组路由。这将创建一个遵循 RESTful 约定的资源路由集。
+你可以使用 `resource` 方法为一组资源创建一组路由。这将为一组遵循 RESTful 约定的资源创建路由。
 
 要创建资源，请执行以下操作：
 
@@ -557,7 +553,7 @@ Flight::group('/api/v1', function () {
 Flight::resource('/users', UsersController::class);
 ```
 
-后台会发生什么，它将创建以下路由：
+后台将实际创建以下路由：
 
 ```php
 [
@@ -571,7 +567,7 @@ Flight::resource('/users', UsersController::class);
 ]
 ```
 
-您的控制器将使用以下方法：
+你的控制器将使用以下方法：
 
 ```php
 class UsersController
@@ -606,18 +602,15 @@ class UsersController
 }
 ```
 
-> **注意**：您可以通过运行 `php runway routes` 使用 `runway` 查看新添加的路由。
+> **注意**：你可以通过运行 `php runway routes` 使用 `runway` 查看新添加的路由。
 
 #### 自定义资源路由
 
 有几个选项可以配置资源路由。
 
-##### 别名基
+##### 别名基础名（Alias Base）
 
-您可以配置 `aliasBase`。默认情况下，别名是指定 URL 的最后一部分。
-例如 `/users/` 将导致 `aliasBase` 为 `users`。当这些路由创建时，
-别名是 `users.index`、`users.create` 等。如果您想更改别名，请将 `aliasBase`
-设置为您想要的值。
+你可以配置 `aliasBase`。默认情况下，别名是所指定 URL 的最后一部分。例如，`/users/` 会生成一个 `aliasBase` 为 `users`。当创建这些路由时，别名是 `users.index`、`users.create` 等。如果你想更改别名，请将 `aliasBase` 设置为你想要的值。
 
 ```php
 Flight::resource('/users', UsersController::class, [ 'aliasBase' => 'user' ]);
@@ -625,23 +618,23 @@ Flight::resource('/users', UsersController::class, [ 'aliasBase' => 'user' ]);
 
 ##### Only 和 Except
 
-您也可以使用 `only` 和 `except` 选项指定要创建哪些路由。
+你还可以通过使用 `only` 和 `except` 选项来指定要创建的路由。
 
 ```php
-// 只允许这些方法并阻止其余
+// 仅白名单这些方法，并黑名单其余方法
 Flight::resource('/users', UsersController::class, [ 'only' => [ 'index', 'show' ] ]);
 ```
 
 ```php
-// 只阻止这些方法并允许其余
+// 仅黑名单这些方法，并白名单其余方法
 Flight::resource('/users', UsersController::class, [ 'except' => [ 'create', 'store', 'edit', 'update', 'destroy' ] ]);
 ```
 
-这些基本上是白名单和黑名单选项，因此您可以指定要创建哪些路由。
+这些基本上是白名单和黑名单选项，因此你可以指定要创建的路由。
 
 ##### 中间件
 
-您也可以指定要在 `resource` 方法创建的每个路由上运行的中间件。
+你还可以指定在 `resource` 方法创建的每个路由上运行的中间件。
 
 ```php
 Flight::resource('/users', UsersController::class, [ 'middleware' => [ MyAuthMiddleware::class ] ]);
@@ -649,30 +642,27 @@ Flight::resource('/users', UsersController::class, [ 'middleware' => [ MyAuthMid
 
 ### 流式响应
 
-您现在可以使用 `stream()` 或 `streamWithHeaders()` 向客户端流式传输响应。 
-这对于发送大文件、长时间运行的进程或生成大响应很有用。 
-流式传输路由的处理方式与常规路由略有不同。
+你现在可以使用 `stream()` 或 `streamWithHeaders()` 向客户端流式传输响应。
+这对于发送大文件、长时间运行的进程或生成大型响应非常有用。流式路由的处理方式与常规路由略有不同。
 
-> **注意：** 流式响应仅在您将 [`flight.v2.output_buffering`](/learn/migrating-to-v3#output_buffering) 设置为 `false` 时可用。
+> **注意：** 仅当你有 [`flight.v2.output_buffering`](/learn/migrating-to-v3#output_buffering) 设置为 `false` 时，流式响应才可用。
 
-#### 手动标头的流式传输
+#### 手动设置头部的流式传输
 
-您可以通过在路由上使用 `stream()` 方法向客户端流式传输响应。如果您
-这样做，您必须在向客户端输出任何内容之前手动设置所有标头。
-这是使用 `header()` php 函数或 `Flight::response()->setRealHeader()` 方法完成的。
+你可以通过在路由上使用 `stream()` 方法向客户端流式传输响应。如果你这样做，你必须在向客户端输出任何内容之前手动设置所有头部。这可以通过 `header()` PHP 函数或 `Flight::response()->setRealHeader()` 方法来完成。
 
 ```php
 Flight::route('/@filename', function($filename) {
 
 	$response = Flight::response();
 
-	// 显然您会清理路径什么的。
+	// 显然你需要对路径进行清理等操作。
 	$fileNameSafe = basename($filename);
 
-	// 如果您在路由执行后有额外的标头要设置
-	// 您必须在回显任何内容之前定义它们。
-	// 它们必须全部是 header() 函数的原始调用或 
-	// Flight::response()->setRealHeader() 的调用
+	// 如果在这里路由执行后还有其他头部需要设置，
+	// 你必须在任何输出之前定义它们。
+	// 它们必须是对 header() 函数的直接调用，
+	// 或者调用 Flight::response()->setRealHeader()
 	header('Content-Disposition: attachment; filename="'.$fileNameSafe.'"');
 	// 或
 	$response->setRealHeader('Content-Disposition: attachment; filename="'.$fileNameSafe.'"');
@@ -680,32 +670,32 @@ Flight::route('/@filename', function($filename) {
 	$filePath = '/some/path/to/files/'.$fileNameSafe;
 
 	if (!is_readable($filePath)) {
-		Flight::halt(404, 'File not found');
+		Flight::halt(404, '文件未找到');
 	}
 
-	// 如果您愿意，手动设置内容长度
+	// 如果你愿意，可以手动设置内容长度
 	header('Content-Length: '.filesize($filePath));
 	// 或
 	$response->setRealHeader('Content-Length: '.filesize($filePath));
 
-	// 以读取的方式将文件流式传输到客户端
+	// 在读取文件的同时将文件流式传输给客户端
 	readfile($filePath);
 
-// 这是这里的魔法行
+// 这里是神奇的一行
 })->stream();
 ```
 
-#### 带标头的流式传输
+#### 使用头部进行流式传输
 
-您也可以使用 `streamWithHeaders()` 方法在开始流式传输之前设置标头。
+你也可以使用 `streamWithHeaders()` 方法在开始流式传输之前设置头部。
 
 ```php
 Flight::route('/stream-users', function() {
 
-	// 您可以在这里添加任何额外的标头
-	// 您只需使用 header() 或 Flight::response()->setRealHeader()
+	// 你可以在这里添加任何你想要的额外头部
+	// 但必须使用 header() 或 Flight::response()->setRealHeader()
 
-	// 无论您如何拉取数据，仅作为示例...
+	// 无论你如何获取数据，这里只是一个例子...
 	$users_stmt = Flight::db()->query("SELECT id, first_name, last_name FROM users");
 
 	echo '{';
@@ -716,53 +706,52 @@ Flight::route('/stream-users', function() {
 			echo ',';
 		}
 
-		// 这是在将数据发送到客户端时必需的
+		// 这是发送数据到客户端所必需的
 		ob_flush();
 	}
 	echo '}';
 
-// 这是您在开始流式传输之前设置标头的方式。
+// 这就是在开始流式传输之前设置头部的方式。
 })->streamWithHeaders([
 	'Content-Type' => 'application/json',
 	'Content-Disposition' => 'attachment; filename="users.json"',
-	// 可选状态代码，默认 200
+	// 可选状态码，默认为 200
 	'status' => 200
 ]);
 ```
 
 ## 另请参阅
-- [中间件](/learn/middleware) - 使用中间件与路由进行身份验证、日志记录等。
-- [依赖注入](/learn/dependency-injection-container) - 简化路由中的对象创建和管理。
-- [为什么使用框架？](/learn/why-frameworks) - 理解使用像 Flight 这样的框架的好处。
-- [扩展](/learn/extending) - 如何使用自己的功能扩展 Flight，包括 `notFound` 方法。
-- [php.net: preg_match](https://www.php.net/manual/en/function.preg-match.php) - PHP 用于正则表达式匹配的函数。
+- [中间件](/learn/middleware) - 在路由中使用中间件进行身份验证、日志记录等。
+- [依赖注入](/learn/dependency-injection-container) - 简化路由中对象的创建和管理。
+- [为什么需要框架？](/learn/why-frameworks) - 了解使用像 Flight 这样的框架的好处。
+- [扩展](/learn/extending) - 如何使用你自己的功能扩展 Flight，包括 `notFound` 方法。
+- [php.net: preg_match](https://www.php.net/manual/en/function.preg-match.php) - 用于正则表达式匹配的 PHP 函数。
 
 ## 故障排除
-- 路由参数按顺序匹配，而不是按名称。确保回调参数顺序与路由定义匹配。
-- 使用 `Flight::get()` 不会定义路由；对于路由，请使用 `Flight::route('GET /...')` 或组中的 Router 对象上下文（例如 `$router->get(...)`）。
-- executedRoute 属性仅在路由执行后设置；在执行前为 NULL。
-- 流式传输需要禁用遗留 Flight 输出缓冲功能（`flight.v2.output_buffering = false`）。
+- 路由参数是按顺序匹配的，而不是按名称匹配。确保回调参数的顺序与路由定义的顺序一致。
+- 使用 `Flight::get()` 不会定义路由；请使用 `Flight::route('GET /...')` 进行路由，或者在分组中使用 Router 对象上下文（例如 `$router->get(...)`）。
+- `executedRoute` 属性仅在路由执行后设置；在执行前为 `NULL`。
+- 流式传输需要禁用旧的 Flight 输出缓冲功能（`flight.v2.output_buffering = false`）。
 - 对于依赖注入，只有某些路由定义支持基于容器的实例化。
 
-### 404 未找到或意外路由行为
+### 404 未找到或意外的路由行为
 
-如果您看到 404 未找到错误（但您发誓它确实存在，并且不是拼写错误），这实际上可能是因为您在路由端点中返回了一个值而不是简单地回显它。这是有意的，但可能会让一些开发者措手不及。
+如果你看到 404 Not Found 错误（但你以性命发誓它确实存在，并且不是拼写错误），这实际上可能是你在路由端点中返回了值而不是直接输出它。这个原因是刻意的，但可能会让一些开发者措手不及。
 
 ```php
 Flight::route('/hello', function(){
-	// 这可能会导致 404 未找到错误
+	// 这可能会导致 404 Not Found 错误
 	return 'Hello World';
 });
 
-// 您可能想要的
+// 你可能想要的是
 Flight::route('/hello', function(){
 	echo 'Hello World';
 });
 ```
 
-这样做的原因是路由器中内置了一个特殊机制，将返回输出处理为“转到下一个路由”的信号。 
-您可以在 [路由](/learn/routing#passing) 部分查看文档化的行为。
+原因是路由器内置了一种特殊机制，将返回值视为“进入下一个路由”的信号。你可以在[路由](/learn/routing#passing)部分查看该行为的文档。
 
 ## 更新日志
-- v3：添加了资源路由、路由别名和流式传输支持、路由组和中间件支持。
+- v3：新增资源路由、路由别名和流式传输支持、路由分组和中间件支持。
 - v1：绝大多数基本功能可用。

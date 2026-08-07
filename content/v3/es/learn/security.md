@@ -1,69 +1,70 @@
 # Seguridad
 
-## Visión General
+## Resumen
 
-La seguridad es un tema importante cuando se trata de aplicaciones web. Quieres asegurarte de que tu aplicación es segura y de que los datos de tus usuarios están 
-a salvo. Flight proporciona una serie de características para ayudarte a asegurar tus aplicaciones web.
+La seguridad es un gran tema cuando se trata de aplicaciones web. Debes asegurarte de que tu aplicación sea segura y de que los datos de tus usuarios estén a salvo. Flight proporciona una serie de características para ayudarte a proteger tus aplicaciones web.
+
+El [esqueleto](https://github.com/flightphp/skeleton) oficial también incluye un **`SECURITY.md`** dedicado y middleware de encabezados de seguridad para que las [herramientas de codificación con IA](/learn/ai) (y los humanos) tengan un lugar deliberado para secretos, encabezados y reglas XSS/SQL, separado del estilo de codificación general en `AGENTS.md`.
 
 ## Comprensión
 
-Hay una serie de amenazas de seguridad comunes de las que debes estar al tanto al construir aplicaciones web. Algunas de las amenazas más comunes
-incluyen:
-- Cross Site Request Forgery (CSRF)
-- Cross Site Scripting (XSS)
-- SQL Injection
-- Cross Origin Resource Sharing (CORS)
+Existen varias amenazas de seguridad comunes que debes conocer al crear aplicaciones web. Algunas de las amenazas más comunes incluyen:
+- Cross Site Request Forgery (CSRF) (Falsificación de solicitudes entre sitios)
+- Cross Site Scripting (XSS) (Scripting entre sitios)
+- Inyección SQL
+- Cross Origin Resource Sharing (CORS) (Intercambio de recursos de origen cruzado)
 
-[Plantillas](/learn/templates) ayudan con XSS escapando la salida por defecto para que no tengas que recordar hacerlo. [Sesiones](/awesome-plugins/session) pueden ayudar con CSRF almacenando un token CSRF en la sesión del usuario como se describe a continuación. Usar sentencias preparadas con PDO puede ayudar a prevenir ataques de inyección SQL (o usar métodos útiles en la clase [PdoWrapper](/learn/pdo-wrapper)). CORS se puede manejar con un hook simple antes de que se llame a `Flight::start()`.
+[Las plantillas](/learn/templates) ayudan contra XSS al escapar la salida de forma predeterminada (Twig y Latte lo hacen; aprovecha esa ventaja). [Las sesiones](/awesome-plugins/session) pueden ayudar con CSRF almacenando un token CSRF en la sesión del usuario como se describe a continuación. El uso de consultas preparadas con PDO—o de los ayudantes en [SimplePdo](/learn/simple-pdo)—ayuda a prevenir la inyección SQL. CORS puede manejarse con un simple hook antes de que se llame a `Flight::start()`.
 
-Todos estos métodos trabajan juntos para ayudar a mantener seguras tus aplicaciones web. Siempre debe estar en primer plano de tu mente aprender y entender las mejores prácticas de seguridad.
+Todos estos métodos trabajan juntos para ayudar a mantener seguras tus aplicaciones web. Siempre debes tener presente aprender y comprender las mejores prácticas de seguridad. No le pidas a un asistente de IA que "desactive CSP" o que debilite los encabezados solo para hacer que una página cargue sin comprender la compensación.
 
-## Uso Básico
+## Uso básico
 
 ### Encabezados
 
-Los encabezados HTTP son una de las formas más fáciles de asegurar tus aplicaciones web. Puedes usar encabezados para prevenir clickjacking, XSS y otros ataques. 
-Hay varias formas en las que puedes añadir estos encabezados a tu aplicación.
+Los encabezados HTTP son una de las formas más fáciles de proteger tus aplicaciones web. Puedes usar encabezados para prevenir clickjacking, XSS y otros ataques. Hay varias formas de agregar estos encabezados a tu aplicación.
 
-Dos grandes sitios web para comprobar la seguridad de tus encabezados son [securityheaders.com](https://securityheaders.com/) y 
-[observatory.mozilla.org](https://observatory.mozilla.org/). Después de configurar el código de abajo, puedes verificar fácilmente que tus encabezados están funcionando con esos dos sitios web.
+Dos excelentes sitios web para verificar la seguridad de tus encabezados son [securityheaders.com](https://securityheaders.com/) y [observatory.mozilla.org](https://observatory.mozilla.org/). Después de configurar el código a continuación, puedes verificar fácilmente que tus encabezados funcionan con esos dos sitios web.
 
-#### Añadir Manualmente
+El esqueleto incluye `App\Middleware\SecurityHeadersMiddleware` (CSP con un nonce por solicitud, opciones de marco, HSTS y más). Prefiere extender eso deliberadamente en lugar de desactivar los encabezados.
 
-Puedes añadir manualmente estos encabezados usando el método `header` en el objeto `Flight\Response`.
+#### Agregar manualmente
+
+Puedes agregar estos encabezados manualmente usando el método `header` en el objeto `Flight\Response`.
+
 ```php
-// Establecer el encabezado X-Frame-Options para prevenir clickjacking
+// Establece el encabezado X-Frame-Options para prevenir el clickjacking
 Flight::response()->header('X-Frame-Options', 'SAMEORIGIN');
 
-// Establecer el encabezado Content-Security-Policy para prevenir XSS
-// Nota: este encabezado puede volverse muy complejo, así que querrás
+// Establece el encabezado Content-Security-Policy para prevenir XSS
+// Nota: este encabezado puede volverse muy complejo, por lo que querrás
 //  consultar ejemplos en internet para tu aplicación
 Flight::response()->header("Content-Security-Policy", "default-src 'self'");
 
-// Establecer el encabezado X-XSS-Protection para prevenir XSS
+// Establece el encabezado X-XSS-Protection para prevenir XSS
 Flight::response()->header('X-XSS-Protection', '1; mode=block');
 
-// Establecer el encabezado X-Content-Type-Options para prevenir MIME sniffing
+// Establece el encabezado X-Content-Type-Options para prevenir la detección de MIME
 Flight::response()->header('X-Content-Type-Options', 'nosniff');
 
-// Establecer el encabezado Referrer-Policy para controlar cuánta información de referencia se envía
+// Establece el encabezado Referrer-Policy para controlar cuánta información de referrer se envía
 Flight::response()->header('Referrer-Policy', 'no-referrer-when-downgrade');
 
-// Establecer el encabezado Strict-Transport-Security para forzar HTTPS
+// Establece el encabezado Strict-Transport-Security para forzar HTTPS
 Flight::response()->header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
-// Establecer el encabezado Permissions-Policy para controlar qué características y APIs pueden usarse
+// Establece el encabezado Permissions-Policy para controlar qué funciones y APIs se pueden usar
 Flight::response()->header('Permissions-Policy', 'geolocation=()');
 ```
 
-Estos se pueden añadir al principio de tus archivos `routes.php` o `index.php`.
+Estos se pueden agregar al principio de tus archivos `routes.php` o `index.php`.
 
-#### Añadir como Filtro
+#### Agregar como filtro
 
-También puedes añadirlos en un filtro/hook como el siguiente: 
+También puedes agregarlos en un filtro/hook de la siguiente manera:
 
 ```php
-// Añadir los encabezados en un filtro
+// Agrega los encabezados en un filtro
 Flight::before('start', function() {
 	Flight::response()->header('X-Frame-Options', 'SAMEORIGIN');
 	Flight::response()->header("Content-Security-Policy", "default-src 'self'");
@@ -75,14 +76,16 @@ Flight::before('start', function() {
 });
 ```
 
-#### Añadir como Middleware
+#### Agregar como middleware
 
-También puedes añadirlos como una clase middleware que proporciona la mayor flexibilidad para qué rutas aplicar esto. En general, estos encabezados deben aplicarse a todas las respuestas HTML y API.
+También puedes agregarlos como una clase de middleware, lo que brinda la mayor flexibilidad sobre a qué rutas aplicar esto. En general, estos encabezados deberían aplicarse a todas las respuestas HTML y API.
+
+Ruta y espacio de nombres estilo esqueleto (**la carpeta coincide con `App\Middleware`**):
 
 ```php
-// app/middlewares/SecurityHeadersMiddleware.php
+// app/Middleware/SecurityHeadersMiddleware.php
 
-namespace app\middlewares;
+namespace App\Middleware;
 
 use flight\Engine;
 
@@ -98,8 +101,14 @@ class SecurityHeadersMiddleware
 	public function before(array $params): void
 	{
 		$response = $this->app->response();
+		// Prefiere un nonce CSP del bootstrap cuando tengas scripts en línea (el esqueleto define csp_nonce)
+		$nonce = $this->app->get('csp_nonce');
+		$csp = $nonce
+			? "default-src 'self'; script-src 'self' 'nonce-{$nonce}'; style-src 'self' 'nonce-{$nonce}'"
+			: "default-src 'self'";
+
 		$response->header('X-Frame-Options', 'SAMEORIGIN');
-		$response->header("Content-Security-Policy", "default-src 'self'");
+		$response->header('Content-Security-Policy', $csp);
 		$response->header('X-XSS-Protection', '1; mode=block');
 		$response->header('X-Content-Type-Options', 'nosniff');
 		$response->header('Referrer-Policy', 'no-referrer-when-downgrade');
@@ -108,53 +117,69 @@ class SecurityHeadersMiddleware
 	}
 }
 
-// index.php o donde tengas tus rutas
-// FYI, este grupo de cadena vacía actúa como middleware global para
-// todas las rutas. Por supuesto, podrías hacer lo mismo y simplemente añadir
-// esto solo a rutas específicas.
-Flight::group('', function(Router $router) {
-	$router->get('/users', [ 'UserController', 'getUsers' ]);
+// app/config/routes.php — grupo vacío = middleware global para todas las rutas
+use App\Middleware\SecurityHeadersMiddleware;
+use flight\net\Router;
+
+$router->group('', function (Router $router) {
+	$router->get('/users', [ \App\Controller\UserController::class, 'getUsers' ]);
 	// más rutas
-}, [ SecurityHeadersMiddleware::class ]);
+}, [SecurityHeadersMiddleware::class]);
 ```
 
-### Cross Site Request Forgery (CSRF)
+Los proyectos más antiguos pueden seguir usando `app/middlewares` y `app\middlewares`; eso funciona si las carpetas coinciden. Las nuevas aplicaciones esqueleto usan **`app/Middleware/`** y **`App\Middleware`**. Consulta [Autocarga](/learn/autoloading).
 
-Cross Site Request Forgery (CSRF) es un tipo de ataque donde un sitio web malicioso puede hacer que el navegador de un usuario envíe una solicitud a tu sitio web. 
-Esto se puede usar para realizar acciones en tu sitio web sin el conocimiento del usuario. Flight no proporciona un mecanismo de protección CSRF incorporado, 
-pero puedes implementar fácilmente el tuyo propio usando middleware.
+### Falsificación de solicitudes entre sitios (CSRF)
+
+Cross Site Request Forgery (CSRF) es un tipo de ataque en el que un sitio web malicioso puede hacer que el navegador de un usuario envíe una solicitud a tu sitio web. Esto puede usarse para realizar acciones en tu sitio web sin el conocimiento del usuario. Flight no proporciona un mecanismo de protección CSRF integrado, pero puedes implementar fácilmente el tuyo propio usando middleware.
 
 #### Configuración
 
-Primero necesitas generar un token CSRF y almacenarlo en la sesión del usuario. Luego puedes usar este token en tus formularios y verificarlo cuando 
-se envía el formulario. Usaremos el plugin [flightphp/session](/awesome-plugins/session) para gestionar sesiones.
+Primero necesitas generar un token CSRF y almacenarlo en la sesión del usuario. Luego puedes usar este token en tus formularios y verificarlo cuando se envíe el formulario. Usaremos el plugin [flightphp/session](/awesome-plugins/session) para gestionar las sesiones.
 
 ```php
-// Generar un token CSRF y almacenarlo en la sesión del usuario
+// Genera un token CSRF y lo almacena en la sesión del usuario
 // (asumiendo que has creado un objeto de sesión y lo has adjuntado a Flight)
-// consulta la documentación de sesión para más información
+// consulta la documentación de sesiones para más información
 Flight::register('session', flight\Session::class);
 
-// Solo necesitas generar un único token por sesión (para que funcione 
-// a través de múltiples pestañas y solicitudes para el mismo usuario)
+// Solo necesitas generar un token por sesión (para que funcione
+// en múltiples pestañas y solicitudes para el mismo usuario)
 if(Flight::session()->get('csrf_token') === null) {
 	Flight::session()->set('csrf_token', bin2hex(random_bytes(32)) );
 }
 ```
 
-##### Usando la Plantilla PHP Flight por Defecto
+##### Usando la plantilla PHP predeterminada de Flight
 
 ```html
-<!-- Usar el token CSRF en tu formulario -->
+<!-- Usa el token CSRF en tu formulario -->
 <form method="post">
 	<input type="hidden" name="csrf_token" value="<?= Flight::session()->get('csrf_token') ?>">
 	<!-- otros campos del formulario -->
 </form>
 ```
 
+##### Usando Twig (predeterminado del esqueleto)
+
+Registra una función de Twig o pasa el token a cada vista de formulario. Ejemplo mínimo con un global y un campo de formulario:
+
+```php
+// Al configurar Twig (por ejemplo, services.php)
+$twig->addGlobal('csrf_token', $app->session()->get('csrf_token'));
+```
+
+```html
+{# app/views/form.twig #}
+<form method="post">
+	<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+	{# otros campos #}
+</form>
+```
+
 ##### Usando Latte
 
-También puedes establecer una función personalizada para mostrar el token CSRF en tus plantillas Latte.
+También puedes configurar una función personalizada para mostrar el token CSRF en tus plantillas Latte.
 
 ```php
 
@@ -163,7 +188,7 @@ Flight::map('render', function(string $template, array $data, ?string $block): v
 
 	// otras configuraciones...
 
-	// Establecer una función personalizada para mostrar el token CSRF
+	// Configura una función personalizada para mostrar el token CSRF
 	$latte->addFunction('csrf', function() {
 		$csrfToken = Flight::session()->get('csrf_token');
 		return new \Latte\Runtime\Html('<input type="hidden" name="csrf_token" value="' . $csrfToken . '">');
@@ -182,16 +207,16 @@ Y ahora en tus plantillas Latte puedes usar la función `csrf()` para mostrar el
 </form>
 ```
 
-#### Verificar el Token CSRF
+#### Verificar el token CSRF
 
 Puedes verificar el token CSRF usando varios métodos.
 
 ##### Middleware
 
 ```php
-// app/middlewares/CsrfMiddleware.php
+// app/Middleware/CsrfMiddleware.php
 
-namespace app\middleware;
+namespace App\Middleware;
 
 use flight\Engine;
 
@@ -215,23 +240,23 @@ class CsrfMiddleware
 	}
 }
 
-// index.php o donde tengas tus rutas
-use app\middlewares\CsrfMiddleware;
+// routes.php
+use App\Middleware\CsrfMiddleware;
 
-Flight::group('', function(Router $router) {
-	$router->get('/users', [ 'UserController', 'getUsers' ]);
+$router->group('', function ($router) {
+	$router->get('/users', [ \App\Controller\UserController::class, 'getUsers' ]);
 	// más rutas
-}, [ CsrfMiddleware::class ]);
+}, [CsrfMiddleware::class]);
 ```
 
-##### Filtros de Eventos
+##### Filtros de eventos
 
 ```php
-// Este middleware verifica si la solicitud es una solicitud POST y si lo es, verifica si el token CSRF es válido
+// Este middleware verifica si la solicitud es POST y, si lo es, comprueba si el token CSRF es válido
 Flight::before('start', function() {
 	if(Flight::request()->method == 'POST') {
 
-		// capturar el token csrf de los valores del formulario
+		// captura el token csrf de los valores del formulario
 		$token = Flight::request()->data->csrf_token;
 		if($token !== Flight::session()->get('csrf_token')) {
 			Flight::halt(403, 'Invalid CSRF token');
@@ -244,10 +269,7 @@ Flight::before('start', function() {
 
 ### Cross Site Scripting (XSS)
 
-Cross Site Scripting (XSS) es un tipo de ataque donde una entrada de formulario maliciosa puede inyectar código en tu sitio web. La mayoría de estas oportunidades vienen 
-de valores de formulario que tus usuarios finales completarán. ¡**Nunca** debes confiar en la salida de tus usuarios! Siempre asume que todos ellos son los 
-mejores hackers del mundo. Pueden inyectar JavaScript o HTML malicioso en tu página. Este código se puede usar para robar información de tus 
-usuarios o realizar acciones en tu sitio web. Usando la clase de vista de Flight o otro motor de plantillas como [Latte](/awesome-plugins/latte), puedes escapar fácilmente la salida para prevenir ataques XSS.
+Cross Site Scripting (XSS) es un tipo de ataque en el que una entrada de formulario maliciosa puede inyectar código en tu sitio web. La mayoría de estas oportunidades provienen de valores de formulario que tus usuarios finales completarán. **Nunca** debes confiar en la salida de tus usuarios. Siempre asume que todos son los mejores hackers del mundo. Pueden inyectar JavaScript o HTML malicioso en tu página. Este código puede usarse para robar información de tus usuarios o realizar acciones en tu sitio web. Usando la clase de vista de Flight o un motor de plantillas como [Twig](/awesome-plugins/twig) o [Latte](/awesome-plugins/latte), puedes escapar fácilmente la salida para prevenir ataques XSS.
 
 ```php
 // Supongamos que el usuario es inteligente e intenta usar esto como su nombre
@@ -257,32 +279,34 @@ $name = '<script>alert("XSS")</script>';
 Flight::view()->set('name', $name);
 // Esto mostrará: &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;
 
-// Si usas algo como Latte registrado como tu clase de vista, también escapará automáticamente esto.
-Flight::view()->render('template', ['name' => $name]);
+// Twig (predeterminado del esqueleto) y Latte escapan automáticamente por defecto — prefierelos sobre echo PHP sin formato
+Flight::render('template', ['name' => $name]);
+// Twig: {{ name }}  → escapado
+// Evita |raw / salida sin escapar a menos que el contenido sea totalmente confiable
 ```
 
-### SQL Injection
+### Inyección SQL
 
-SQL Injection es un tipo de ataque donde un usuario malicioso puede inyectar código SQL en tu base de datos. Esto se puede usar para robar información 
-de tu base de datos o realizar acciones en tu base de datos. De nuevo, ¡**nunca** debes confiar en la entrada de tus usuarios! Siempre asume que están 
-buscando sangre. Puedes usar sentencias preparadas en tus objetos `PDO` para prevenir inyección SQL.
+SQL Injection es un tipo de ataque en el que un usuario malicioso puede inyectar código SQL en tu base de datos. Esto puede usarse para robar información de tu base de datos o realizar acciones en ella. Nuevamente, **nunca** debes confiar en la entrada de tus usuarios. Siempre asume que buscan sangre. Usa consultas preparadas —los ayudantes de [SimplePdo](/learn/simple-pdo) hacen que este sea el camino predeterminado.
 
 ```php
-// Asumiendo que tienes Flight::db() registrado como tu objeto PDO
+// Asumiendo que tienes Flight::db() registrado como SimplePdo (o inyecta SimplePdo en el controlador)
 $statement = Flight::db()->prepare('SELECT * FROM users WHERE username = :username');
 $statement->execute([':username' => $username]);
 $users = $statement->fetchAll();
 
-// Si usas la clase PdoWrapper, esto se puede hacer fácilmente en una línea
+// SimplePdo (preferido) — líneas de una sola expresión con parámetros vinculados
 $users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = :username', [ 'username' => $username ]);
 
-// Puedes hacer lo mismo con un objeto PDO con marcadores de posición ?
-$statement = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
+// Misma idea con comodines ?
+$users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
 ```
 
-#### Ejemplo Inseguro
+En los controladores estilo esqueleto, prefiere la inyección por constructor de `SimplePdo` sobre `Flight::db()` para que las pruebas y el código generado por IA se mantengan consistentes ([DIC](/learn/dependency-injection-container)).
 
-Lo siguiente es por qué usamos sentencias SQL preparadas para proteger de ejemplos inocentes como el de abajo:
+#### Ejemplo inseguro
+
+Lo siguiente es por qué usamos consultas preparadas SQL para proteger contra ejemplos inocentes como el siguiente:
 
 ```php
 // el usuario final completa un formulario web.
@@ -291,7 +315,7 @@ $username = "' OR 1=1; -- ";
 
 $sql = "SELECT * FROM users WHERE username = '$username' LIMIT 5";
 $users = Flight::db()->fetchAll($sql);
-// Después de que se construye la consulta se ve así
+// Después de que la consulta se construye, se ve así
 // SELECT * FROM users WHERE username = '' OR 1=1; -- LIMIT 5
 
 // Parece extraño, pero es una consulta válida que funcionará. De hecho,
@@ -300,29 +324,42 @@ $users = Flight::db()->fetchAll($sql);
 var_dump($users); // esto volcará todos los usuarios en la base de datos, no solo el único nombre de usuario
 ```
 
-### Validación de Callback JSONP
+### Secretos y configuración
 
-Si usas el método `Flight::jsonp()` de Flight, ten en cuenta que Flight valida el nombre del parámetro callback JSONP contra una regex estricta de lista blanca (`/^[A-Za-z_$][\w$.]{0,127}$/`). Cualquier nombre de callback que no coincida con este patrón hará que Flight lance una excepción, previniendo la inyección de JavaScript arbitrario a través de un valor de callback malicioso.
+- Coloca los secretos en **`.env`** (o en el entorno real), no en muestras de `config.php` que se confirmen en el repositorio.
+- Regla del esqueleto: valores predeterminados literales en `config.php`; fusiona el entorno en el bootstrap; **no** leas `$_ENV` dentro de los controladores — inyecta la configuración en su lugar. Consulta [Configuración](/learn/configuration).
+- Nunca confirmes claves de API, contraseñas de bases de datos o claves de cifrado de sesiones. Apunta las herramientas de IA a **`SECURITY.md`** para que no inventen atajos inseguros.
 
-Esta validación está integrada y no requiere configuración adicional, pero vale la pena saberlo al depurar errores inesperados de endpoints JSONP.
+### Validación de devolución de llamada JSONP
+
+Si usas el método `Flight::jsonp()`, ten en cuenta que Flight valida el nombre del parámetro de devolución de llamada JSONP contra una lista blanca estricta de expresiones regulares (`/^[A-Za-z_$][\w$.]{0,127}$/`). Cualquier nombre de devolución de llamada que no coincida con este patrón hará que Flight lance una excepción, evitando la inyección de JavaScript arbitrario a través de un valor de devolución de llamada malicioso.
+
+Esta validación está integrada y no requiere configuración adicional, pero vale la pena conocerla al depurar errores inesperados de endpoints JSONP.
 
 ### CORS
 
-Cross-Origin Resource Sharing (CORS) es un mecanismo que permite que muchos recursos (por ejemplo, fuentes, JavaScript, etc.) en una página web sean 
-solicitados desde otro dominio fuera del dominio desde el cual se originó el recurso. Flight no tiene funcionalidad incorporada, 
-pero esto se puede manejar fácilmente con un hook para ejecutarse antes de que se llame al método `Flight::start()`.
+Cross-Origin Resource Sharing (CORS) es un mecanismo que permite que muchos recursos (por ejemplo, fuentes, JavaScript, etc.) en una página web sean solicitados desde otro dominio fuera del dominio desde el cual se originó el recurso. Flight no tiene funcionalidad integrada, pero esto puede manejarse fácilmente con un hook que se ejecute antes de que se llame al método `Flight::start()`.
 
 ```php
-// app/utils/CorsUtil.php
+// app/Utils/CorsUtil.php  (esqueleto: carpeta Utils en PascalCase → App\Utils)
 
-namespace app\utils;
+namespace App\Utils;
+
+use flight\Engine;
 
 class CorsUtil
 {
-	public function set(array $params): void
+	protected Engine $app;
+
+	public function __construct(Engine $app)
 	{
-		$request = Flight::request();
-		$response = Flight::response();
+		$this->app = $app;
+	}
+
+	public function set(array $params = []): void
+	{
+		$request = $this->app->request();
+		$response = $this->app->response();
 		if ($request->getVar('HTTP_ORIGIN') !== '') {
 			$this->allowOrigins();
 			$response->header('Access-Control-Allow-Credentials', 'true');
@@ -350,7 +387,7 @@ class CorsUtil
 
 	private function allowOrigins(): void
 	{
-		// personaliza tus hosts permitidos aquí.
+		// personaliza aquí tus hosts permitidos.
 		$allowed = [
 			'capacitor://localhost',
 			'ionic://localhost',
@@ -360,115 +397,118 @@ class CorsUtil
 			'http://localhost:8100',
 		];
 
-		$request = Flight::request();
+		$request = $this->app->request();
 
 		if (in_array($request->getVar('HTTP_ORIGIN'), $allowed, true) === true) {
-			$response = Flight::response();
+			$response = $this->app->response();
 			$response->header("Access-Control-Allow-Origin", $request->getVar('HTTP_ORIGIN'));
 		}
 	}
 }
 
-// index.php o donde tengas tus rutas
-$CorsUtil = new CorsUtil();
-
-// Esto necesita ejecutarse antes de que start se ejecute.
-Flight::before('start', [ $CorsUtil, 'setupCors' ]);
+// bootstrap / rutas — ejecutar antes de start
+$app = Flight::app();
+$cors = new \App\Utils\CorsUtil($app);
+$app->before('start', [ $cors, 'set' ]);
 ```
 
-### Endurecimiento de Configuración de Flight
+### Endurecimiento de la configuración de Flight
 
-Flight expone varias configuraciones del motor que tienen implicaciones de seguridad directas. Configurarlas correctamente es una de las formas más fáciles de endurecer tu aplicación.
+Flight expone varias configuraciones del motor que tienen implicaciones directas en la seguridad. Configurarlas correctamente es una de las formas más fáciles de endurecer tu aplicación.
 
 #### `flight.allow_method_override`
 
-Por defecto, Flight permite a los clientes sobrescribir el método HTTP de una solicitud usando el encabezado `X-HTTP-Method-Override` o un campo `_method` en el cuerpo de un POST. Aunque esto es útil para formularios HTML que solo pueden enviar `GET`/`POST`, puede ser peligroso si no lo esperas — un atacante podría falsificar solicitudes `DELETE` o `PUT` a través de un formulario regular.
+De forma predeterminada, Flight permite que los clientes anulen el método HTTP de una solicitud usando el encabezado `X-HTTP-Method-Override` o un campo `_method` en el cuerpo de una solicitud POST. Aunque esto es útil para formularios HTML que solo pueden enviar `GET`/`POST`, puede ser peligroso si no lo esperas — un atacante podría falsificar solicitudes `DELETE` o `PUT` a través de un formulario normal.
 
-Si tu aplicación no depende de este comportamiento (por ejemplo, estás construyendo una API consumida por clientes modernos o interfaces JavaScript que pueden enviar cualquier verbo HTTP), deberías desactivarlo:
+Si tu aplicación no depende de este comportamiento (por ejemplo, estás construyendo una API consumida por clientes modernos o frontends de JavaScript que pueden enviar cualquier verbo HTTP), deberías deshabilitarlo:
 
 ```php
-// En tu index.php o archivo de arranque, antes de Flight::start()
+// En tu index.php o archivo de bootstrap, antes de Flight::start()
 Flight::set('flight.allow_method_override', false);
 ```
 
-El valor por defecto es `true` para compatibilidad hacia atrás, pero **establecerlo en `false` se recomienda encarecidamente** para cualquier aplicación que no necesite explícitamente la función de sobrescritura.
+El valor predeterminado es `true` por compatibilidad hacia atrás, pero **se recomienda encarecidamente establecerlo en `false`** para cualquier aplicación que no necesite explícitamente la función de anulación.
 
 #### `flight.debug`
 
-Flight tiene una configuración `flight.debug` que controla si la información detallada de errores (mensaje de excepción, código y traza completa de pila) se renderiza en el navegador cuando ocurre una excepción no manejada. El valor por defecto es `false`, lo que significa que solo se muestra un mensaje genérico `500 Internal Server Error` — no se filtran detalles internos al cliente.
+Flight tiene una configuración `flight.debug` que controla si se muestra información detallada del error (mensaje de excepción, código y traza de pila completa) en el navegador cuando ocurre una excepción no controlada. El valor predeterminado es `false`, lo que significa que solo se muestra un mensaje genérico `500 Internal Server Error` — no se filtran detalles internos al cliente.
 
-Nunca habilites esto en un servidor de producción. Úsalo solo localmente o en un entorno de staging:
+Nunca lo habilites en un servidor de producción. Úsalo solo localmente o en un entorno de staging:
 
 ```php
 // Seguro solo para desarrollo local — NUNCA en producción
 Flight::set('flight.debug', true);
 ```
 
-Cuando `flight.debug` es `false` (el valor por defecto), aún puedes capturar errores habilitando `flight.log_errors`:
+Cuando `flight.debug` es `false` (el valor predeterminado), aún puedes capturar errores habilitando `flight.log_errors`:
 
 ```php
-// Registrar errores del lado del servidor sin exponerlos al cliente
+// Registra errores en el servidor sin exponerlos al cliente
 Flight::set('flight.debug', false);
 Flight::set('flight.log_errors', true);
 ```
 
-#### Configuración de producción recomendada
+#### Configuración recomendada para producción
 
 ```php
-// index.php o app/config/config.php
+// index.php o aplicado desde la configuración de la aplicación / bootstrap
 Flight::set('flight.allow_method_override', false);
 Flight::set('flight.debug', false);
 Flight::set('flight.log_errors', true);
 ```
 
-### Manejo de Errores
-Ocultar detalles sensibles de errores en producción para evitar filtrar información a atacantes. En producción, registrar errores en lugar de mostrarlos con `display_errors` establecido en `0`.
+### Manejo de errores
+
+Oculta los detalles sensibles de errores en producción para evitar filtrar información a los atacantes. En producción, registra los errores en lugar de mostrarlos con `display_errors` establecido a `0`.
 
 ```php
 // En tu bootstrap.php o index.php
 
-// añadir esto a tu app/config/config.php
+// agrega esto a tu app/config/config.php
 $environment = ENVIRONMENT;
 if ($environment === 'production') {
-    ini_set('display_errors', 0); // Deshabilitar visualización de errores
-    ini_set('log_errors', 1);     // Registrar errores en su lugar
+    ini_set('display_errors', 0); // Deshabilita la visualización de errores
+    ini_set('log_errors', 1);     // Registra los errores en su lugar
     ini_set('error_log', '/path/to/error.log');
 }
 
 // En tus rutas o controladores
-// Usar Flight::halt() para respuestas de error controladas
+// Usa Flight::halt() para respuestas de error controladas
 Flight::halt(403, 'Access denied');
 ```
 
-### Sanitización de Entrada
-Nunca confíes en la entrada del usuario. Sanitízala usando [filter_var](https://www.php.net/manual/en/function.filter-var.php) antes de procesarla para prevenir que datos maliciosos se infiltren.
+### Saneamiento de entradas
+
+Nunca confíes en la entrada del usuario. Sanéala usando [filter_var](https://www.php.net/manual/en/function.filter-var.php) antes de procesarla para evitar que datos maliciosos se cuelen. Prefiere leer la entrada mediante `$app->request()` (o `Flight::request()`) en lugar de `$_GET` / `$_POST` sin procesar en el código de la aplicación.
 
 ```php
 
 // Supongamos una solicitud $_POST con $_POST['input'] y $_POST['email']
 
-// Sanitizar una entrada de cadena
+// Sanear una entrada de cadena
 $clean_input = filter_var(Flight::request()->data->input, FILTER_SANITIZE_STRING);
-// Sanitizar un email
+// Sanear un correo electrónico
 $clean_email = filter_var(Flight::request()->data->email, FILTER_SANITIZE_EMAIL);
 ```
 
-### Hashing de Contraseñas
-Almacenar contraseñas de forma segura y verificarlas de manera segura usando funciones integradas de PHP como [password_hash](https://www.php.net/manual/en/function.password-hash.php) y [password_verify](https://www.php.net/manual/en/function.password-verify.php). Las contraseñas nunca deben almacenarse en texto plano, ni deben cifrarse con métodos reversibles. El hashing asegura que incluso si tu base de datos se ve comprometida, las contraseñas reales permanezcan protegidas.
+### Hash de contraseñas
+
+Almacena las contraseñas de forma segura y verifícalas de manera segura usando las funciones integradas de PHP como [password_hash](https://www.php.net/manual/en/function.password-hash.php) y [password_verify](https://www.php.net/manual/en/function.password-verify.php). Las contraseñas nunca deben almacenarse en texto plano, ni deben cifrarse con métodos reversibles. El hash asegura que incluso si tu base de datos se ve comprometida, las contraseñas reales permanezcan protegidas.
 
 ```php
 $password = Flight::request()->data->password;
-// Hashear una contraseña al almacenarla (por ejemplo, durante el registro)
+// Hashea una contraseña al almacenarla (por ejemplo, durante el registro)
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// Verificar una contraseña (por ejemplo, durante el inicio de sesión)
+// Verifica una contraseña (por ejemplo, durante el inicio de sesión)
 if (password_verify($password, $stored_hash)) {
     // La contraseña coincide
 }
 ```
 
-### Limitación de Velocidad
-Proteger contra ataques de fuerza bruta o ataques de denegación de servicio limitando las tasas de solicitud con una caché.
+### Limitación de velocidad
+
+Protege contra ataques de fuerza bruta o ataques de denegación de servicio limitando las tasas de solicitud con una caché.
 
 ```php
 // Asumiendo que tienes flightphp/cache instalado y registrado
@@ -487,21 +527,29 @@ Flight::before('start', function() {
 });
 ```
 
-## Ver También
-- [Sesiones](/awesome-plugins/session) - Cómo gestionar sesiones de usuario de forma segura.
-- [Plantillas](/learn/templates) - Usar plantillas para escapar automáticamente la salida y prevenir XSS.
-- [PDO Wrapper](/learn/pdo-wrapper) - Interacciones de base de datos simplificadas con sentencias preparadas.
-- [Middleware](/learn/middleware) - Cómo usar middleware para simplificar el proceso de añadir encabezados de seguridad.
-- [Respuestas](/learn/responses) - Cómo personalizar respuestas HTTP con encabezados seguros.
-- [Solicitudes](/learn/requests) - Cómo manejar y sanitizar la entrada del usuario.
-- [filter_var](https://www.php.net/manual/en/function.filter-var.php) - Función PHP para sanitización de entrada.
-- [password_hash](https://www.php.net/manual/en/function.password-hash.php) - Función PHP para hashing seguro de contraseñas.
-- [password_verify](https://www.php.net/manual/en/function.password-verify.php) - Función PHP para verificar contraseñas hasheadas.
+## Ver también
 
-## Solución de Problemas
-- Consulta la sección "Ver También" arriba para información de solución de problemas relacionada con componentes del Framework Flight.
+- [Sesiones](/awesome-plugins/session) - Cómo gestionar las sesiones de usuario de forma segura.
+- [Plantillas](/learn/templates) - Escape automático de Twig/Latte y XSS.
+- [SimplePdo](/learn/simple-pdo) - Ayudantes de base de datos con consultas preparadas.
+- [PdoWrapper](/learn/pdo-wrapper) - Obsoleto; usa SimplePdo para código nuevo.
+- [Middleware](/learn/middleware) - Cómo usar middleware para simplificar el proceso de agregar encabezados de seguridad.
+- [Configuración](/learn/configuration) - `.env` vs configuración literal, banderas de producción.
+- [IA y experiencia de desarrollo](/learn/ai) - Mantén la política de seguridad en `SECURITY.md` para los agentes.
+- [Respuestas](/learn/responses) - Cómo personalizar las respuestas HTTP con encabezados seguros.
+- [Solicitudes](/learn/requests) - Cómo manejar y sanear la entrada del usuario.
+- [filter_var](https://www.php.net/manual/en/function.filter-var.php) - Función de PHP para el saneamiento de entradas.
+- [password_hash](https://www.php.net/manual/en/function.password-hash.php) - Función de PHP para el hash seguro de contraseñas.
+- [password_verify](https://www.php.net/manual/en/function.password-verify.php) - Función de PHP para verificar contraseñas con hash.
 
-## Changelog
-- v3.18.1 - Añadida sección de Endurecimiento de Configuración de Flight cubriendo `flight.allow_method_override`, `flight.debug`, y validación de callback JSONP.
-- v3.1.0 - Añadidas secciones sobre CORS, Manejo de Errores, Sanitización de Entrada, Hashing de Contraseñas, y Limitación de Velocidad.
-- v2.0 - Añadido escaping para vistas por defecto para prevenir XSS.
+## Solución de problemas
+
+- Consulta la sección "Ver también" más arriba para obtener información sobre la solución de problemas relacionada con componentes del Framework Flight.
+- Si CSP bloquea tus scripts, agrega un nonce (patrón del esqueleto) o permite orígenes específicos — no establezcas `script-src *` sin un plan.
+
+## Registro de cambios
+
+- Documentación – Esqueleto `App\Middleware`, notas Twig CSRF/XSS, SimplePdo, secretos/`.env` y `SECURITY.md` para proyectos amigables con IA.
+- v3.18.1 - Se agregó la sección Endurecimiento de la configuración de Flight que cubre `flight.allow_method_override`, `flight.debug` y la validación de devolución de llamada JSONP.
+- v3.1.0 - Se agregaron secciones sobre CORS, Manejo de errores, Saneamiento de entradas, Hash de contraseñas y Limitación de velocidad.
+- v2.0 - Se agregó escape para las vistas predeterminadas para prevenir XSS.

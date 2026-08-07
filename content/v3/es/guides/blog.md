@@ -1,55 +1,55 @@
-# Construyendo un Blog Simple con Flight PHP
+# Cómo crear un blog simple con Flight PHP
 
-Esta guía te guía a través de la creación de un blog básico utilizando el framework Flight PHP. Configurarás un proyecto, definirás rutas, administrarás publicaciones con JSON y las renderizarás con el motor de plantillas Latte, todo mostrando la simplicidad y flexibilidad de Flight. Al final, tendrás un blog funcional con una página de inicio, páginas de publicaciones individuales y un formulario de creación.
+Esta guía te guía a través de la creación de un blog básico usando el framework PHP Flight. Configurarás un proyecto, definirás rutas, gestionarás publicaciones con JSON y las renderizarás con el motor de plantillas Latte, todo mostrando la simplicidad y flexibilidad de Flight. Al final, tendrás un blog funcional con una página de inicio, páginas individuales de publicación y un formulario de creación.
 
-## Requisitos Previos
+## Requisitos previos
 - **PHP 7.4+**: Instalado en tu sistema.
 - **Composer**: Para la gestión de dependencias.
-- **Editor de Texto**: Cualquier editor como VS Code o PHPStorm.
+- **Editor de texto**: Cualquier editor como VS Code o PHPStorm.
 - Conocimientos básicos de PHP y desarrollo web.
 
-## Paso 1: Configura Tu Proyecto
+## Paso 1: Configura tu proyecto
 
-Comienza creando un nuevo directorio de proyecto e instalando Flight a través de Composer.
+Comienza creando un nuevo directorio de proyecto e instalando Flight mediante Composer.
 
-1. **Crear un Directorio**:
+1. **Crea un directorio**:
    ```bash
    mkdir flight-blog
    cd flight-blog
    ```
 
-2. **Instalar Flight**:
+2. **Instala Flight**:
    ```bash
    composer require flightphp/core
    ```
 
-3. **Crear un Directorio Público**:
-   Flight utiliza un único punto de entrada (`index.php`). Crea una carpeta `public/` para ello:
+3. **Crea un directorio público**:
+   Flight usa un único punto de entrada (`index.php`). Crea una carpeta `public/` para ello:
    ```bash
    mkdir public
    ```
 
-4. **Básico `index.php`**:
+4. **`index.php` básico**:
    Crea `public/index.php` con una ruta simple de “hola mundo”:
    ```php
    <?php
    require '../vendor/autoload.php';
 
    Flight::route('/', function () {
-       echo '¡Hola, Flight!';
+       echo 'Hello, Flight!';
    });
 
    Flight::start();
    ```
 
-5. **Ejecutar el Servidor Integrado**:
+5. **Ejecuta el servidor integrado**:
    Prueba tu configuración con el servidor de desarrollo de PHP:
    ```bash
    php -S localhost:8000 -t public/
    ```
-   Visita `http://localhost:8000` para ver “¡Hola, Flight!”.
+   Visita `http://localhost:8000` para ver “Hello, Flight!”.
 
-## Paso 2: Organizar la Estructura de Tu Proyecto
+## Paso 2: Organiza la estructura de tu proyecto
 
 Para una configuración limpia, estructura tu proyecto así:
 
@@ -67,20 +67,20 @@ flight-blog/
 
 - `app/config/`: Archivos de configuración (por ejemplo, eventos, rutas).
 - `app/views/`: Plantillas para renderizar páginas.
-- `data/`: Archivo JSON para almacenar publicaciones de blog.
+- `data/`: Archivo JSON para almacenar publicaciones del blog.
 - `public/`: Raíz web con `index.php`.
 
-## Paso 3: Instalar y Configurar Latte
+## Paso 3: Instala y configura Latte
 
 Latte es un motor de plantillas ligero que se integra bien con Flight.
 
-1. **Instalar Latte**:
+1. **Instala Latte**:
    ```bash
    composer require latte/latte
    ```
 
-2. **Configurar Latte en Flight**:
-   Actualiza `public/index.php` para registrar Latte como el motor de vista:
+2. **Configura Latte en Flight**:
+   Actualiza `public/index.php` para registrar Latte como el motor de vistas:
    ```php
    <?php
    require '../vendor/autoload.php';
@@ -93,13 +93,13 @@ Latte es un motor de plantillas ligero que se integra bien con Flight.
    });
 
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => 'Mi Blog']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::start();
    ```
 
-3. **Crear una Plantilla de Diseño: 
+3. **Crea una plantilla de diseño: 
 En `app/views/layout.latte`**:
 ```html
 <!DOCTYPE html>
@@ -109,23 +109,23 @@ En `app/views/layout.latte`**:
 </head>
 <body>
     <header>
-        <h1>Mi Blog</h1>
+        <h1>My Blog</h1>
         <nav>
-            <a href="/">Inicio</a> | 
-            <a href="/create">Crear una Publicación</a>
+            <a href="/">Home</a> | 
+            <a href="/create">Create a Post</a>
         </nav>
     </header>
     <main>
         {block content}{/block}
     </main>
     <footer>
-        <p>&copy; {date('Y')} Blog Flight</p>
+        <p>&copy; {date('Y')} Flight Blog</p>
     </footer>
 </body>
 </html>
 ```
 
-4. **Crear una Plantilla de Inicio**:
+4. **Crea una plantilla de inicio**:
    En `app/views/home.latte`:
    ```html
   {extends 'layout.latte'}
@@ -139,45 +139,45 @@ En `app/views/layout.latte`**:
 		</ul>
 	{/block}
    ```
-   Reinicia el servidor si te has salido de él y visita `http://localhost:8000` para ver la página renderizada.
+   Reinicia el servidor si lo has cerrado y visita `http://localhost:8000` para ver la página renderizada.
 
-5. **Crear un Archivo de Datos**:
+5. **Crea un archivo de datos**:
 
-   Utiliza un archivo JSON para simular una base de datos por simplicidad.
+   Usa un archivo JSON para simular una base de datos por simplicidad.
 
    En `data/posts.json`:
    ```json
    [
        {
-           "slug": "primer-post",
-           "title": "Mi Primer Post",
-           "content": "¡Esta es mi primera publicación de blog con Flight PHP!"
+           "slug": "first-post",
+           "title": "My First Post",
+           "content": "This is my very first blog post with Flight PHP!"
        }
    ]
    ```
 
-## Paso 4: Definir Rutas
+## Paso 4: Define las rutas
 
-Separa tus rutas en un archivo de configuración para mejor organización.
+Separa tus rutas en un archivo de configuración para una mejor organización.
 
-1. **Crear `routes.php`**:
+1. **Crea `routes.php`**:
    En `app/config/routes.php`:
    ```php
    <?php
    Flight::route('/', function () {
-       Flight::view()->render('home.latte', ['title' => 'Mi Blog']);
+       Flight::view()->render('home.latte', ['title' => 'My Blog']);
    });
 
    Flight::route('/post/@slug', function ($slug) {
-       Flight::view()->render('post.latte', ['title' => 'Publicación: ' . $slug, 'slug' => $slug]);
+       Flight::view()->render('post.latte', ['title' => 'Post: ' . $slug, 'slug' => $slug]);
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => 'Crear una Publicación']);
+       Flight::view()->render('create.latte', ['title' => 'Create a Post']);
    });
    ```
 
-2. **Actualizar `index.php`**:
+2. **Actualiza `index.php`**:
    Incluye el archivo de rutas:
    ```php
    <?php
@@ -195,11 +195,11 @@ Separa tus rutas en un archivo de configuración para mejor organización.
    Flight::start();
    ```
 
-## Paso 5: Almacenar y Recuperar Publicaciones de Blog
+## Paso 5: Almacena y recupera publicaciones del blog
 
 Agrega los métodos para cargar y guardar publicaciones.
 
-1. **Agregar un Método de Publicaciones**:
+1. **Agrega un método de publicaciones**:
    En `index.php`, agrega un método para cargar publicaciones:
    ```php
    Flight::map('posts', function () {
@@ -208,14 +208,14 @@ Agrega los métodos para cargar y guardar publicaciones.
    });
    ```
 
-2. **Actualizar Rutas**:
-   Modifica `app/config/routes.php` para usar publicaciones:
+2. **Actualiza las rutas**:
+   Modifica `app/config/routes.php` para usar las publicaciones:
    ```php
    <?php
    Flight::route('/', function () {
        $posts = Flight::posts();
        Flight::view()->render('home.latte', [
-           'title' => 'Mi Blog',
+           'title' => 'My Blog',
            'posts' => $posts
        ]);
    });
@@ -235,15 +235,15 @@ Agrega los métodos para cargar y guardar publicaciones.
    });
 
    Flight::route('GET /create', function () {
-       Flight::view()->render('create.latte', ['title' => 'Crear una Publicación']);
+       Flight::view()->render('create.latte', ['title' => 'Create a Post']);
    });
    ```
 
-## Paso 6: Crear Plantillas
+## Paso 6: Crea plantillas
 
-Actualiza tus plantillas para mostrar publicaciones.
+Actualiza tus plantillas para mostrar las publicaciones.
 
-1. **Página de Publicación (`app/views/post.latte`)**:
+1. **Página de publicación (`app/views/post.latte`)**:
    ```html
    {extends 'layout.latte'}
 
@@ -255,11 +255,11 @@ Actualiza tus plantillas para mostrar publicaciones.
 	{/block}
    ```
 
-## Paso 7: Agregar Creación de Publicación
+## Paso 7: Agrega creación de publicaciones
 
-Manejar la presentación del formulario para agregar nuevas publicaciones.
+Maneja el envío del formulario para agregar nuevas publicaciones.
 
-1. **Crear Formulario (`app/views/create.latte`)**:
+1. **Crea el formulario (`app/views/create.latte`)**:
    ```html
    {extends 'layout.latte'}
 
@@ -267,19 +267,19 @@ Manejar la presentación del formulario para agregar nuevas publicaciones.
 		<h2>{$title}</h2>
 		<form method="POST" action="/create">
 			<div class="form-group">
-				<label for="title">Título:</label>
+				<label for="title">Title:</label>
 				<input type="text" name="title" id="title" required>
 			</div>
 			<div class="form-group">
-				<label for="content">Contenido:</label>
+				<label for="content">Content:</label>
 				<textarea name="content" id="content" required></textarea>
 			</div>
-			<button type="submit">Guardar Publicación</button>
+			<button type="submit">Save Post</button>
 		</form>
 	{/block}
    ```
 
-2. **Agregar Ruta POST**:
+2. **Agrega la ruta POST**:
    En `app/config/routes.php`:
    ```php
    Flight::route('POST /create', function () {
@@ -296,19 +296,19 @@ Manejar la presentación del formulario para agregar nuevas publicaciones.
    });
    ```
 
-3. **Prueba**:
+3. **Pruébalo**:
    - Visita `http://localhost:8000/create`.
-   - Envía una nueva publicación (por ejemplo, “Segundo Post” con algo de contenido).
-   - Verifica la página de inicio para verlo listado.
+   - Envía una nueva publicación (por ejemplo, “Second Post” con algo de contenido).
+   - Revisa la página de inicio para verla listada.
 
-## Paso 8: Mejorar con Manejo de Errores
+## Paso 8: Mejora con manejo de errores
 
-Sobrescribe el método `notFound` para una mejor experiencia 404.
+Sobrescribe el método `notFound` para una mejor experiencia de error 404.
 
 En `index.php`:
 ```php
 Flight::map('notFound', function () {
-    Flight::view()->render('404.latte', ['title' => 'Página No Encontrada']);
+    Flight::view()->render('404.latte', ['title' => 'Page Not Found']);
 });
 ```
 
@@ -318,16 +318,16 @@ Crea `app/views/404.latte`:
 
 {block content}
     <h2>404 - {$title}</h2>
-    <p>¡Lo siento, esa página no existe!</p>
+    <p>Sorry, that page doesn't exist!</p>
 {/block}
 ```
 
-## Próximos Pasos
-- **Agregar Estilo**: Utiliza CSS en tus plantillas para un mejor aspecto.
-- **Base de Datos**: Reemplaza `posts.json` con una base de datos como SQLite utilizando `PdoWrapper`.
-- **Validación**: Agrega verificaciones para slugs duplicados o entradas vacías.
+## Próximos pasos
+- **Agrega estilos**: Usa CSS en tus plantillas para una mejor apariencia.
+- **Base de datos**: Reemplaza `posts.json` con una base de datos como SQLite usando [SimplePdo](/learn/simple-pdo).
+- **Validación**: Agrega comprobaciones para slugs duplicados o entradas vacías.
 - **Middleware**: Implementa autenticación para la creación de publicaciones.
 
 ## Conclusión
 
-¡Has construido un blog simple con Flight PHP! Esta guía demuestra características básicas como enrutamiento, templating con Latte y manejo de envíos de formularios, todo mientras mantienes las cosas ligeras. ¡Explora la documentación de Flight para más características avanzadas que lleven tu blog más lejos!
+¡Has creado un blog simple con Flight PHP! Esta guía demuestra características principales como el enrutamiento, las plantillas con Latte y el manejo de envíos de formularios, todo mientras se mantiene ligero. Explora la documentación de Flight para obtener más funciones avanzadas y llevar tu blog más lejos.

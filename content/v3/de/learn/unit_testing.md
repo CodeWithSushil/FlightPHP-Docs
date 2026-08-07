@@ -1,28 +1,28 @@
-# Unit Testing
+# Unit-Tests
 
 ## Übersicht
 
-Unit Testing in Flight hilft Ihnen, sicherzustellen, dass Ihre Anwendung wie erwartet funktioniert, Fehler frühzeitig zu erkennen und Ihren Codebase leichter wartbar zu machen. Flight ist so konzipiert, dass es reibungslos mit [PHPUnit](https://phpunit.de/) zusammenarbeitet, dem beliebtesten PHP-Testing-Framework.
+Unit-Tests in Flight helfen Ihnen, sicherzustellen, dass Ihre Anwendung wie erwartet funktioniert, Fehler früh zu erkennen und Ihre Codebasis einfacher zu warten. Flight ist so konzipiert, dass es reibungslos mit [PHPUnit](https://phpunit.de/) funktioniert, dem beliebtesten PHP-Testframework.
 
 ## Verständnis
 
-Unit-Tests überprüfen das Verhalten kleiner Teile Ihrer Anwendung (wie Controller oder Services) isoliert. In Flight bedeutet das, zu testen, wie Ihre Routen, Controller und Logik auf verschiedene Eingaben reagieren – ohne auf globalen Zustand oder echte externe Services angewiesen zu sein.
+Unit-Tests prüfen das Verhalten kleiner Teile Ihrer Anwendung (wie Controller oder Services) isoliert. In Flight bedeutet dies, zu testen, wie Ihre Routen, Controller und Logik auf verschiedene Eingaben reagieren – ohne sich auf globalen Zustand oder echte externe Dienste zu verlassen.
 
-Wichtige Prinzipien:
-- **Verhalten testen, nicht Implementierung:** Konzentrieren Sie sich darauf, was Ihr Code tut, nicht wie er es tut.
+Wichtige Grundsätze:
+- **Verhalten testen, nicht Implementierung:** Konzentrieren Sie sich darauf, was Ihr Code tut, nicht darauf, wie er es tut.
 - **Globalen Zustand vermeiden:** Verwenden Sie Dependency Injection anstelle von `Flight::set()` oder `Flight::get()`.
-- **Externe Services mocken:** Ersetzen Sie Dinge wie Datenbanken oder Mailer durch Test-Doubles.
-- **Tests schnell und fokussiert halten:** Unit-Tests sollten keine echten Datenbanken oder APIs ansprechen.
+- **Externe Dienste mocken:** Ersetzen Sie Dinge wie Datenbanken oder Mailer durch Test-Doubles.
+- **Tests schnell und fokussiert halten:** Unit-Tests sollten keine echten Datenbanken oder APIs verwenden.
 
 ## Grundlegende Verwendung
 
 ### PHPUnit einrichten
 
-1. Installieren Sie PHPUnit mit Composer:
+1. PHPUnit mit Composer installieren:
    ```bash
    composer require --dev phpunit/phpunit
    ```
-2. Erstellen Sie ein `tests`-Verzeichnis im Root-Verzeichnis Ihres Projekts.
+2. Erstellen Sie ein `tests`-Verzeichnis im Stammverzeichnis Ihres Projekts.
 3. Fügen Sie ein Test-Skript zu Ihrer `composer.json` hinzu:
    ```json
    "scripts": {
@@ -41,11 +41,11 @@ Wichtige Prinzipien:
    </phpunit>
    ```
 
-Nun können Sie Ihre Tests mit `composer test` ausführen.
+Jetzt können Sie Ihre Tests mit `composer test` ausführen.
 
-### Testen eines einfachen Route-Handlers
+### Testen eines einfachen Routen-Handlers
 
-Nehmen Sie an, Sie haben eine Route, die eine E-Mail validiert:
+Angenommen, Sie haben eine Route, die eine E-Mail validiert:
 
 ```php
 // index.php
@@ -100,14 +100,14 @@ class UserControllerTest extends TestCase {
 
 **Tipps:**
 - Simulieren Sie POST-Daten mit `$app->request()->data`.
-- Vermeiden Sie die Verwendung von `Flight::`-Statiken in Ihren Tests – verwenden Sie die `$app`-Instanz.
+- Vermeiden Sie die Verwendung von statischen `Flight::`-Aufrufen in Ihren Tests – verwenden Sie die `$app`-Instanz.
 
-### Dependency Injection für testbare Controller verwenden
+### Verwenden von Dependency Injection für testbare Controller
 
-Injizieren Sie Abhängigkeiten (wie die Datenbank oder den Mailer) in Ihre Controller, um sie in Tests leicht zu mocken:
+Injizieren Sie Abhängigkeiten (wie Datenbank oder Mailer) in Ihre Controller, um sie in Tests einfach mocken zu können:
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
@@ -137,7 +137,7 @@ use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
-        $mockDb = $this->createMock(flight\database\PdoWrapper::class);
+        $mockDb = $this->createMock(flight\database\SimplePdo::class);
         $mockDb->method('runQuery')->willReturn(true);
         $mockMailer = new class {
             public $sentEmail = null;
@@ -160,24 +160,24 @@ class UserControllerDICTest extends TestCase {
 
 - **Mocking:** Verwenden Sie die integrierten Mocks von PHPUnit oder anonyme Klassen, um Abhängigkeiten zu ersetzen.
 - **Controller direkt testen:** Instanziieren Sie Controller mit einer neuen `Engine` und mocken Sie Abhängigkeiten.
-- **Übermäßiges Mocking vermeiden:** Lassen Sie echte Logik laufen, wo möglich; mocken Sie nur externe Services.
+- **Übermäßiges Mocken vermeiden:** Lassen Sie echte Logik wo möglich laufen; mocken Sie nur externe Dienste.
 
 ## Siehe auch
 
-- [Unit Testing Guide](/guides/unit-testing) - Ein umfassender Leitfaden zu Best Practices für Unit Testing.
-- [Dependency Injection Container](/learn/dependency-injection-container) - Wie man DICs verwendet, um Abhängigkeiten zu verwalten und die Testbarkeit zu verbessern.
-- [Extending](/learn/extending) - Wie man eigene Helfer hinzufügt oder Kernklassen überschreibt.
-- [PDO Wrapper](/learn/pdo-wrapper) - Vereinfacht Datenbankinteraktionen und ist leichter in Tests zu mocken.
-- [Requests](/learn/requests) - Behandlung von HTTP-Anfragen in Flight.
-- [Responses](/learn/responses) - Versenden von Antworten an Benutzer.
-- [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) - Lernen Sie, wie SOLID-Prinzipien Ihre Unit-Tests verbessern können.
+- [Leitfaden für Unit-Tests](/guides/unit-testing) – Ein umfassender Leitfaden zu Best Practices für Unit-Tests.
+- [Dependency-Injection-Container](/learn/dependency-injection-container) – So verwenden Sie DICs, um Abhängigkeiten zu verwalten und die Testbarkeit zu verbessern.
+- [Erweitern](/learn/extending) – So fügen Sie eigene Helfer hinzu oder überschreiben Kernklassen.
+- [SimplePdo](/learn/simple-pdo) – Vereinfacht Datenbankinteraktionen und ist in Tests einfacher zu mocken.
+- [Anfragen](/learn/requests) – Verarbeitung von HTTP-Anfragen in Flight.
+- [Antworten](/learn/responses) – Senden von Antworten an Benutzer.
+- [Unit-Tests und SOLID-Prinzipien](/learn/unit-testing-and-solid-principles) – Erfahren Sie, wie SOLID-Prinzipien Ihre Unit-Tests verbessern können.
 
 ## Fehlerbehebung
 
-- Vermeiden Sie die Verwendung von globalem Zustand (`Flight::set()`, `$_SESSION` usw.) in Ihrem Code und Tests.
-- Wenn Ihre Tests langsam sind, schreiben Sie möglicherweise Integrationstests – mocken Sie externe Services, um Unit-Tests schnell zu halten.
-- Wenn die Testeinrichtung komplex ist, überlegen Sie, Ihren Code umzustrukturieren, um Dependency Injection zu verwenden.
+- Vermeiden Sie die Verwendung von globalem Zustand (`Flight::set()`, `$_SESSION`, usw.) in Ihrem Code und Ihren Tests.
+- Wenn Ihre Tests langsam sind, schreiben Sie möglicherweise Integrationstests – mocken Sie externe Dienste, um Unit-Tests schnell zu halten.
+- Wenn die Testeinrichtung komplex ist, ziehen Sie in Betracht, Ihren Code zu refaktorieren, um Dependency Injection zu verwenden.
 
-## Changelog
+## Änderungsprotokoll
 
-- v3.15.0 - Beispiele für Dependency Injection und Mocking hinzugefügt.
+- v3.15.0 – Beispiele für Dependency Injection und Mocking hinzugefügt.

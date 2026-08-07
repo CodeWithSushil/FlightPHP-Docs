@@ -1,69 +1,115 @@
 # Configuração
 
-## Visão Geral 
+## Visão Geral
 
-Flight fornece uma maneira simples de configurar vários aspectos do framework para atender às necessidades da sua aplicação. Alguns são definidos por padrão, mas você pode substituí-los conforme necessário. Você também pode definir suas próprias variáveis para serem usadas em toda a sua aplicação.
+O Flight fornece uma maneira simples de configurar vários aspectos do framework para atender às necessidades da sua aplicação. Alguns são definidos por padrão, mas você pode sobrescrevê-los conforme necessário. Você também pode definir suas próprias variáveis para serem usadas em toda a sua aplicação.
 
-## Entendendo
+Configuração clara e em camadas (padrões de arquivo + segredos de ambiente) também ajuda [ferramentas de codificação de IA](/learn/ai): agentes aprendem um lugar para literais e um lugar para segredos, em vez de inventar leituras de `$_ENV` dentro dos controladores.
 
-Você pode personalizar certos comportamentos do Flight definindo valores de configuração
-através do método `set`.
+## Entendimento
+
+Você pode personalizar certos comportamentos do Flight definindo valores de configuração através do método `set`.
 
 ```php
 Flight::set('flight.log_errors', true);
 ```
 
-No arquivo `app/config/config.php`, você pode ver todas as variáveis de configuração padrão disponíveis para você.
+Em uma aplicação estruturada (incluindo o [skeleton](https://github.com/flightphp/skeleton)), normalmente você carrega as configurações do projeto de `app/config/config.php` e então aplica as chaves relevantes ao Engine (por exemplo, `flight.base_url`, `flight.views.path`). Você também pode injetar um pequeno objeto de configuração nos controladores em vez de ler globais em todos os lugares — mais amigável para testes e para agentes que seguem `AGENTS.md`.
 
 ## Uso Básico
 
 ### Opções de Configuração do Flight
 
-A seguir está uma lista de todas as configurações de configuração disponíveis:
+A seguir está uma lista de todas as configurações disponíveis:
 
-- **flight.base_url** `?string` - Substitui a URL base da requisição se o Flight estiver sendo executado em um subdiretório. (padrão: null)
-- **flight.case_sensitive** `bool` - Correspondência sensível a maiúsculas e minúsculas para URLs. (padrão: false)
+- **flight.base_url** `?string` - Substitui a URL base da requisição se o Flight estiver rodando em um subdiretório. (padrão: null)
+- **flight.case_sensitive** `bool` - Correspondência sensível a maiúsculas/minúsculas para URLs. (padrão: false)
 - **flight.handle_errors** `bool` - Permite que o Flight lide com todos os erros internamente. (padrão: true)
   - Se você quiser que o Flight lide com erros em vez do comportamento padrão do PHP, isso precisa ser true.
-  - Se você tiver o [Tracy](/awesome-plugins/tracy) instalado, você quer definir isso como false para que o Tracy possa lidar com os erros.
-  - Se você tiver o plugin [APM](/awesome-plugins/apm) instalado, você quer definir isso como true para que o APM possa registrar os erros.
+  - Se você tiver o [Tracy](/awesome-plugins/tracy) instalado, defina isso como false para que o Tracy possa lidar com erros.
+  - Se você tiver o plugin [APM](/awesome-plugins/apm) instalado, defina isso como true para que o APM possa registrar os erros.
 - **flight.log_errors** `bool` - Registra erros no arquivo de log de erros do servidor web. (padrão: false)
   - Se você tiver o [Tracy](/awesome-plugins/tracy) instalado, o Tracy registrará erros com base nas configurações do Tracy, não nesta configuração.
-- **flight.debug** `bool` - Exibe informações detalhadas de erro (mensagem de exceção, código e stack trace) no navegador quando um erro ocorre. (padrão: false)
+- **flight.debug** `bool` - Exibe informações detalhadas de erro (mensagem de exceção, código e rastreamento de pilha) no navegador quando um erro ocorre. (padrão: false)
   - **Nunca habilite isso em produção** — isso vaza detalhes internos da aplicação. Use apenas para desenvolvimento local ou staging.
-  - Quando `false`, um `500 Internal Server Error` genérico é mostrado em vez disso. Combine com `flight.log_errors` para capturar erros no lado do servidor.
-- **flight.allow_method_override** `bool` - Permite que o método HTTP seja substituído via o cabeçalho de requisição `X-HTTP-Method-Override` ou um campo `_method` no corpo do POST. (padrão: true)
-  - **Definir isso como `false` é recomendado** para aplicações que não precisam de spoofing de método baseado em formulário HTML, pois impede que clientes forjem requisições `DELETE` ou `PUT` através de um formulário POST padrão.
-  - Veja [Segurança](/learn/security#flight-configuration-hardening) para mais detalhes.
-- **flight.views.path** `string` - Diretório contendo arquivos de template de visualização. (padrão: ./views)
-- **flight.views.extension** `string` - Extensão do arquivo de template de visualização. (padrão: .php)
+  - Quando `false`, um genérico `500 Internal Server Error` é exibido. Combine com `flight.log_errors` para capturar erros no lado do servidor.
+- **flight.allow_method_override** `bool` - Permite que o método HTTP seja sobrescrito através do cabeçalho de requisição `X-HTTP-Method-Override` ou um campo `_method` no corpo POST. (padrão: true)
+  - **Definir isso como `false` é recomendado** para aplicações que não precisam de falsificação de método baseada em formulário HTML, pois impede que clientes forjem requisições `DELETE` ou `PUT` através de um formulário POST padrão.
+  - Veja [Segurança](/learn/security) para mais detalhes.
+- **flight.views.path** `string` - Diretório contendo os arquivos de template de view. (padrão: ./views)
+- **flight.views.extension** `string` - Extensão de arquivo de template de view. (padrão: `.php`; o skeleton oficial define isso como `.twig` ao usar Twig)
 - **flight.content_length** `bool` - Define o cabeçalho `Content-Length`. (padrão: true)
-  - Se você estiver usando o [Tracy](/awesome-plugins/tracy), isso precisa ser definido como false para que o Tracy possa renderizar corretamente.
-- **flight.v2.output_buffering** `bool` - Usa buffer de saída legado. Veja [migrando para v3](migrating-to-v3). (padrão: false)
+  - Se você estiver usando [Tracy](/awesome-plugins/tracy), isso precisa ser definido como false para que o Tracy renderize corretamente.
+- **flight.v2.output_buffering** `bool` - Usa o buffer de saída legado. Veja [migrando para v3](migrating-to-v3). (padrão: false)
 
 ### Configuração do Loader
 
-Há adicionalmente outra configuração para o loader. Isso permitirá que você 
-carregue classes automaticamente com `_` no nome da classe.
+Existe também outra configuração para o loader. Isso permitirá que você autocarregue classes com `_` no nome da classe.
 
 ```php
-// Habilita o carregamento de classes com underscores
-// Padronizado como true
+// Habilita o carregamento de classes com sublinhados
+// Padrão é true
 Loader::$v2ClassLoading = false;
 ```
 
-### Variáveis
+Lembre-se de que o [autoloading](/learn/autoloading) também depende das **maiúsculas/minúsculas das pastas** correspondentes aos seus namespaces — especialmente com o layout `App\` + `app/Controller/` do skeleton.
 
-Flight permite que você salve variáveis para que possam ser usadas em qualquer lugar da sua aplicação.
+### Configuração do projeto e `.env` (padrão do skeleton)
+
+O núcleo do Flight não requer arquivos `.env`. Muitas aplicações usam apenas um array de configuração PHP. O skeleton oficial divide a configuração em camadas para que segredos fiquem fora do git enquanto o Runway ainda pode reescrever com segurança configurações **literais**:
+
+1. **`.env` / ambiente real** — segredos e sobrescritas de deploy (ignorados pelo git).
+2. **`app/config/config.php`** — padrões de array PHP literais (copiados de `config_sample.php`). Prefira **sem** expressões `$_ENV[...]` dentro deste arquivo: ferramentas como `runway config:set` podem reescrevê-lo com valores estáticos e podem gravar segredos no arquivo.
+3. **Mesclar na inicialização** — o ambiente vence para chaves mapeadas; o código da aplicação lê um objeto de configuração ou `$app->get()`, não `$_ENV` nos controladores.
+
+Exemplo de formato de `config_sample.php` / `config.php` (simplificado):
 
 ```php
-// Salva sua variável
+<?php
+// Apenas literais — segredos pertencem ao .env no fluxo do skeleton
+return [
+	'app' => [
+		'env' => 'development',
+		'debug' => true,
+		'base_url' => '/',
+		'timezone' => 'UTC',
+	],
+	'database' => [
+		'driver' => 'sqlite', // ou mysql, ou '' para desativar
+		'host' => 'localhost',
+		'dbname' => '',
+		'user' => '',
+		'password' => '',
+		'file_path' => __DIR__ . '/../../database.sqlite',
+	],
+	// ...
+];
+```
+
+```bash
+# .env.example → .env (skeleton)
+APP_ENV=development
+APP_DEBUG=true
+FLIGHT_BASE_URL=/
+DB_DRIVER=sqlite
+# DB_PASSWORD=...
+```
+
+Essa divisão é proposital para [projetos amigáveis à IA](/learn/ai): as instruções podem dizer "padrões em `config.php`, segredos em `.env`, injete Config / Engine — nunca invente acesso a env em um controlador". Aplicações existentes podem ignorar o `.env` completamente e manter um único arquivo de configuração.
+
+### Variáveis
+
+O Flight permite que você salve variáveis para que possam ser usadas em qualquer lugar da sua aplicação.
+
+```php
+// Salve sua variável
 Flight::set('id', 123);
 
 // Em outro lugar da sua aplicação
 $id = Flight::get('id');
 ```
-Para verificar se uma variável foi definida você pode fazer:
+
+Para verificar se uma variável foi definida, você pode fazer:
 
 ```php
 if (Flight::has('id')) {
@@ -81,26 +127,24 @@ Flight::clear('id');
 Flight::clear();
 ```
 
-> **Nota:** Só porque você pode definir uma variável não significa que você deve. Use este recurso com moderação. O motivo é que qualquer coisa armazenada aqui se torna uma variável global. Variáveis globais são ruins porque podem ser alteradas de qualquer lugar da sua aplicação, tornando difícil rastrear bugs. Além disso, isso pode complicar coisas como [testes unitários](/guides/unit-testing).
+> **Nota:** Só porque você pode definir uma variável não significa que deva. Use esse recurso com moderação. A razão é que tudo armazenado aqui se torna uma variável global. Variáveis globais são ruins porque podem ser alteradas de qualquer lugar na sua aplicação, dificultando rastrear bugs. Além disso, isso pode complicar coisas como [testes unitários](/guides/unit-testing). Prefira injeção via construtor (como no skeleton + configuração Dice) para serviços e configurações que os controladores precisam.
 
 ### Erros e Exceções
 
-Todos os erros e exceções são capturados pelo Flight e passados para o método `error`.
-se `flight.handle_errors` estiver definido como true.
+Todos os erros e exceções são capturados pelo Flight e passados para o método `error` se `flight.handle_errors` estiver definido como true.
 
-O comportamento padrão é enviar uma resposta genérica `HTTP 500 Internal Server Error`
-com algumas informações de erro.
+O comportamento padrão é enviar uma resposta genérica `HTTP 500 Internal Server Error` com algumas informações de erro.
 
-Você pode [substituir](/learn/extending) este comportamento para suas próprias necessidades:
+Você pode [sobrescrever](/learn/extending) esse comportamento para suas próprias necessidades:
 
 ```php
 Flight::map('error', function (Throwable $error) {
-  // Lida com o erro
+  // Lidar com o erro
   echo $error->getTraceAsString();
 });
 ```
 
-Por padrão, erros não são registrados no servidor web. Você pode habilitar isso alterando a configuração:
+Por padrão, os erros não são registrados no servidor web. Você pode habilitar isso alterando a configuração:
 
 ```php
 Flight::set('flight.log_errors', true);
@@ -108,28 +152,33 @@ Flight::set('flight.log_errors', true);
 
 #### 404 Não Encontrado
 
-Quando uma URL não pode ser encontrada, o Flight chama o método `notFound`. O comportamento
-padrão é enviar uma resposta `HTTP 404 Not Found` com uma mensagem simples.
+Quando uma URL não pode ser encontrada, o Flight chama o método `notFound`. O comportamento padrão é enviar uma resposta `HTTP 404 Not Found` com uma mensagem simples.
 
-Você pode [substituir](/learn/extending) este comportamento para suas próprias necessidades:
+Você pode [sobrescrever](/learn/extending) esse comportamento para suas próprias necessidades:
 
 ```php
 Flight::map('notFound', function () {
-  // Lida com não encontrado
+  // Lidar com não encontrado
 });
 ```
 
 ## Veja Também
-- [Estendendo Flight](/learn/extending) - Como estender e personalizar a funcionalidade principal do Flight.
+- [Instalação](/install) - Configuração do skeleton, `.env` e layout de inicialização.
+- [Autoloading](/learn/autoloading) - Namespaces e maiúsculas/minúsculas de pastas.
+- [Estendendo o Flight](/learn/extending) - Como estender e personalizar a funcionalidade principal do Flight.
 - [Testes Unitários](/guides/unit-testing) - Como escrever testes unitários para sua aplicação Flight.
+- [IA & Experiência do Desenvolvedor](/learn/ai) - `AGENTS.md` e instruções consistentes do projeto.
 - [Tracy](/awesome-plugins/tracy) - Um plugin para tratamento avançado de erros e depuração.
-- [Extensões do Tracy](/awesome-plugins/tracy_extensions) - Extensões para integrar o Tracy com o Flight.
+- [Extensões Tracy](/awesome-plugins/tracy_extensions) - Extensões para integrar Tracy com Flight.
 - [APM](/awesome-plugins/apm) - Um plugin para monitoramento de desempenho de aplicações e rastreamento de erros.
+- [Segurança](/learn/security) - Flags de endurecimento e tratamento de segredos.
 
 ## Solução de Problemas
-- Se você está tendo problemas para encontrar todos os valores da sua configuração, você pode fazer `var_dump(Flight::get());`
+- Se você estiver tendo problemas para descobrir todos os valores da sua configuração, você pode fazer `var_dump(Flight::get());`
+- Se o Runway ou a ferramenta de deploy reescreveu `config.php`, confirme que os segredos não foram commitados — mantenha-os no `.env` ou no ambiente real ao usar o padrão do skeleton.
 
 ## Changelog
+- Docs — Documentação do estilo skeleton de configuração / camadas `.env` e extensão de view Twig padrão para novos projetos.
 - v3.18.1 - Adicionadas as opções de configuração `flight.debug` e `flight.allow_method_override`.
-- v3.5.0 - Adicionada configuração para `flight.v2.output_buffering` para suportar o comportamento de buffer de saída legado.
+- v3.5.0 - Adicionada a configuração para `flight.v2.output_buffering` para suportar o comportamento de buffer de saída legado.
 - v2.0 - Configurações principais adicionadas.

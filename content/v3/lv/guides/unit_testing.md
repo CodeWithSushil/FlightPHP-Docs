@@ -1,40 +1,40 @@
-# Vienības testēšana Flight PHP ar PHPUnit
+# Vienību testēšana Flight PHP ar PHPUnit
 
-Šis ceļvedis iepazīstina ar vienības testēšanu Flight PHP, izmantojot [PHPUnit](https://phpunit.de/), kas paredzēts iesācējiem, kuri vēlas saprast, *kāpēc* vienības testēšana ir svarīga un kā to praktiski pielietot. Mēs koncentrēsimies uz testēšanu *uzvedības* — nodrošinot, ka jūsu lietojumprogramma darbojas tā, kā jūs sagaidāt, piemēram, nosūtot e-pastu vai saglabājot ierakstu — nevis uz sīkumainiem aprēķiniem. Mēs sāksim ar vienkāršu [maršruta apstrādātāju](/learn/routing) un pakāpeniski pāriesim pie sarežģītāka [kontrolera](/learn/routing), iekļaujot [atkarību injekciju](/learn/dependency-injection-container) (DI) un trešo pušu servisu mockēšanu.
+Šis ceļvedis iepazīstina ar vienību testēšanu Flight PHP, izmantojot [PHPUnit](https://phpunit.de/), un ir paredzēts iesācējiem, kuri vēlas saprast, *kāpēc* vienību testēšanai ir nozīme un kā to praktiski pielietot. Mēs koncentrēsimies uz *uzvedības* testēšanu — nodrošinot, ka jūsu lietotne dara to, ko jūs sagaidāt, piemēram, nosūta e-pastu vai saglabā ierakstu — nevis uz triviāliem aprēķiniem. Sāksim ar vienkāršu [maršruta apstrādātāju](/learn/routing) un pāriesim uz sarežģītāku [kontrolleri](/learn/routing), iekļaujot [atkarību injekciju](/learn/dependency-injection-container) (DI) un trešo pušu pakalpojumu atdarināšanu.
 
-## Kāpēc veikt vienības testus?
+## Kāpēc vienību testēšana?
 
-Vienības testēšana nodrošina, ka jūsu kods uzvedas kā paredzēts, uztverot kļūdas, pirms tās nonāk ražošanā. Tas ir īpaši vērtīgi Flight, kur vieglā maršrutēšana un elastība var radīt sarežģītas mijiedarbības. Vienības testi darbojas kā drošības tīkls solo izstrādātājiem vai komandām, dokumentējot paredzēto uzvedību un novēršot regresijas, kad jūs vēlāk atgriežaties pie koda. Tie arī uzlabo dizainu: kodu, kas ir grūti testēt, bieži norāda uz pārmērīgi sarežģītām vai cieši saistītām klasēm.
+Vienību testēšana nodrošina, ka jūsu kods darbojas, kā paredzēts, atklājot kļūdas, pirms tās nonāk ražošanā. Tas ir īpaši vērtīgi Flight, kur vieglā maršrutēšana un elastība var novest pie sarežģītām mijiedarbībām. Atsevišķiem izstrādātājiem vai komandām vienību testi kalpo kā drošības tīkls, dokumentējot paredzamo uzvedību un novēršot regresijas, kad vēlāk atgriežaties pie sava koda. Tie arī uzlabo dizainu: grūti testējams kods bieži norāda uz pārāk sarežģītām vai cieši saistītām klasēm.
 
-Atšķirībā no vienkāršiem piemēriem (piemēram, testēšana `x * y = z`), mēs koncentrēsimies uz reālās pasaules uzvedībām, piemēram, ievades validēšanu, datu saglabāšanu vai darbību izraisīšanu, piemēram, e-pastus. Mūsu mērķis ir padarīt testēšanu pieejamu un jēgpilnu.
+Atšķirībā no vienkāršotiem piemēriem (piemēram, testējot `x * y = z`), mēs koncentrēsimies uz reālās pasaules uzvedību, piemēram, ievades validāciju, datu saglabāšanu vai darbību aktivizēšanu, piemēram, e-pastus. Mūsu mērķis ir padarīt testēšanu pieejamu un jēgpilnu.
 
-## Vispārīgi vadības principi
+## Vispārīgi vadošie principi
 
-1. **Testējiet uzvedību, nevis realizāciju**: Koncentrējieties uz rezultātiem (piemēram, "e-pasts nosūtīts" vai "ieraksts saglabāts"), nevis uz iekšējām detaļām. Tas padara testus izturīgus pret refaktoringu.
-2. **Pārtrauciet izmantot `Flight::`**: Flight statiskās metodes ir ārkārtīgi ērtas, bet apgrūtina testēšanu. Jums vajadzētu pierast izmantot `$app` mainīgo no `$app = Flight::app();`. `$app` satur visas tās pašas metodes, kas `Flight::`. Jūs joprojām varēsiet izmantot `$app->route()` vai `$this->app->json()` savā kontrolerī utt. Jums arī vajadzētu izmantot īsto Flight maršrutētāju ar `$router = $app->router()` un tad varēsiet izmantot `$router->get()`, `$router->post()`, `$router->group()` utt. Skatiet [Routing](/learn/routing).
-3. **Uzturiet testus ātrus**: Ātri testi veicina biežu izpildi. Izvairieties no lēnām operācijām, piemēram, datubāzes izsaukumiem vienības testos. Ja jums ir lēns tests, tas ir zīme, ka jūs rakstāt integrācijas testu, nevis vienības testu. Integrācijas testi ir tad, kad jūs patiešām iesaistāt reālas datubāzes, reālus HTTP izsaukumus, reālu e-pasta sūtīšanu utt. Tiem ir sava vieta, bet tie ir lēni un var būt nestabili, kas nozīmē, ka tie dažreiz neizdodas nezināma iemesla dēļ.
-4. **Izmantojiet aprakstošus nosaukumus**: Testu nosaukumiem jāapraksta skaidri testētā uzvedība. Tas uzlabo lasāmību un uzturējamību.
-5. **Izvairieties no globāliem mainīgajiem kā no mēra**: Minimāli izmantojiet `$app->set()` un `$app->get()`, jo tie darbojas kā globālais stāvoklis, prasot mockus katrā testā. Dodiet priekšroku DI vai DI konteineram (skatiet [Dependency Injection Container](/learn/dependency-injection-container)). Pat izmantojot `$app->map()` metodi, tehniski ir "globāls" un jāizvairās no tā par labu DI. Izmantojiet sesijas bibliotēku, piemēram, [flightphp/session](https://github.com/flightphp/session), lai varētu mockēt sesijas objektu savos testos. **Neizsauciet** [`$_SESSION`](https://www.php.net/manual/en/reserved.variables.session.php) tieši savā kodā, jo tas ievada globālo mainīgo jūsu kodā, apgrūtinot testēšanu.
-6. **Izmantojiet atkarību injekciju**: Injektējiet atkarības (piemēram, [`PDO`](https://www.php.net/manual/en/class.pdo.php), pasta sūtītājus) kontroleros, lai izolētu loģiku un atvieglotu mockēšanu. Ja jums ir klase ar pārāk daudzām atkarībām, apsvēriet tās refaktoringu mazākās klasēs, kurām katrai ir viena atbildība, ievērojot [SOLID principus](https://en.wikipedia.org/wiki/SOLID).
-7. **Mockējiet trešo pušu servisus**: Mockējiet datubāzes, HTTP klientus (cURL) vai e-pasta servisus, lai izvairītos no ārējiem izsaukumiem. Testējiet vienu vai divus slāņus dziļi, bet ļaujiet jūsu kodola loģikai darboties. Piemēram, ja jūsu lietojumprogramma nosūta īsziņu, jūs **NEGRIBAT** patiešām sūtīt īsziņu katru reizi, kad palaižat testus, jo šie maksājumi sakopsies (un tas būs lēnāks). Tā vietā mockējiet īsziņas servisu un tikai pārbaudiet, ka jūsu kods izsauca īsziņas servisu ar pareizajiem parametriem.
-8. **Mērķis uz augstu pārklājumu, nevis pilnību**: 100% rindu pārklājums ir labs, bet tas nenozīmē, ka viss jūsu kodā ir testēts tā, kā vajadzētu (droši vien pētiet [zaru/ceļa pārklājumu PHPUnit](https://localheinz.com/articles/2023/03/22/collecting-line-branch-and-path-coverage-with-phpunit/)). Prioritizējiet kritiskās uzvedības (piemēram, lietotāja reģistrāciju, API atbildes un neizdevušos atbilžu uztveršanu).
-9. **Izmantojiet kontrolerus maršrutiem**: Savos maršruta definīcijās izmantojiet kontrolerus, nevis aizvēršanas. `flight\Engine $app` pēc noklusējuma tiek injicēts katrā kontrolerā caur konstruktoru. Testos izmantojiet `$app = new Flight\Engine()`, lai inicializētu Flight testā, injicējiet to kontrolerī un izsauciet metodes tieši (piemēram, `$controller->register()`). Skatiet [Extending Flight](/learn/extending) un [Routing](/learn/routing).
-10. **Izvēlieties mockēšanas stilu un turieties pie tā**: PHPUnit atbalsta vairākus mockēšanas stilus (piemēram, prophecy, iebūvēti mocki), vai varat izmantot anonīmas klases, kurām ir savas priekšrocības, piemēram, koda pabeigšana, salūšana, ja maināt metodes definīciju utt. Tikai esiet konsekventi visos savos testos. Skatiet [PHPUnit Mock Objects](https://docs.phpunit.de/en/12.3/test-doubles.html#test-doubles).
-11. **Izmantojiet `protected` redzamību metodēm/īpašībām, kuras vēlaties testēt apakšklasēs**: Tas ļauj jums tās pārrakstīt testu apakšklasēs, nepadarot tās publiskām, tas ir īpaši noderīgi anonīmu klašu mockiem.
+1. **Testējiet uzvedību, nevis ieviešanu**: Koncentrējieties uz rezultātiem (piemēram, "e-pasts nosūtīts" vai "ieraksts saglabāts"), nevis uz iekšējām detaļām. Tas padara testus izturīgus pret refaktorēšanu.
+2. **Pārtrauciet lietot `Flight::`**: Flight statiskās metodes ir ļoti ērtas, bet apgrūtina testēšanu. Jums vajadzētu pierast lietot `$app` mainīgo no `$app = Flight::app();`. `$app` ir visas tās pašas metodes, kas ir `Flight::`. Jūs joprojām varēsiet lietot `$app->route()` vai `$this->app->json()` savā kontrollerī utt. Tāpat izmantojiet īsto Flight maršrutētāju ar `$router = $app->router()` un pēc tam varat lietot `$router->get()`, `$router->post()`, `$router->group()` utt. Skatiet [Maršrutēšana](/learn/routing).
+3. **Turiet testus ātrus**: Ātri testi veicina biežu izpildi. Izvairieties no lēnām darbībām, piemēram, datubāzes izsaukumiem vienību testos. Ja jums ir lēns tests, tā ir zīme, ka rakstāt integrācijas testu, nevis vienību testu. Integrācijas testi ir tad, kad faktiski iesaistāt reālas datubāzes, reālus HTTP izsaukumus, reālu e-pasta sūtīšanu utt. Tiem ir sava vieta, bet tie ir lēni un var būt nestabili, kas nozīmē, ka tie dažkārt neizdodas nezināma iemesla dēļ.
+4. **Izmantojiet aprakstošus nosaukumus**: Testu nosaukumiem skaidri jāapraksta pārbaudāmā uzvedība. Tas uzlabo lasāmību un uzturējamību.
+5. **Izvairieties no globālajiem mainīgajiem kā no mēra**: Samaziniet `$app->set()` un `$app->get()` lietošanu, jo tie darbojas kā globālais stāvoklis, prasot atdarinājumus katrā testā. Dodiet priekšroku DI vai DI konteineram (skatiet [Atkarību injekcijas konteiners](/learn/dependency-injection-container)). Pat `$app->map()` metodes izmantošana tehniski ir "globāla", un no tās vajadzētu izvairīties par labu DI. Izmantojiet sesijas bibliotēku, piemēram, [flightphp/session](https://github.com/flightphp/session), lai testos varētu atdarināt sesijas objektu. **Neizsauciet** [`$_SESSION`](https://www.php.net/manual/en/reserved.variables.session.php) tieši savā kodā, jo tā ir globālā mainīgā ieviešana jūsu kodā, kas apgrūtina testēšanu.
+6. **Izmantojiet atkarību injekciju**: Injicējiet atkarības (piemēram, [`PDO`](https://www.php.net/manual/en/class.pdo.php), e-pasta sūtītājus) kontrolleros, lai izolētu loģiku un vienkāršotu atdarināšanu. Ja jums ir klase ar pārāk daudz atkarībām, apsveriet iespēju to refaktorēt mazākās klasēs, no kurām katra ir atbildīga par vienu lietu, ievērojot [SOLID principus](https://en.wikipedia.org/wiki/SOLID).
+7. **Atdariniet trešo pušu pakalpojumus**: Atdariniet datubāzes, HTTP klientus (cURL) vai e-pasta pakalpojumus, lai izvairītos no ārējiem izsaukumiem. Testējiet vienu vai divus slāņus dziļi, bet ļaujiet savai pamatloģikai darboties. Piemēram, ja jūsu lietotne sūta īsziņas, jūs **NEVĒLATIES** patiešām sūtīt īsziņu katru reizi, kad palaižat testus, jo šīs izmaksas uzkrāsies (un būs lēnāk). Tā vietā atdariniet īsziņu pakalpojumu un vienkārši pārbaudiet, vai jūsu kods izsauca īsziņu pakalpojumu ar pareizajiem parametriem.
+8. **Tiecieties uz augstu pārklājumu, nevis pilnību**: 100% rindu pārklājums ir labs, bet tas nenozīmē, ka viss jūsu kodā ir testēts tā, kā vajadzētu (izpētiet [zaru/ceļu pārklājumu PHPUnit](https://localheinz.com/articles/2023/03/22/collecting-line-branch-and-path-coverage-with-phpunit/)). Prioritāti piešķiriet kritiskajai uzvedībai (piemēram, lietotāja reģistrācijai, API atbildēm un neveiksmīgu atbilžu tveršanai).
+9. **Izmantojiet kontrollerus maršrutiem**: Maršrutu definīcijās izmantojiet kontrollerus, nevis slēgumus. `flight\Engine $app` pēc noklusējuma tiek injicēts katrā kontrollerī caur konstruktoru. Testos izmantojiet `$app = new Flight\Engine()`, lai testa ietvaros izveidotu Flight instanci, injicētu to savā kontrollerī un izsauktu metodes tieši (piemēram, `$controller->register()`). Skatiet [Flight paplašināšana](/learn/extending) un [Maršrutēšana](/learn/routing).
+10. **Izvēlieties atdarināšanas stilu un pieturieties pie tā**: PHPUnit atbalsta vairākus atdarināšanas stilus (piemēram, prophecy, iebūvētos atdarinājumus), vai arī varat izmantot anonīmās klases, kurām ir savas priekšrocības, piemēram, koda pabeigšana, lūšana, ja maināt metodes definīciju, utt. Vienkārši esiet konsekventi savos testos. Skatiet [PHPUnit Mock Objects](https://docs.phpunit.de/en/12.3/test-doubles.html#test-doubles).
+11. **Izmantojiet `protected` redzamību metodēm/īpašībām, kuras vēlaties testēt apakšklasēs**: Tas ļauj tās pārdefinēt testa apakšklasēs, nepadarot tās publiskas; tas ir īpaši noderīgi anonīmu klašu atdarinājumiem.
 
 ## PHPUnit iestatīšana
 
-Vispirms iestatiet [PHPUnit](https://phpunit.de/) savā Flight PHP projektā, izmantojot Composer vieglai testēšanai. Skatiet [PHPUnit Sākuma ceļvedi](https://phpunit.readthedocs.io/en/12.3/installation.html) sīkākiem detalizācijām.
+Pirmkārt, iestatiet [PHPUnit](https://phpunit.de/) savā Flight PHP projektā, izmantojot Composer, lai atvieglotu testēšanu. Skatiet [PHPUnit sākšanas rokasgrāmatu](https://phpunit.readthedocs.io/en/12.3/installation.html), lai iegūtu vairāk informācijas.
 
-1. Savā projektu direktorijā palaidiet:
+1. Sava projekta direktorijā izpildiet:
    ```bash
    composer require --dev phpunit/phpunit
    ```
    Tas instalē jaunāko PHPUnit kā izstrādes atkarību.
 
-2. Izveidojiet `tests` direktoriju jūsu projekta saknē testu failiem.
+2. Izveidojiet `tests` direktoriju sava projekta saknē testa failiem.
 
-3. Pievienojiet testa skriptu `composer.json` ērtībai:
+3. Pievienojiet testa skriptu failam `composer.json` ērtībai:
    ```json
    // cits composer.json saturs
    "scripts": {
@@ -42,7 +42,7 @@ Vispirms iestatiet [PHPUnit](https://phpunit.de/) savā Flight PHP projektā, iz
    }
    ```
 
-4. Izveidojiet `phpunit.xml` failu saknē:
+4. Izveidojiet failu `phpunit.xml` saknē:
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
    <phpunit bootstrap="vendor/autoload.php">
@@ -54,11 +54,11 @@ Vispirms iestatiet [PHPUnit](https://phpunit.de/) savā Flight PHP projektā, iz
    </phpunit>
    ```
 
-Tagad, kad jūsu testi ir izveidoti, varat palaidiet `composer test`, lai izpildītu testus.
+Tagad, kad jūsu testi ir izveidoti, varat palaist `composer test`, lai izpildītu testus.
 
 ## Vienkārša maršruta apstrādātāja testēšana
 
-Sāksim ar pamata [maršrutu](/learn/routing), kas validē lietotāja e-pasta ievadi. Mēs testēsim tā uzvedību: atgriežot veiksmīgu ziņu derīgiem e-pastiem un kļūdu nederīgiem. E-pasta validēšanai mēs izmantojam [`filter_var`](https://www.php.net/manual/en/function.filter-var.php).
+Sāksim ar pamata [maršrutu](/learn/routing), kas validē lietotāja e-pasta ievadi. Mēs testēsim tā uzvedību: veiksmes ziņojuma atgriešanu derīgiem e-pastiem un kļūdas ziņojumu nederīgiem. E-pasta validācijai mēs izmantojam [`filter_var`](https://www.php.net/manual/en/function.filter-var.php).
 
 ```php
 // index.php
@@ -86,7 +86,7 @@ class UserController {
 }
 ```
 
-Lai to testētu, izveidojiet testa failu. Skatiet [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles) par vairāk informācijas par testu struktūru:
+Lai to testētu, izveidojiet testa failu. Skatiet [Vienību testēšana un SOLID principi](/learn/unit-testing-and-solid-principles), lai uzzinātu vairāk par testu strukturēšanu:
 
 ```php
 // tests/UserControllerTest.php
@@ -99,7 +99,7 @@ class UserControllerTest extends TestCase {
     public function testValidEmailReturnsSuccess() {
 		$app = new Engine();
 		$request = $app->request();
-		$request->data->email = 'test@example.com'; // Simulate POST data
+		$request->data->email = 'test@example.com'; // Simulē POST datus
 		$UserController = new UserController($app);
 		$UserController->register($request->data->email);
         $response = $app->response()->getBody();
@@ -111,7 +111,7 @@ class UserControllerTest extends TestCase {
     public function testInvalidEmailReturnsError() {
 		$app = new Engine();
 		$request = $app->request();
-		$request->data->email = 'invalid-email'; // Simulate POST data
+		$request->data->email = 'invalid-email'; // Simulē POST datus
 		$UserController = new UserController($app);
 		$UserController->register($request->data->email);
 		$response = $app->response()->getBody();
@@ -123,30 +123,30 @@ class UserControllerTest extends TestCase {
 ```
 
 **Galvenie punkti**:
-- Mēs simulējam POST datus, izmantojot pieprasījuma klasi. Neizmantojiet globālos mainīgos, piemēram, `$_POST`, `$_GET` utt., jo tas padara testēšanu sarežģītāku (jums vienmēr jāatstata šīs vērtības, vai citādi citi testi var sabrukt).
-- Visi kontroleri pēc noklusējuma saņems `flight\Engine` instanci, kas injicēta tajos pat bez DIC konteinera iestatīšanas. Tas ievērojami atvieglo kontroleru tiešo testēšanu.
-- Nav nekādas `Flight::` izmantošanas vispār, padarot kodu vieglāku testēšanai.
-- Testi pārbauda uzvedību: pareizu statusu un ziņu derīgiem/nederīgiem e-pastiem.
+- Mēs simulējam POST datus, izmantojot pieprasījuma klasi. Neizmantojiet globālus mainīgos, piemēram, `$_POST`, `$_GET` utt., jo tas padara testēšanu sarežģītāku (jums vienmēr ir jāatiestata šīs vērtības, pretējā gadījumā citi testi var neizdoties).
+- Visi kontrolleri pēc noklusējuma saņem `flight\Engine` instanci, kas tiek injicēta tajos pat bez DIC konteinera iestatīšanas. Tas ievērojami atvieglo kontrolleru tiešu testēšanu.
+- Nav vispār izmantots `Flight::`, padarot kodu vieglāk testējamu.
+- Testi pārbauda uzvedību: pareizu statusu un ziņojumu derīgiem/nederīgiem e-pastiem.
 
-Palaidiet `composer test`, lai pārbaudītu, vai maršruts uzvedas kā paredzēts. Par vairāk informācijas par [pieprasījumiem](/learn/requests) un [atbildēm](/learn/responses) Flight, skatiet attiecīgos dokumentus.
+Izpildiet `composer test`, lai pārliecinātos, ka maršruts darbojas, kā paredzēts. Lai uzzinātu vairāk par [pieprasījumiem](/learn/requests) un [atbildēm](/learn/responses) Flight, skatiet attiecīgo dokumentāciju.
 
-## Atkarību injekcijas izmantošana testējamu kontroleru izveidošanai
+## Atkarību injekcijas izmantošana testējamiem kontrolleriem
 
-Sarežģītākiem scenārijiem izmantojiet [atkarību injekciju](/learn/dependency-injection-container) (DI), lai padarītu kontrolerus testējamus. Izvairieties no Flight globāliem (piemēram, `Flight::set()`, `Flight::map()`, `Flight::register()`), jo tie darbojas kā globālais stāvoklis, prasot mockus katram testam. Tā vietā izmantojiet Flight DI konteineru, [DICE](https://github.com/Level-2/Dice), [PHP-DI](https://php-di.org/) vai manuālu DI.
+Sarežģītākiem scenārijiem izmantojiet [atkarību injekciju](/learn/dependency-injection-container) (DI), lai kontrollerus padarītu testējamus. Izvairieties no Flight globālajiem mainīgajiem (piemēram, `Flight::set()`, `Flight::map()`, `Flight::register()`), jo tie darbojas kā globālais stāvoklis, prasot atdarinājumus katrā testā. Tā vietā izmantojiet Flight DI konteineru, [DICE](https://github.com/Level-2/Dice), [PHP-DI](https://php-di.org/) vai manuālo DI.
 
-Izmantojiet [`flight\database\PdoWrapper`](/learn/pdo-wrapper) nevis neapstrādātu PDO. Šis apvalks ir daudz vieglāk mockēt un veikt vienības testus!
+Izmantosim [`flight\database\SimplePdo`](/learn/simple-pdo), nevis tiešu PDO. Šo palīgu ir daudz vieglāk atdarināt un vienību testēt (un tas ir vēlamāks par novecojušo `PdoWrapper`).
 
-Šeit ir kontroleris, kas saglabā lietotāju datubāzē un nosūta laipnu e-pastu:
+Šeit ir kontrolleris, kas saglabā lietotāju datubāzē un nosūta sagaidīšanas e-pastu:
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
     protected $db;
     protected $mailer;
 
-    public function __construct(Engine $app, PdoWrapper $db, MailerInterface $mailer) {
+    public function __construct(Engine $app, SimplePdo $db, MailerInterface $mailer) {
         $this->app = $app;
         $this->db = $db;
         $this->mailer = $mailer;
@@ -155,7 +155,7 @@ class UserController {
     public function register() {
 		$email = $this->app->request()->data->email;
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			// adding the return here helps unit testing to stop execution
+			// return pievienošana šeit palīdz apturēt izpildi vienību testēšanā
 			return $this->app->jsonHalt(['status' => 'error', 'message' => 'Invalid email']);
 		}
 
@@ -168,33 +168,34 @@ class UserController {
 ```
 
 **Galvenie punkti**:
-- Kontroleris ir atkarīgs no [`PdoWrapper`](/learn/pdo-wrapper) instances un `MailerInterface` (izdomāts trešās puses e-pasta serviss).
-- Atkarības tiek injicētas caur konstruktoru, izvairoties no globāliem.
+- Kontrolleris ir atkarīgs no [`SimplePdo`](/learn/simple-pdo) instances un `MailerInterface` (izdomāta trešās puses e-pasta pakalpojuma).
+- Atkarības tiek injicētas caur konstruktoru, izvairoties no globālajiem mainīgajiem.
 
-### Kontrolera testēšana ar mockiem
+### Kontrollera testēšana ar atdarinājumiem (mocks)
 
-Tagad testēsim `UserController` uzvedību: e-pasta validēšanu, saglabāšanu datubāzē un e-pasta sūtīšanu. Mēs mockēsim datubāzi un pasta sūtītāju, lai izolētu kontroleri.
+Tagad testēsim `UserController` uzvedību: e-pastu validāciju, saglabāšanu datubāzē un e-pastu sūtīšanu. Mēs atdarināsim datubāzi un e-pasta sūtītāju, lai izolētu kontrolleri.
 
 ```php
 // tests/UserControllerDICTest.php
+use flight\database\SimplePdo;
 use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
 
-		// Sometimes mixing mocking styles is necessary
-		// Here we use PHPUnit's built-in mock for PDOStatement
+		// Dažreiz ir nepieciešams sajaukt atdarināšanas stilus
+		// Šeit mēs izmantojam PHPUnit iebūvēto atdarinājumu PDOStatement
 		$statementMock = $this->createMock(PDOStatement::class);
 		$statementMock->method('execute')->willReturn(true);
-		// Using an anonymous class to mock PdoWrapper
-        $mockDb = new class($statementMock) extends PdoWrapper {
+		// Anonīmas klases izmantošana, lai atdarinātu SimplePdo
+        $mockDb = new class($statementMock) extends SimplePdo {
 			protected $statementMock;
 			public function __construct($statementMock) {
 				$this->statementMock = $statementMock;
 			}
 
-			// When we mock it this way, we are not really making a database call.
-			// We can further setup this to alter the PDOStatement mock to simulate failures, etc.
+			// Kad mēs to atdarinām šādi, mēs īsti neveicam datubāzes izsaukumu.
+			// Mēs varam to tālāk konfigurēt, lai mainītu PDOStatement atdarinājumu, simulējot kļūmes utt.
             public function runQuery(string $sql, array $params = []): PDOStatement {
                 return $this->statementMock;
             }
@@ -218,8 +219,8 @@ class UserControllerDICTest extends TestCase {
     }
 
     public function testInvalidEmailSkipsSaveAndEmail() {
-		 $mockDb = new class() extends PdoWrapper {
-			// An empty constructor bypasses the parent constructor
+		 $mockDb = new class() extends SimplePdo {
+			// Tukšs konstruktors apiet vecāka konstruktoru
 			public function __construct() {}
             public function runQuery(string $sql, array $params = []): PDOStatement {
                 throw new Exception('Should not be called');
@@ -234,7 +235,7 @@ class UserControllerDICTest extends TestCase {
 		$app = new Engine();
 		$app->request()->data->email = 'invalid-email';
 
-		// Need to map jsonHalt to avoid exiting
+		// Nepieciešams kartēt jsonHalt, lai izvairītos no izejas
 		$app->map('jsonHalt', function($data) use ($app) {
 			$app->json($data, 400);
 		});
@@ -249,16 +250,16 @@ class UserControllerDICTest extends TestCase {
 ```
 
 **Galvenie punkti**:
-- Mēs mockējam `PdoWrapper` un `MailerInterface`, lai izvairītos no reāliem datubāzes vai e-pasta izsaukumiem.
-- Testi pārbauda uzvedību: derīgi e-pasti izraisa datubāzes ievietošanu un e-pasta sūtīšanu; nederīgi e-pasti izlaiž abus.
-- Mockējiet trešās puses atkarības (piemēram, `PdoWrapper`, `MailerInterface`), ļaujot kontrolera loģikai darboties.
+- Mēs atdarinām `SimplePdo` un `MailerInterface`, lai izvairītos no reāliem datubāzes vai e-pasta izsaukumiem.
+- Testi pārbauda uzvedību: derīgi e-pasti aktivizē datubāzes ievietošanu un e-pasta sūtīšanu; nederīgi e-pasti izlaiž abus.
+- Atdariniet trešo pušu atkarības (piemēram, `SimplePdo`, `MailerInterface`), ļaujot kontrollera loģikai darboties.
 
-### Pārāk daudz mockēšana
+### Pārāk liela atdarināšana
 
-Esiet uzmanīgi, lai nemockētu pārāk daudz sava koda. Ļaujiet man dot piemēru zemāk par to, kāpēc tas var būt sliktas lietas, izmantojot mūsu `UserController`. Mēs mainīsim šo pārbaudi uz metodi, ko sauc `isEmailValid` (izmantojot `filter_var`) un citas jaunas pievienojumus uz atsevišķu metodi, ko sauc `registerUser`.
+Esiet uzmanīgi, lai neatdarinātu pārāk lielu daļu sava koda. Tālāk es sniegšu piemēru, kāpēc tas varētu būt slikti, izmantojot mūsu `UserController`. Mēs mainīsim šo pārbaudi uz metodi ar nosaukumu `isEmailValid` (izmantojot `filter_var`), bet pārējos jaunos papildinājumus — uz atsevišķu metodi `registerUser`.
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 use flight\Engine;
 
 // UserControllerDICV2.php
@@ -267,7 +268,7 @@ class UserControllerDICV2 {
     protected $db;
     protected $mailer;
 
-    public function __construct(Engine $app, PdoWrapper $db, MailerInterface $mailer) {
+    public function __construct(Engine $app, SimplePdo $db, MailerInterface $mailer) {
         $this->app = $app;
         $this->db = $db;
         $this->mailer = $mailer;
@@ -276,7 +277,7 @@ class UserControllerDICV2 {
     public function register() {
 		$email = $this->app->request()->data->email;
 		if (!$this->isEmailValid($email)) {
-			// adding the return here helps unit testing to stop execution
+			// return pievienošana šeit palīdz apturēt izpildi vienību testēšanā
 			return $this->app->jsonHalt(['status' => 'error', 'message' => 'Invalid email']);
 		}
 
@@ -296,7 +297,7 @@ class UserControllerDICV2 {
 }
 ```
 
-Un tagad pārāk mockētais vienības tests, kas patiesībā neko netestē:
+Un tagad pārāk atdarinātais vienību tests, kas īsti neko netesta:
 
 ```php
 use PHPUnit\Framework\TestCase;
@@ -305,20 +306,20 @@ class UserControllerTest extends TestCase {
     public function testValidEmailSavesAndSendsEmail() {
 		$app = new Engine();
 		$app->request()->data->email = 'test@example.com';
-		// we are skipping the extra dependency injection here cause it's "easy"
+		// mēs šeit izlaižam papildu atkarību injekciju, jo tas ir "viegli"
         $controller = new class($app) extends UserControllerDICV2 {
 			protected $app;
-			// Bypass the deps in the construct
+			// Apiet atkarības konstruktorā
 			public function __construct($app) {
 				$this->app = $app;
 			}
 
-			// We'll just force this to be valid.
+			// Mēs vienkārši piespiedīsim, lai tas būtu derīgs.
 			protected function isEmailValid($email) {
-				return true; // Always return true, bypassing real validation
+				return true; // Vienmēr atgriež true, apejot reālo validāciju
 			}
 
-			// Bypass the actual DB and mailer calls
+			// Apiet faktiskos datubāzes un e-pasta sūtītāja izsaukumus
 			protected function registerUser($email) {
 				return false;
 			}
@@ -332,41 +333,40 @@ class UserControllerTest extends TestCase {
 }
 ```
 
-Hurā, mums ir vienības testi un tie iziet! Bet pagaidi, ko tad, ja es patiesībā mainu `isEmailValid` vai `registerUser` iekšējo darbību? Mani testi joprojām izies, jo esmu mockējis visu funkcionalitāti. Ļaujiet man parādīt, ko es domāju.
+Urrā, mums ir vienību testi un tie izdodas! Bet pagaidiet, kas notiktu, ja es faktiski mainītu `isEmailValid` vai `registerUser` iekšējo darbību? Mani testi joprojām izdotos, jo es esmu atdarinājis visu funkcionalitāti. Ļaujiet man parādīt, ko es domāju.
 
 ```php
 // UserControllerDICV2.php
 class UserControllerDICV2 {
 
-	// ... other methods ...
+	// ... citas metodes ...
 
 	protected function isEmailValid($email) {
-		// Changed logic
+		// Mainītā loģika
 		$validEmail = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
-		// Now it should only have a specific domain
+		// Tagad tam vajadzētu būt tikai noteiktam domēnam
 		$validDomain = strpos($email, '@example.com') !== false; 
 		return $validEmail && $validDomain;
 	}
 }
 ```
 
-Ja es palaižu savus iepriekšējos vienības testus, tie joprojām iziet! Bet tāpēc, ka es netestēju uzvedību (patiesībā neļāvu daļai koda darboties), esmu potenciāli ieprogrammējis kļūdu, kas gaida ražošanā. Tests vajadzētu modificēt, lai ņemtu vērā jauno uzvedību, un arī pretējo, kad uzvedība nav tā, ko mēs sagaidām.
+Ja es palaistu savus iepriekš minētos vienību testus, tie joprojām izdotos! Bet, tā kā es netestēju uzvedību (faktiski neļaujot daļai koda izpildīties), es, iespējams, esmu ieprogrammējis kļūdu, kas gaida, lai notiktu ražošanā. Tests būtu jāmaina, lai ņemtu vērā jauno uzvedību, kā arī pretējo gadījumu, kad uzvedība nav tāda, kādu mēs sagaidām.
 
 ## Pilns piemērs
 
-Varat atrast pilnu Flight PHP projektu piemēru ar vienības testiem GitHub: [n0nag0n/flight-unit-tests-guide](https://github.com/n0nag0n/flight-unit-tests-guide).
-Lai iegūtu dziļāku izpratni, skatiet [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles).
+Pilnu Flight PHP projekta piemēru ar vienību testiem varat atrast GitHub: [n0nag0n/flight-unit-tests-guide](https://github.com/n0nag0n/flight-unit-tests-guide). Lai iegūtu dziļāku izpratni, skatiet [Vienību testēšana un SOLID principi](/learn/unit-testing-and-solid-principles).
 
-## Biežas kļūdas
+## Biežākās kļūdas
 
-- **Pārāk daudz mockēšana**: Nemockējiet katru atkarību; ļaujiet daļai loģikas (piemēram, kontrolera validēšanai) darboties, lai testētu reālo uzvedību. Skatiet [Unit Testing and SOLID Principles](/learn/unit-testing-and-solid-principles).
-- **Globālais stāvoklis**: Izmantojot globālos PHP mainīgos (piemēram, [`$_SESSION`](https://www.php.net/manual/en/reserved.variables.session.php), [`$_COOKIE`](https://www.php.net/manual/en/reserved.variables.cookie.php)) intensīvi, testi kļūst trausli. Tas pats attiecas uz `Flight::`. Refaktorējiet, lai eksplíciti nodotu atkarības.
-- **Sarežģīta iestatīšana**: Ja testa iestatīšana ir apgrūtinoša, jūsu klasei var būt pārāk daudz atkarību vai atbildību, kas pārkāpj [SOLID principus](/learn/unit-testing-and-solid-principles).
+- **Pārāk liela atdarināšana**: Neatdariniet katru atkarību; ļaujiet daļai loģikas (piemēram, kontrollera validācijai) izpildīties, lai testētu reālu uzvedību. Skatiet [Vienību testēšana un SOLID principi](/learn/unit-testing-and-solid-principles).
+- **Globālais stāvoklis**: Bieža globālo PHP mainīgo (piemēram, [`$_SESSION`](https://www.php.net/manual/en/reserved.variables.session.php), [`$_COOKIE`](https://www.php.net/manual/en/reserved.variables.cookie.php)) izmantošana padara testus trauslus. Tas pats attiecas uz `Flight::`. Refaktorējiet, lai atkarības tiktu nodotas tieši.
+- **Sarežģīta iestatīšana**: Ja testa iestatīšana ir apgrūtinoša, jūsu klasei, iespējams, ir pārāk daudz atkarību vai pienākumu, pārkāpjot [SOLID principus](/learn/unit-testing-and-solid-principles).
 
-## Mērogošana ar vienības testiem
+## Mērogošana ar vienību testiem
 
-Vienības testi spīd lielākos projektos vai kad atgriežaties pie koda pēc mēnešiem. Tie dokumentē uzvedību un uztver regresijas, ietaupot laiku no atkārtotas mācīšanās jūsu lietojumprogrammai. Solo izstrādātājiem testējiet kritiskos ceļus (piemēram, lietotāja reģistrāciju, maksājumu apstrādi). Komandām testi nodrošina konsekventu uzvedību visās ieguldījumos. Skatiet [Why Frameworks?](/learn/why-frameworks) par vairāk priekšrocībām, izmantojot ietvarus un testus.
+Vienību testi noder lielākos projektos vai tad, kad pēc mēnešiem atgriežaties pie koda. Tie dokumentē uzvedību un atklāj regresijas, glābjot jūs no lietotnes no jauna apgūšanas. Atsevišķiem izstrādātājiem testējiet kritiskos ceļus (piemēram, lietotāja reģistrāciju, maksājumu apstrādi). Komandām testi nodrošina konsekventu uzvedību visās izmaiņās. Skatiet [Kāpēc ietvari?](/learn/why-frameworks), lai uzzinātu vairāk par ieguvumiem, ko sniedz ietvari un testi.
 
-Iesaistiet savus testēšanas padomus Flight PHP dokumentācijas repozitorijā!
+Dalieties ar saviem testēšanas padomiem Flight PHP dokumentācijas krātuvē!
 
 _Rakstījis [n0nag0n](https://github.com/n0nag0n) 2025_

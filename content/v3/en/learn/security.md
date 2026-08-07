@@ -5,6 +5,8 @@
 Security is a big deal when it comes to web applications. You want to make sure that your application is secure and that your users' data is 
 safe. Flight provides a number of features to help you secure your web applications.
 
+The official [skeleton](https://github.com/flightphp/skeleton) also ships a dedicated **`SECURITY.md`** and security-headers middleware so [AI coding tools](/learn/ai) (and humans) have one deliberate place for secrets, headers, and XSS/SQL rules—separate from general coding style in `AGENTS.md`.
+
 ## Understanding
 
 There are a number of common security threats that you should be aware of when building web applications. Some of the most common threats
@@ -14,9 +16,9 @@ include:
 - SQL Injection
 - Cross Origin Resource Sharing (CORS)
 
-[Templates](/learn/templates) help with XSS by escaping output by default so you don't have to remember to do that. [Sessions](/awesome-plugins/session) can help with CSRF by storing a CSRF token in the user's session as outlined below. Using prepared statements with PDO can help prevent SQL injection attacks (or using handy methods in the [PdoWrapper](/learn/pdo-wrapper) class). CORS can be handled with a simple hook before `Flight::start()` is called.
+[Templates](/learn/templates) help with XSS by escaping output by default (Twig and Latte do this; use that advantage). [Sessions](/awesome-plugins/session) can help with CSRF by storing a CSRF token in the user's session as outlined below. Using prepared statements with PDO—or helpers on [SimplePdo](/learn/simple-pdo)—helps prevent SQL injection. CORS can be handled with a simple hook before `Flight::start()` is called.
 
-All of these methods work together to help keep your web applications secure. It should always be at the forefront of your mind to learn and understand security best practices.
+All of these methods work together to help keep your web applications secure. It should always be at the forefront of your mind to learn and understand security best practices. Do not ask an AI assistant to "disable CSP" or weaken headers just to make a page load without understanding the tradeoff.
 
 ## Basic Usage
 
@@ -27,6 +29,8 @@ There are several ways that you can add these headers to your application.
 
 Two great websites to check for the security of your headers are [securityheaders.com](https://securityheaders.com/) and 
 [observatory.mozilla.org](https://observatory.mozilla.org/). After you setup the below code, you can easily verify that your headers are working with those two websites.
+
+The skeleton includes `App\Middleware\SecurityHeadersMiddleware` (CSP with a per-request nonce, frame options, HSTS, and more). Prefer extending that deliberately over turning headers off.
 
 #### Add By Hand
 
@@ -79,10 +83,12 @@ Flight::before('start', function() {
 
 You can also add them as a middleware class which provides the greatest flexibility for which routes to apply this to. In general, these headers should be applied to all HTML and API responses.
 
-```php
-// app/middlewares/SecurityHeadersMiddleware.php
+Skeleton-style path and namespace (**folder case matches `App\Middleware`**):
 
-namespace app\middlewares;
+```php
+// app/Middleware/SecurityHeadersMiddleware.php
+
+namespace App\Middleware;
 
 use flight\Engine;
 
@@ -98,8 +104,14 @@ class SecurityHeadersMiddleware
 	public function before(array $params): void
 	{
 		$response = $this->app->response();
+		// Prefer a CSP nonce from bootstrap when you have inline scripts (skeleton sets csp_nonce)
+		$nonce = $this->app->get('csp_nonce');
+		$csp = $nonce
+			? "default-src 'self'; script-src 'self' 'nonce-{$nonce}'; style-src 'self' 'nonce-{$nonce}'"
+			: "default-src 'self'";
+
 		$response->header('X-Frame-Options', 'SAMEORIGIN');
-		$response->header("Content-Security-Policy", "default-src 'self'");
+		$response->header('Content-Security-Policy', $csp);
 		$response->header('X-XSS-Protection', '1; mode=block');
 		$response->header('X-Content-Type-Options', 'nosniff');
 		$response->header('Referrer-Policy', 'no-referrer-when-downgrade');
@@ -108,15 +120,17 @@ class SecurityHeadersMiddleware
 	}
 }
 
-// index.php or wherever you have your routes
-// FYI, this empty string group acts as a global middleware for
-// all routes. Of course you could do the same thing and just add
-// this only to specific routes.
-Flight::group('', function(Router $router) {
-	$router->get('/users', [ 'UserController', 'getUsers' ]);
+// app/config/routes.php — empty string group = global middleware for all routes
+use App\Middleware\SecurityHeadersMiddleware;
+use flight\net\Router;
+
+$router->group('', function (Router $router) {
+	$router->get('/users', [ \App\Controller\UserController::class, 'getUsers' ]);
 	// more routes
-}, [ SecurityHeadersMiddleware::class ]);
+}, [SecurityHeadersMiddleware::class]);
 ```
+
+Older projects may still use `app/middlewares` and `app\middlewares`; that works if folders match. New skeleton apps use **`app/Middleware/`** and **`App\Middleware`**. See [Autoloading](/learn/autoloading).
 
 ### Cross Site Request Forgery (CSRF)
 
@@ -149,6 +163,23 @@ if(Flight::session()->get('csrf_token') === null) {
 <form method="post">
 	<input type="hidden" name="csrf_token" value="<?= Flight::session()->get('csrf_token') ?>">
 	<!-- other form fields -->
+</form>
+```
+
+##### Using Twig (skeleton default)
+
+Register a Twig function or pass the token into every form view. Minimal example with a global + form field:
+
+```php
+// When configuring Twig (e.g. services.php)
+$twig->addGlobal('csrf_token', $app->session()->get('csrf_token'));
+```
+
+```html
+{# app/views/form.twig #}
+<form method="post">
+	<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+	{# other fields #}
 </form>
 ```
 
@@ -189,9 +220,9 @@ You can check the CSRF token using several methods.
 ##### Middleware
 
 ```php
-// app/middlewares/CsrfMiddleware.php
+// app/Middleware/CsrfMiddleware.php
 
-namespace app\middleware;
+namespace App\Middleware;
 
 use flight\Engine;
 
@@ -215,13 +246,13 @@ class CsrfMiddleware
 	}
 }
 
-// index.php or wherever you have your routes
-use app\middlewares\CsrfMiddleware;
+// routes.php
+use App\Middleware\CsrfMiddleware;
 
-Flight::group('', function(Router $router) {
-	$router->get('/users', [ 'UserController', 'getUsers' ]);
+$router->group('', function ($router) {
+	$router->get('/users', [ \App\Controller\UserController::class, 'getUsers' ]);
 	// more routes
-}, [ CsrfMiddleware::class ]);
+}, [CsrfMiddleware::class]);
 ```
 
 ##### Event Filters
@@ -247,7 +278,7 @@ Flight::before('start', function() {
 Cross Site Scripting (XSS) is a type of attack where a malicious form input can inject code into your website. Most of these opportunities come 
 from form values that your end users will fill out. You should **never** trust output from your users! Always assume all of them are the 
 best hackers in the world. They can inject malicious JavaScript or HTML into your page. This code can be used to steal information from your 
-users or perform actions on your website. Using Flight's view class or another templating engine like [Latte](/awesome-plugins/latte), you can easily escape output to prevent XSS attacks.
+users or perform actions on your website. Using Flight's view class or a templating engine like [Twig](/awesome-plugins/twig) or [Latte](/awesome-plugins/latte), you can easily escape output to prevent XSS attacks.
 
 ```php
 // Let's assume the user is clever as tries to use this as their name
@@ -257,28 +288,32 @@ $name = '<script>alert("XSS")</script>';
 Flight::view()->set('name', $name);
 // This will output: &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;
 
-// If you use something like Latte registered as your view class, it will also auto escape this.
-Flight::view()->render('template', ['name' => $name]);
+// Twig (skeleton default) and Latte auto-escape by default — prefer them over raw PHP echo
+Flight::render('template', ['name' => $name]);
+// Twig: {{ name }}  → escaped
+// Avoid |raw / unescaped output unless the content is fully trusted
 ```
 
 ### SQL Injection
 
 SQL Injection is a type of attack where a malicious user can inject SQL code into your database. This can be used to steal information 
 from your database or perform actions on your database. Again you should **never** trust input from your users! Always assume they are 
-out for blood. You can use prepared statements in your `PDO` objects will prevent SQL injection.
+out for blood. Use prepared statements—[SimplePdo](/learn/simple-pdo) helpers make this the default path.
 
 ```php
-// Assuming you have Flight::db() registered as your PDO object
+// Assuming you have Flight::db() registered as SimplePdo (or inject SimplePdo in the controller)
 $statement = Flight::db()->prepare('SELECT * FROM users WHERE username = :username');
 $statement->execute([':username' => $username]);
 $users = $statement->fetchAll();
 
-// If you use the PdoWrapper class, this can easily be done in one line
+// SimplePdo (preferred) — one-liners with bound parameters
 $users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = :username', [ 'username' => $username ]);
 
-// You can do the same thing with a PDO object with ? placeholders
-$statement = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
+// Same idea with ? placeholders
+$users = Flight::db()->fetchAll('SELECT * FROM users WHERE username = ?', [ $username ]);
 ```
+
+In skeleton-style controllers, prefer constructor injection of `SimplePdo` over `Flight::db()` so tests and AI-generated code stay consistent ([DIC](/learn/dependency-injection-container)).
 
 #### Insecure Example
 
@@ -300,6 +335,12 @@ $users = Flight::db()->fetchAll($sql);
 var_dump($users); // this will dump all users in the database, not just the one single username
 ```
 
+### Secrets and configuration
+
+- Put secrets in **`.env`** (or the real environment), not in committed `config.php` samples.
+- Skeleton rule: literal defaults in `config.php`; merge env at bootstrap; **do not** read `$_ENV` inside controllers—inject config instead. See [Configuration](/learn/configuration).
+- Never commit API keys, DB passwords, or session encryption keys. Point AI tools at **`SECURITY.md`** so they do not invent insecure shortcuts.
+
 ### JSONP Callback Validation
 
 If you use Flight's `Flight::jsonp()` method, be aware that Flight validates the JSONP callback parameter name against a strict allowlist regex (`/^[A-Za-z_$][\w$.]{0,127}$/`). Any callback name that does not match this pattern will cause Flight to throw an exception, preventing injection of arbitrary JavaScript through a malicious callback value.
@@ -313,16 +354,25 @@ requested from another domain outside the domain from which the resource origina
 but this can easily be handled with a hook to run before the `Flight::start()` method is called.
 
 ```php
-// app/utils/CorsUtil.php
+// app/Utils/CorsUtil.php  (skeleton: PascalCase Utils folder → App\Utils)
 
-namespace app\utils;
+namespace App\Utils;
+
+use flight\Engine;
 
 class CorsUtil
 {
-	public function set(array $params): void
+	protected Engine $app;
+
+	public function __construct(Engine $app)
 	{
-		$request = Flight::request();
-		$response = Flight::response();
+		$this->app = $app;
+	}
+
+	public function set(array $params = []): void
+	{
+		$request = $this->app->request();
+		$response = $this->app->response();
 		if ($request->getVar('HTTP_ORIGIN') !== '') {
 			$this->allowOrigins();
 			$response->header('Access-Control-Allow-Credentials', 'true');
@@ -360,20 +410,19 @@ class CorsUtil
 			'http://localhost:8100',
 		];
 
-		$request = Flight::request();
+		$request = $this->app->request();
 
 		if (in_array($request->getVar('HTTP_ORIGIN'), $allowed, true) === true) {
-			$response = Flight::response();
+			$response = $this->app->response();
 			$response->header("Access-Control-Allow-Origin", $request->getVar('HTTP_ORIGIN'));
 		}
 	}
 }
 
-// index.php or wherever you have your routes
-$CorsUtil = new CorsUtil();
-
-// This needs to be run before start runs.
-Flight::before('start', [ $CorsUtil, 'setupCors' ]);
+// bootstrap / routes — run before start
+$app = Flight::app();
+$cors = new \App\Utils\CorsUtil($app);
+$app->before('start', [ $cors, 'set' ]);
 ```
 
 ### Flight Configuration Hardening
@@ -415,7 +464,7 @@ Flight::set('flight.log_errors', true);
 #### Recommended production configuration
 
 ```php
-// index.php or app/config/config.php
+// index.php or applied from app config / bootstrap
 Flight::set('flight.allow_method_override', false);
 Flight::set('flight.debug', false);
 Flight::set('flight.log_errors', true);
@@ -441,7 +490,7 @@ Flight::halt(403, 'Access denied');
 ```
 
 ### Input Sanitization
-Never trust user input. Sanitize it using [filter_var](https://www.php.net/manual/en/function.filter-var.php) before processing to prevent malicious data from sneaking in.
+Never trust user input. Sanitize it using [filter_var](https://www.php.net/manual/en/function.filter-var.php) before processing to prevent malicious data from sneaking in. Prefer reading input via `$app->request()` (or `Flight::request()`) rather than raw `$_GET` / `$_POST` in app code.
 
 ```php
 
@@ -489,9 +538,12 @@ Flight::before('start', function() {
 
 ## See Also
 - [Sessions](/awesome-plugins/session) - How to manage user sessions securely.
-- [Templates](/learn/templates) - Using templates to auto-escape output and prevent XSS.
-- [PDO Wrapper](/learn/pdo-wrapper) - Simplified database interactions with prepared statements.
+- [Templates](/learn/templates) - Twig/Latte auto-escape and XSS.
+- [SimplePdo](/learn/simple-pdo) - Database helpers with prepared statements.
+- [PdoWrapper](/learn/pdo-wrapper) - Deprecated; use SimplePdo for new code.
 - [Middleware](/learn/middleware) - How to use middleware for simplifying the process of adding security headers.
+- [Configuration](/learn/configuration) - `.env` vs literal config, production flags.
+- [AI & Developer Experience](/learn/ai) - Keep security policy in `SECURITY.md` for agents.
 - [Responses](/learn/responses) - How to customize HTTP responses with secure headers.
 - [Requests](/learn/requests) - How to handle and sanitize user input.
 - [filter_var](https://www.php.net/manual/en/function.filter-var.php) - PHP function for input sanitization.
@@ -500,8 +552,10 @@ Flight::before('start', function() {
 
 ## Troubleshooting
 - Refer to the "See Also" section above for troubleshooting information related to issues with components of the Flight Framework.
+- If CSP blocks your scripts, add a nonce (skeleton pattern) or allowlist specific origins—do not set `script-src *` without a plan.
 
 ## Changelog
+- Docs – Skeleton `App\Middleware`, Twig CSRF/XSS notes, SimplePdo, secrets/`.env`, and `SECURITY.md` for AI-friendly projects.
 - v3.18.1 - Added Flight Configuration Hardening section covering `flight.allow_method_override`, `flight.debug`, and JSONP callback validation.
 - v3.1.0 - Added sections on CORS, Error Handling, Input Sanitization, Password Hashing, and Rate Limiting.
 - v2.0 - Added escaping for default views to prevent XSS.

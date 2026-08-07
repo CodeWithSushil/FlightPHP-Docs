@@ -1,24 +1,26 @@
-# Atkarību Injekcijas Konteiners
+# Atkarību ievadīšanas konteiners
 
 ## Pārskats
 
-Atkarību Injekcijas Konteiners (DIC) ir spēcīgs uzlabojums, kas ļauj jums pārvaldīt
-jūsu lietojumprogrammas atkarības.
+Atkarību ievadīšanas konteiners (DIC) ir jaudīgs papildinājums, kas ļauj pārvaldīt
+jūsu lietojumprogrammas atkarības. Tas ir arī viens no lielākajiem iemesliem, kāpēc Flight labi sadarbojas ar [AI kodēšanas rīkiem](/learn/ai) un vienību testiem: kontrolleri konstruktorā saņem to, kas tiem nepieciešams, nevis piekļūst globālajiem mainīgajiem.
 
-## Saprašana
+## Izpratne
 
-Atkarību Injekcija (DI) ir galvenā koncepcija mūsdienu PHP ietvaros un tiek
-izmantota, lai pārvaldītu objektu instantiāciju un konfigurāciju. Daži DIC
-bibliotēku piemēri ir: [flightphp/container](https://github.com/flightphp/container), [Dice](https://r.je/dice), [Pimple](https://pimple.symfony.com/), 
-[PHP-DI](http://php-di.org/), un [league/container](https://container.thephpleague.com/).
+Atkarību ievadīšana (DI) ir galvenā koncepcija mūsdienu PHP ietvaros un tiek
+izmantota, lai pārvaldītu objektu izveidi un konfigurāciju. Daži DIC
+bibliotēku piemēri: [flightphp/container](https://github.com/flightphp/container), [Dice](https://r.je/dice), [Pimple](https://pimple.symfony.com/),
+[PHP-DI](http://php-di.org/) un [league/container](https://container.thephpleague.com/).
 
-DIC ir izsmalcināts veids, kā ļaut jums izveidot un pārvaldīt savas klases centralizētā
-vietā. Tas ir noderīgi, kad jums jānodod tas pats objekts uz
-vairākām klasēm (piemēram, jūsu kontrolieriem vai starpprogrammatūras programmatūrai).
+DIC ir elegantīgs veids, kā izveidot un pārvaldīt savas klases centralizētā
+vietā. Tas ir noderīgi, ja jums viens un tas pats objekts jānodod vairākām
+klasēm (kontrolleriem, starpprogrammatūrai, komandām utt.).
 
-## Pamata Izmantošana
+Oficiālais [flightphp/skeleton](https://github.com/flightphp/skeleton) savieno **Dice** failā `app/config/services.php`, aizstāj kopīgo `flight\Engine` instanci un atrisina maršrutu mērķus, piemēram, `[App\Controller\HomeController::class, 'index']`. Jauniem projektiem izmantojiet šo paraugu, lai cilvēki un aģenti rediģētu vienas un tās pašas vietas.
 
-Vecais veids, kā darīt lietas, var izskatīties šādi:
+## Pamata lietošana
+
+Vecais veids, kā to darīt, varētu izskatīties šādi:
 ```php
 
 require 'vendor/autoload.php';
@@ -51,12 +53,12 @@ Flight::route('/user/@id', [ $UserController, 'view' ]);
 Flight::start();
 ```
 
-No iepriekšējā koda var redzēt, ka mēs izveidojam jaunu `PDO` objektu un nododam to
-mūsu `UserController` klasei. Tas ir labi mazai lietojumprogrammai, bet kad jūsu
-lietojumprogramma aug, jūs atklāsiet, ka izveidojat vai nododat to pašu `PDO` 
-objektu vairākās vietās. Tieši šeit DIC nāk palīgā.
+No augšējā koda var redzēt, ka mēs izveidojam jaunu `PDO` objektu un nododam to
+mūsu `UserController` klasei. Mazai lietojumprogrammai tas ir labi, bet, kad
+jūsu lietojumprogramma aug, jūs atklāsiet, ka vienu un to pašu `PDO` objektu
+izveidojat vai nododat vairākās vietās. Šeit noder DIC.
 
-Šeit ir tas pats piemērs, izmantojot DIC (izmantojot Dice):
+Šis ir tas pats piemērs, izmantojot DIC (ar Dice):
 ```php
 
 require 'vendor/autoload.php';
@@ -78,13 +80,13 @@ class UserController {
 	}
 }
 
-// izveidojiet jaunu konteineru
+// izveido jaunu konteineru
 $container = new \Dice\Dice;
 
-// pievienojiet noteikumu, lai pastāstītu konteineram, kā izveidot PDO objektu
-// neaizmirstiet to piešķirt atpakaļ sev, kā zemāk!
+// pievieno kārtulu, lai pateiktu konteineram, kā izveidot PDO objektu
+// neaizmirsti to atkārtoti piešķirt sev, kā parādīts zemāk!
 $container = $container->addRule('PDO', [
-	// shared nozīmē, ka tas pats objekts tiks atgriezts katru reizi
+	// shared nozīmē, ka katru reizi tiks atgriezts tas pats objekts
 	'shared' => true,
 	'constructParams' => ['mysql:host=localhost;dbname=test', 'user', 'pass' ]
 ]);
@@ -100,51 +102,51 @@ Flight::route('/user/@id', [ UserController::class, 'view' ]);
 Flight::start();
 ```
 
-Es deru, ka jūs varētu domāt, ka piemēram ir pievienots daudz papildu koda.
-Burvība nāk tad, kad jums ir cits kontrolieris, kam nepieciešams `PDO` objekts. 
+Varbūt jūs domājat, ka piemēram tika pievienots daudz lieka koda.
+Burvība parādās, kad jums ir cits kontrolleris, kuram nepieciešams `PDO` objekts.
 
 ```php
 
-// Ja visiem jūsu kontrolieriem ir konstruktors, kam nepieciešams PDO objekts
-// katrs no maršrutiem zemāk automātiski to saņems injicēts!!!
+// Ja visiem jūsu kontrolleriem konstruktorā ir nepieciešams PDO objekts,
+// katram no šiem maršrutiem tas tiks automātiski ievadīts!!!
 Flight::route('/company/@id', [ CompanyController::class, 'view' ]);
 Flight::route('/organization/@id', [ OrganizationController::class, 'view' ]);
 Flight::route('/category/@id', [ CategoryController::class, 'view' ]);
 Flight::route('/settings', [ SettingsController::class, 'view' ]);
 ```
 
-Papildu bonuss, izmantojot DIC, ir tas, ka vienības testēšana kļūst daudz vieglāka. Jūs varat
-izveidot viltotu objektu un nodot to jūsu klasei. Tas ir liels ieguvums, kad jūs
-rakstāt testus savai lietojumprogrammai!
+Papildu ieguvums, izmantojot DIC, ir tas, ka vienību testēšana kļūst daudz vienkāršāka. Jūs varat
+izveidot viltojuma (mock) objektu un nodot to savai klasei. Tas ir milzīgs ieguvums, rakstot
+testus savai lietojumprogrammai — un, kad AI palīgs ģenerē kontrolleri, konstruktora ievadīšana sniedz tam skaidru, konsekventu paraugu, kam sekot ([vienību testēšanas ceļvedis](/guides/unit-testing)).
 
 ### Centralizēta DIC apstrādātāja izveide
 
-Jūs varat izveidot centralizētu DIC apstrādātāju savā servisu failā, paplašinot [/learn/extending] jūsu lietojumprogrammu. Šeit ir piemērs:
+Jūs varat izveidot centralizētu DIC apstrādātāju savā pakalpojumu failā, [paplašinot](/learn/extending) savu lietojumprogrammu. Šeit ir piemērs:
 
 ```php
 // services.php
 
-// izveidojiet jaunu konteineru
+// izveido jaunu konteineru
 $container = new \Dice\Dice;
-// neaizmirstiet to piešķirt atpakaļ sev, kā zemāk!
+// neaizmirsti to atkārtoti piešķirt sev, kā parādīts zemāk!
 $container = $container->addRule('PDO', [
-	// shared nozīmē, ka tas pats objekts tiks atgriezts katru reizi
+	// shared nozīmē, ka katru reizi tiks atgriezts tas pats objekts
 	'shared' => true,
 	'constructParams' => ['mysql:host=localhost;dbname=test', 'user', 'pass' ]
 ]);
 
-// tagad mēs varam izveidot kartējamu metodi, lai izveidotu jebkuru objektu. 
+// tagad mēs varam izveidot kartējamu metodi jebkura objekta izveidei.
 Flight::map('make', function($class, $params = []) use ($container) {
 	return $container->create($class, $params);
 });
 
-// Tas reģistrē konteinera apstrādātāju, lai Flight zinātu to izmantot kontrolieriem/starpprogrammatūrai
+// Tas reģistrē konteinera apstrādātāju, lai Flight zinātu to izmantot kontrolleriem/starpprogrammatūrai
 Flight::registerContainerHandler(function($class, $params) {
-	Flight::make($class, $params);
+	return Flight::make($class, $params);
 });
 
 
-// pieņemsim, ka mums ir šāda parauga klase, kas prasa PDO objektu konstruktorā
+// pieņemsim, ka mums ir šāda parauga klase, kas konstruktorā saņem PDO objektu
 class EmailCron {
 	protected PDO $pdo;
 
@@ -157,19 +159,19 @@ class EmailCron {
 	}
 }
 
-// Un beidzot jūs varat izveidot objektus, izmantojot atkarību injekciju
+// Un visbeidzot jūs varat izveidot objektus, izmantojot atkarību ievadīšanu
 $emailCron = Flight::make(EmailCron::class);
 $emailCron->send();
 ```
 
 ### `flightphp/container`
 
-Flight ir spraudnis, kas nodrošina vienkāršu PSR-11 atbilstošu konteineru, ko jūs varat izmantot, lai apstrādātu
-jūsu atkarību injekciju. Šeit ir ātrs piemērs, kā to izmantot:
+Flight ir spraudnis, kas nodrošina vienkāršu PSR-11 saderīgu konteineru, kuru varat izmantot, lai pārvaldītu
+savu atkarību ievadīšanu. Šeit ir ātrs piemērs, kā to lietot:
 
 ```php
 
-// index.php piemēram
+// index.php, piemēram
 require 'vendor/autoload.php';
 
 use flight\Container;
@@ -189,7 +191,7 @@ class TestController {
 
   function index() {
     var_dump($this->pdo);
-	// pareizi izvadīs šo!
+	// izvadīs šo pareizi!
   }
 }
 
@@ -198,7 +200,7 @@ Flight::route('GET /', [TestController::class, 'index']);
 Flight::start();
 ```
 
-#### Uzlabota `flightphp/container` Izmantošana
+#### Papildu lietošana ar flightphp/container
 
 Jūs varat arī rekursīvi atrisināt atkarības. Šeit ir piemērs:
 
@@ -248,56 +250,106 @@ object(PdoUserRepository)#4 (1) {
 ### DICE
 
 Jūs varat arī izveidot savu DIC apstrādātāju. Tas ir noderīgi, ja jums ir pielāgots
-konteiners, ko vēlaties izmantot, kas nav PSR-11 (Dice). Skatiet 
-[pamata izmantošanu](#basic-usage) sadaļu, kā to izdarīt.
+konteiners, kuru vēlaties izmantot un kurš nav PSR-11 (Dice). Skatiet
+[ pamata lietošanas ](#basic-usage) sadaļu, lai uzzinātu, kā to izdarīt.
 
-Turklāt ir
-daži noderīgi noklusējumi, kas padarīs jūsu dzīvi vieglāku, izmantojot Flight.
+Turklāt ir daži noderīgi noklusējumi, kas atvieglos jūsu darbu, lietojot Flight.
 
-#### Engine Instances
+#### Engine instance (nepieciešama `$app` ievadīšanai)
 
-Ja jūs izmantojat `Engine` instanci savos kontrolieros/starpprogrammatūrā, šeit ir
-kā jūs to konfigurētu:
+Ja kontrolleros vai starpprogrammatūrā norādāt tipu `flight\Engine`, **Dice nedrīkst izveidot jaunu Engine**. Aizstājiet to ar to pašu instanci no sāknēšanas faila. To dara oficiālais skeleton, un tas ir paraugs, ko `AGENTS.md` sagaida no AI ģenerētiem kontrolleriem:
 
 ```php
+// Kaut kur jūsu sāknēšanas / services.php failā
+use flight\Engine;
+use flight\database\SimplePdo;
 
-// Kur kur jūsu bootstrap failā
-$engine = Flight::app();
+$app = Flight::app(); // vai $engine = Flight::app();
 
 $container = new \Dice\Dice;
 $container = $container->addRule('*', [
 	'substitutions' => [
-		// Šeit jūs nododāt instanci
-		Engine::class => $engine
+		// Svarīgi: atkārtoti izmantot sāknēto Engine — neļaujiet Dice veikt `new Engine()`
+		Engine::class => $app,
+		// Jaunam kodam vēlams izmantot SimplePdo
+		// SimplePdo::class => $db,
+		// Config::class => $config,
+		// \Twig\Environment::class => $twig,
 	]
 ]);
 
-$engine->registerContainerHandler(function($class, $params) use ($container) {
+$app->registerContainerHandler(function ($class, $params) use ($container) {
 	return $container->create($class, $params);
 });
 
-// Tagad jūs varat izmantot Engine instanci savos kontrolieros/starpprogrammatūrā
+// Neobligāts palīgs maršrutu ārpus koda
+$app->map('make', function ($class, $params = []) use ($container) {
+	return $container->create($class, $params);
+});
+```
 
-class MyController {
-	public function __construct(Engine $app) {
+```php
+// app/Controller/MyController.php  (skeleton izkārtojums — mapes nosaukums atbilst namespace)
+namespace App\Controller;
+
+use flight\Engine;
+
+class MyController
+{
+	protected Engine $app;
+
+	public function __construct(Engine $app)
+	{
 		$this->app = $app;
 	}
 
-	public function index() {
-		$this->app->render('index');
+	public function index(): void
+	{
+		// Nav Flight:: fasādes lietojumprogrammas slānī — vieglāk testēt un skaidrāk AI rīkiem
+		$this->app->render('welcome', ['message' => 'Hello']);
 	}
 }
 ```
 
-#### Citu Klases Pievienošana
+```php
+// app/config/routes.php
+use App\Controller\MyController;
 
-Ja jums ir citas klases, ko vēlaties pievienot konteineram, ar Dice tas ir viegli, jo tās automātiski atrisināsies ar konteineru. Šeit ir piemērs:
+$router->get('/', [MyController::class, 'index']);
+```
+
+Ja izlaižat `Engine` aizstāšanu, Dice var izveidot otru Engine, un jūsu kontrolleris nedalīs maršrutus, konfigurāciju vai kartēto Twig `render` no sāknēšanas faila.
+
+#### Citu koplietotu pakalpojumu pievienošana (SimplePdo, Config, Twig)
+
+```php
+use flight\database\SimplePdo;
+use flight\Engine;
+
+// Pēc tam, kad services.php izveidojat $db, $config, $twig:
+$substitutions = [
+	Engine::class => $app,
+	SimplePdo::class => $db,
+	// App\Utils\Config::class => $config,
+	// \Twig\Environment::class => $twig,
+];
+
+$container = $container->addRule('*', [
+	'substitutions' => $substitutions,
+]);
+```
+
+Tad kontrolleri var konstruktorā pieņemt `SimplePdo $db` (vai jūsu config tipu) un nekad neizsaukt `Flight::db()`. Tas atbilst [vienību testēšanas](/guides/unit-testing) norādēm un skeleton stila paraugam.
+
+#### Citu klašu pievienošana
+
+Ja jums ir citas klases, kuras vēlaties pievienot konteineram, ar Dice tas ir vienkārši, jo konteiners tās atrisinās automātiski. Šeit ir piemērs:
 
 ```php
 
 $container = new \Dice\Dice;
-// Ja jums nav jāinjekē atkarības savās klasēs
-// jums nav jādefinē nekas!
+// Ja jums nav nepieciešams ievadīt atkarības savās klasēs,
+// jums nekas nav jādefinē!
 Flight::registerContainerHandler(function($class, $params) use ($container) {
 	return $container->create($class, $params);
 });
@@ -326,19 +378,21 @@ Flight::route('/user', 'UserController->index');
 
 ### PSR-11
 
-Flight var izmantot jebkuru PSR-11 atbilstošu konteineru. Tas nozīmē, ka jūs varat izmantot jebkuru
-konteineru, kas implementē PSR-11 interfeisu. Šeit ir piemērs, izmantojot League
+Flight var izmantot arī jebkuru PSR-11 saderīgu konteineru. Tas nozīmē, ka varat izmantot jebkuru
+konteineru, kas implementē PSR-11 saskarni. Šeit ir piemērs, izmantojot League
 PSR-11 konteineru:
 
 ```php
 
 require 'vendor/autoload.php';
 
-// tā pati UserController klase kā iepriekš
+use flight\database\SimplePdo;
+
+// tā pati UserController ideja kā iepriekš, bet ar SimplePdo tipu, nevis neapstrādātu PDO
 
 $container = new \League\Container\Container();
-$container->add(UserController::class)->addArgument(PdoWrapper::class);
-$container->add(PdoWrapper::class)
+$container->add(UserController::class)->addArgument(SimplePdo::class);
+$container->add(SimplePdo::class)
 	->addArgument('mysql:host=localhost;dbname=test')
 	->addArgument('user')
 	->addArgument('pass');
@@ -349,17 +403,26 @@ Flight::route('/user', [ 'UserController', 'view' ]);
 Flight::start();
 ```
 
-Tas var būt nedaudz verboseāks nekā iepriekšējais Dice piemērs, tas joprojām
-izpilda darbu ar tiem pašiem ieguvumiem!
+Tas var būt nedaudz garāks nekā iepriekšējais Dice piemērs, taču tas joprojām
+sasniedz to pašu rezultātu ar tādiem pašiem ieguvumiem!
 
-## Skatīt Arī
-- [Paplašināšana Flight](/learn/extending) - Uzziniet, kā jūs varat pievienot atkarību injekciju savām klasēm, paplašinot ietvaru.
-- [Konfigurācija](/learn/configuration) - Uzziniet, kā konfigurēt Flight savai lietojumprogrammai.
-- [Maršrutēšana](/learn/routing) - Uzziniet, kā definēt maršrutus savai lietojumprogrammai un kā atkarību injekcija darbojas ar kontrolieriem.
-- [Starpprogrammatūra](/learn/middleware) - Uzziniet, kā izveidot starpprogrammatūru savai lietojumprogrammai un kā atkarību injekcija darbojas ar starpprogrammatūru.
+## Skatīt arī
+- [Instalācija](/install) — Skeleton izkārtojums un kur atrodas `services.php`.
+- [Automātiskā ielāde](/learn/autoloading) — `App\` namespace un mapju **reģistrs**.
+- [Flight paplašināšana](/learn/extending) — Uzziniet, kā pievienot atkarību ievadīšanu savām klasēm, paplašinot ietvaru.
+- [Konfigurācija](/learn/configuration) — Uzziniet, kā konfigurēt Flight savai lietojumprogrammai.
+- [Maršrutēšana](/learn/routing) — Uzziniet, kā definēt maršrutus savai lietojumprogrammai un kā atkarību ievadīšana darbojas ar kontrolleriem.
+- [Starpprogrammatūra](/learn/middleware) — Uzziniet, kā izveidot starpprogrammatūru savai lietojumprogrammai un kā atkarību ievadīšana darbojas ar starpprogrammatūru.
+- [Vienību testēšana](/guides/unit-testing) — Kāpēc konstruktora ievadīšana ir labāka par `Flight::` globālajiem mainīgajiem.
+- [AI un izstrādātāju pieredze](/learn/ai) — Viens DI paraugs cilvēkiem un aģentiem.
+- [SimplePdo](/learn/simple-pdo) — Ieteicamais datubāzes palīgs ievadīšanai.
 
-## Traucējummeklēšana
-- Ja jums ir problēmas ar savu konteineru, pārliecinieties, ka nododat pareizos klases nosaukumus konteineram.
+## Problēmu novēršana
+- Ja jums ir problēmas ar konteineru, pārliecinieties, ka konteineram nododat pareizos klašu nosaukumus.
+- Kontrolleri, kas norāda tipu `Engine`, bet saņem "tukšu" lietotni: pievienojiet **Engine aizstāšanu** (skatīt iepriekš). Dice nedrīkst veikt `new` otrajam Engine.
+- Klase netiek atrasta `App\Controller\…`: pārbaudiet mapju reģistru zem `app/Controller/` — skatiet [Automātiskā ielāde](/learn/autoloading).
+- Apstrādātājam ir **jāatgriež** izveidotais objekts no `registerContainerHandler` (neizsauciet `Flight::make()` bez `return`).
 
-## Izmaiņu Žurnāls
-- v3.7.0 - Pievienota iespēja reģistrēt DIC apstrādātāju Flight.
+## Izmaiņu žurnāls
+- Dokumentācija — Dokumentēta skeleton Dice + Engine aizstāšana, SimplePdo un `App\Controller` izkārtojums AI draudzīgiem projektiem.
+- v3.7.0 — Pievienota iespēja reģistrēt DIC apstrādātāju Flight.

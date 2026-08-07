@@ -1,9 +1,9 @@
 # flightphp/cache
 
-Classe leve, simples e autônoma de cache em arquivo para PHP, bifurcada de [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache)
+Classe leve, simples e independente de cache em PHP em arquivo, bifurcada de [Wruczek/PHP-File-Cache](https://github.com/Wruczek/PHP-File-Cache)
 
 **Vantagens** 
-- Leve, autônoma e simples
+- Leve, independente e simples
 - Todo o código em um único arquivo - sem drivers desnecessários.
 - Seguro - todo arquivo de cache gerado possui um cabeçalho PHP com die, tornando o acesso direto impossível mesmo que alguém conheça o caminho e seu servidor não esteja configurado corretamente
 - Bem documentado e testado
@@ -11,7 +11,7 @@ Classe leve, simples e autônoma de cache em arquivo para PHP, bifurcada de [Wru
 - Suporta PHP 7.4+
 - Gratuito sob licença MIT
 
-Este site de documentação está usando esta biblioteca para cachear cada uma das páginas!
+Este site de documentação está usando esta biblioteca para fazer cache de cada uma das páginas!
 
 Clique [aqui](https://github.com/flightphp/cache) para ver o código.
 
@@ -35,15 +35,15 @@ $app = Flight::app();
 // Você passa o diretório onde o cache será armazenado no construtor
 $app->register('cache', Cache::class, [ __DIR__ . '/../cache/' ], function(Cache $cache) {
 
-	// Isso garante que o cache só seja usado quando estiver em modo de produção
-	// ENVIRONMENT é uma constante definida no seu arquivo bootstrap ou em outro lugar da sua aplicação
+	// Isso garante que o cache seja usado apenas quando estiver em modo de produção
+	// ENVIRONMENT é uma constante que é definida no seu arquivo bootstrap ou em outro lugar da sua aplicação
 	$cache->setDevMode(ENVIRONMENT === 'development');
 });
 ```
 
 ### Obter um Valor de Cache
 
-Você usa o método `get()` para obter um valor em cache. Se quiser um método conveniente que atualize o cache caso esteja expirado, pode usar `refreshIfExpired()`.
+Você usa o método `get()` para obter um valor em cache. Se quiser um método de conveniência que atualize o cache se ele estiver expirado, pode usar `refreshIfExpired()`.
 
 ```php
 
@@ -66,7 +66,7 @@ if(empty($data)) {
 Você usa o método `set()` para armazenar um valor no cache.
 
 ```php
-Flight::cache()->set('simple-cache-test', 'my cached data', 10); // 10 segundos
+Flight::cache()->set('simple-cache-test', 'meus dados em cache', 10); // 10 segundos
 ```
 
 ### Apagar um Valor de Cache
@@ -96,15 +96,15 @@ Flight::cache()->flush();
 
 ### Extrair metadados com cache
 
-Se quiser extrair timestamps e outros metadados sobre uma entrada de cache, certifique-se de passar `true` como parâmetro correto.
+Se você quiser extrair timestamps e outros metadados sobre uma entrada de cache, certifique-se de passar `true` como parâmetro correto.
 
 ```php
 $data = $cache->refreshIfExpired("simple-cache-meta-test", function () {
-    echo "Refreshing data!" . PHP_EOL;
+    echo "Atualizando dados!" . PHP_EOL;
     return date("H:i:s"); // retorna os dados a serem armazenados em cache
-}, 10, true); // true = retornar com metadados
+}, 10, true); // true = retorna com metadados
 // ou
-$data = $cache->get("simple-cache-meta-test", true); // true = retornar com metadados
+$data = $cache->get("simple-cache-meta-test", true); // true = retorna com metadados
 
 /*
 Exemplo de item em cache recuperado com metadados:
@@ -116,11 +116,11 @@ Exemplo de item em cache recuperado com metadados:
 }
 
 Usando metadados, podemos, por exemplo, calcular quando o item foi salvo ou quando expira
-Também podemos acessar os próprios dados pela chave "data"
+Também podemos acessar os próprios dados com a chave "data"
 */
 
-$expiresin = ($data["time"] + $data["expire"]) - time(); // obtém o timestamp unix quando os dados expiram e subtrai o timestamp atual
-$cacheddate = $data["data"]; // acessamos os próprios dados pela chave "data"
+$expiresin = ($data["time"] + $data["expire"]) - time(); // obtém o timestamp unix quando os dados expiram e subtrai o timestamp atual dele
+$cacheddate = $data["data"]; // acessamos os próprios dados com a chave "data"
 
 echo "Último salvamento do cache: $cacheddate, expira em $expiresin segundos";
 ```

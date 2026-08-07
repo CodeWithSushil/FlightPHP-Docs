@@ -148,7 +148,7 @@ class Permissions {
 
 	public function order(string $current_role, int $user_id) {
 		// Assuming you set this up beforehand
-		/** @var \flight\database\PdoWrapper $db */
+		/** @var \flight\database\SimplePdo $db */
 		$db = Flight::db();
 		$allowed_permissions = [ 'read' ]; // everyone can view an order
 		if($current_role === 'manager') {

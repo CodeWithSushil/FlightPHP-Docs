@@ -324,7 +324,7 @@ Create `app/views/404.latte`:
 
 ## Next Steps
 - **Add Styling**: Use CSS in your templates for a better look.
-- **Database**: Replace `posts.json` with a database like SQLite using `PdoWrapper`.
+- **Database**: Replace `posts.json` with a database like SQLite using [SimplePdo](/learn/simple-pdo).
 - **Validation**: Add checks for duplicate slugs or empty inputs.
 - **Middleware**: Implement authentication for post creation.
 

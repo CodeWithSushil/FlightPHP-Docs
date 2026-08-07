@@ -134,19 +134,19 @@ Run `composer test` to verify the route behaves as expected. For more on [reques
 
 For more complex scenarios, use [dependency injection](/learn/dependency-injection-container) (DI) to make controllers testable. Avoid Flight’s globals (e.g., `Flight::set()`, `Flight::map()`, `Flight::register()`) as they act like global state, requiring mocks for every test. Instead, use Flight’s DI container, [DICE](https://github.com/Level-2/Dice), [PHP-DI](https://php-di.org/) or manual DI.
 
-Let’s use [`flight\database\PdoWrapper`](/learn/pdo-wrapper) instead of raw PDO. This wrapper is much easier to mock and unit test!
+Let’s use [`flight\database\SimplePdo`](/learn/simple-pdo) instead of raw PDO. This helper is much easier to mock and unit test (and is preferred over the deprecated `PdoWrapper`).
 
 Here’s a controller that saves a user to a database and sends a welcome email:
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 
 class UserController {
     protected $app;
     protected $db;
     protected $mailer;
 
-    public function __construct(Engine $app, PdoWrapper $db, MailerInterface $mailer) {
+    public function __construct(Engine $app, SimplePdo $db, MailerInterface $mailer) {
         $this->app = $app;
         $this->db = $db;
         $this->mailer = $mailer;
@@ -168,7 +168,7 @@ class UserController {
 ```
 
 **Key Points**:
-- The controller depends on a [`PdoWrapper`](/learn/pdo-wrapper) instance and a `MailerInterface` (a pretend third-party email service).
+- The controller depends on a [`SimplePdo`](/learn/simple-pdo) instance and a `MailerInterface` (a pretend third-party email service).
 - Dependencies are injected via the constructor, avoiding globals.
 
 ### Testing the Controller with Mocks
@@ -177,6 +177,7 @@ Now, let’s test the `UserController`’s behavior: validating emails, saving t
 
 ```php
 // tests/UserControllerDICTest.php
+use flight\database\SimplePdo;
 use PHPUnit\Framework\TestCase;
 
 class UserControllerDICTest extends TestCase {
@@ -186,8 +187,8 @@ class UserControllerDICTest extends TestCase {
 		// Here we use PHPUnit's built-in mock for PDOStatement
 		$statementMock = $this->createMock(PDOStatement::class);
 		$statementMock->method('execute')->willReturn(true);
-		// Using an anonymous class to mock PdoWrapper
-        $mockDb = new class($statementMock) extends PdoWrapper {
+		// Using an anonymous class to mock SimplePdo
+        $mockDb = new class($statementMock) extends SimplePdo {
 			protected $statementMock;
 			public function __construct($statementMock) {
 				$this->statementMock = $statementMock;
@@ -218,7 +219,7 @@ class UserControllerDICTest extends TestCase {
     }
 
     public function testInvalidEmailSkipsSaveAndEmail() {
-		 $mockDb = new class() extends PdoWrapper {
+		 $mockDb = new class() extends SimplePdo {
 			// An empty constructor bypasses the parent constructor
 			public function __construct() {}
             public function runQuery(string $sql, array $params = []): PDOStatement {
@@ -249,16 +250,16 @@ class UserControllerDICTest extends TestCase {
 ```
 
 **Key Points**:
-- We mock `PdoWrapper` and `MailerInterface` to avoid real database or email calls.
+- We mock `SimplePdo` and `MailerInterface` to avoid real database or email calls.
 - Tests verify behavior: valid emails trigger database inserts and email sends; invalid emails skip both.
-- Mock third-party dependencies (e.g., `PdoWrapper`, `MailerInterface`), letting the controller’s logic run.
+- Mock third-party dependencies (e.g., `SimplePdo`, `MailerInterface`), letting the controller’s logic run.
 
 ### Mocking too much
 
 Be careful not to mock too much of your code. Let me give you an example below about why this might be a bad thing using our `UserController`. We'll change that check into a method called `isEmailValid` (using `filter_var`) and the other new additions into a separate method called `registerUser`.
 
 ```php
-use flight\database\PdoWrapper;
+use flight\database\SimplePdo;
 use flight\Engine;
 
 // UserControllerDICV2.php
@@ -267,7 +268,7 @@ class UserControllerDICV2 {
     protected $db;
     protected $mailer;
 
-    public function __construct(Engine $app, PdoWrapper $db, MailerInterface $mailer) {
+    public function __construct(Engine $app, SimplePdo $db, MailerInterface $mailer) {
         $this->app = $app;
         $this->db = $db;
         $this->mailer = $mailer;

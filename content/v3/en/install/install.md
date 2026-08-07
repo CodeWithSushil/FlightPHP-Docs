@@ -19,15 +19,60 @@ This will only put the Flight core files on your system. You will need to define
 You can also [download the files](https://github.com/flightphp/core/archive/master.zip)
  directly and extract them to your web directory.
 
+Basic install is perfect for learning, micro APIs, and copy-paste experiments. For a full app layout that humans *and* [AI coding tools](/learn/ai) can follow the same way, use the recommended skeleton below.
+
 ## Recommended Install
 
 It is highly recommended to start with the [flightphp/skeleton](https://github.com/flightphp/skeleton) app for any new projects. Installation is a breeze.
 
 ```bash
 composer create-project flightphp/skeleton my-project/
+cd my-project/
+composer start
+# optional sample DB + posts demo
+php runway migrate
 ```
 
-This will set up your project structure, configure autoloading with namespaces, setup a config, and provide other tools like [Tracy](/awesome-plugins/tracy), [Tracy Extensions](/awesome-plugins/tracy-extensions), and [Runway](/awesome-plugins/runway)
+That step sets up project structure, Composer PSR-4 autoloading, config, and tools like [Tracy](/awesome-plugins/tracy), [Tracy Extensions](/awesome-plugins/tracy-extensions), and [Runway](/awesome-plugins/runway). It also ships root **`AGENTS.md`** (and scoped copies under `app/`) so AI assistants share one layout with you—see [AI & developer experience](/learn/ai).
+
+### What the skeleton gives you
+
+```text
+project-root/
+├── AGENTS.md              # AI / agent source of truth
+├── SECURITY.md            # Security expectations
+├── .env.example           # Secrets / deploy overlays (copied to .env)
+├── public/index.php       # Web entry only
+├── app/
+│   ├── config/            # bootstrap, routes, services, config_sample.php
+│   ├── Controller/        # App\Controller\*  (PascalCase folder!)
+│   ├── Middleware/        # App\Middleware\*
+│   ├── Model/             # App\Model\* (ActiveRecord)
+│   ├── Utils/             # Config, Env, DatabaseFactory
+│   ├── commands/          # Runway CLI commands
+│   ├── views/             # Twig templates (*.twig)
+│   ├── cache/
+│   └── log/
+├── migrations/            # SQL migrations (.sql / .mysql.sql)
+└── tests/                 # PHPUnit
+```
+
+**Namespaces follow folder case.** Composer maps `"App\\": "app/"`, so:
+
+| Path on disk | Namespace |
+|--------------|-----------|
+| `app/Controller/HomeController.php` | `App\Controller\HomeController` |
+| `app/Middleware/…` | `App\Middleware\…` |
+| `app/Model/…` | `App\Model\…` |
+| `app/Utils/…` | `App\Utils\…` |
+
+On Linux, `app/controller/` is **not** the same as `app/Controller/`. Autoloading is case-sensitive—match the skeleton’s PascalCase folders. Details: [Autoloading](/learn/autoloading).
+
+**Stack defaults (new projects):** Twig views, SimplePdo + ActiveRecord, Dice with `Engine` injection (prefer no `Flight::` inside app classes), optional SQLite after `php runway migrate`.
+
+`create-project` typically copies `app/config/config_sample.php` → `config.php` and `.env.example` → `.env` when present. Routes live in `app/config/routes.php`; services and DI live in `app/config/services.php`.
+
+> **Docs ↔ skeleton:** These docs teach Flight **APIs** (often with short `Flight::` samples). The skeleton fixes **application shape**. When adding code under `app/`, follow the skeleton tree; use the docs for method names, options, and plugins.
 
 ## Configure your Web Server
 
@@ -79,7 +124,7 @@ RewriteRule ^(.*)$ index.php
 
 ### Nginx
 
-Make sure Nginx is already installed on your system. If not, google how to Nginx Apache on your system.
+Make sure Nginx is already installed on your system. If not, google how to install Nginx on your system.
 
 For Nginx, add the following to your server declaration:
 
@@ -112,7 +157,7 @@ Flight::route('/', function () {
 Flight::start();
 ```
 
-With the skeleton app, this is already configured and handled in your `app/config/routes.php` file. Services are configured in `app/config/services.php`
+With the skeleton app, the public entry only boots the app. Routes are registered in `app/config/routes.php` (typically `[App\Controller\…::class, 'method']` so Dice can inject dependencies). Services, Twig, SimplePdo, and the container are wired in `app/config/services.php`. That structure is intentional so AI tools and humans edit the same places every time.
 
 ## Installing PHP
 

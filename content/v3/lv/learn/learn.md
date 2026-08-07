@@ -1,23 +1,22 @@
-# Uzzināt par Flight
+# Uzziniet par Flight
 
-Flight ir ātrs, vienkāršs, paplašināms ietvars PHP. Tas ir diezgan daudzpusīgs un to var izmantot jebkura veida tīmekļa lietojumprogrammas izveidei. 
-Tas ir izveidots ar vienkāršību prātā un ir uzrakstīts tā, lai būtu viegli saprast un izmantot.
+Flight ir ātrs, vienkāršs un paplašināms PHP ietvars. Tas ir diezgan daudzpusīgs, un to var izmantot jebkura veida tīmekļa lietojumprogrammu izveidei. Tas ir izstrādāts, domājot par vienkāršību, un ir rakstīts tā, lai to būtu viegli saprast un lietot — gan cilvēkiem, gan [AI kodēšanas palīgiem](/learn/ai).
 
-> **Piezīme:** Jūs redzēsiet piemērus, kas izmanto `Flight::` kā statisku mainīgo un dažus, kas izmanto `$app->` Engine objektu. Abi darbojas savstarpēji aizstājami. `$app` un `$this->app` kontrolierī/vidējā ir ieteicamais pieeja no Flight komandas.
+> **Piezīme:** Jūs redzēsiet piemērus, kuros `Flight::` tiek izmantots kā statisks mainīgais, un dažus, kuros tiek izmantots `$app->` Engine objekts. Abi savstarpēji aizvietojami. `$app` un `$this->app` kontrolierī/starpprogrammatūrā ir Flight komandas ieteiktā pieeja (un to oficiālais skeletons + `AGENTS.md` nosaka kā standartu jauniem projektiem).
 
-## Kodola Komponenti
+## Pamatkomponenti
 
 ### [Maršrutēšana](/learn/routing)
 
-Uzziniet, kā pārvaldīt maršrutus savai tīmekļa lietojumprogrammai. Tas ietver arī maršrutu grupēšanu, maršruta parametrus un vidējo.
+Uzziniet, kā pārvaldīt maršrutus savā tīmekļa lietojumprogrammā. Tas ietver arī maršrutu grupēšanu, maršrutu parametrus un starpprogrammatūru.
 
-### [Vidējais](/learn/middleware)
+### [Starpprogrammatūra](/learn/middleware)
 
-Uzziniet, kā izmantot vidējo, lai filtrētu pieprasījumus un atbildes savā lietojumprogrammā.
+Uzziniet, kā izmantot starpprogrammatūru, lai filtrētu pieprasījumus un atbildes savā lietojumprogrammā.
 
-### [Autoloadēšana](/learn/autoloading)
+### [Automātiskā ielāde](/learn/autoloading)
 
-Uzziniet, kā automātiski ielādēt savas klases savā lietojumprogrammā.
+Uzziniet, kā automātiski ielādēt savas klases. Mapes **reģistram** jāatbilst jūsu vārdtelpām—skeletons izmanto `App\` un PascalCase mapes, piemēram, `app/Controller/`.
 
 ### [Pieprasījumi](/learn/requests)
 
@@ -27,80 +26,78 @@ Uzziniet, kā apstrādāt pieprasījumus un atbildes savā lietojumprogrammā.
 
 Uzziniet, kā nosūtīt atbildes saviem lietotājiem.
 
-### [HTML Veidnes](/learn/templates)
+### [HTML veidnes](/learn/templates)
 
-Uzziniet, kā izmantot iebūvēto skata dzinēju, lai renderētu savas HTML veidnes.
+Uzziniet, kā renderēt HTML, izmantojot Twig (skeletona noklusējums), Latte vai citus dzinējus—ne tikai iebūvētos PHP skatus.
 
 ### [Drošība](/learn/security)
 
-Uzziniet, kā aizsargāt savu lietojumprogrammu no izplatītiem drošības draudiem.
+Uzziniet, kā aizsargāt savu lietojumprogrammu no izplatītiem drošības apdraudējumiem.
 
 ### [Konfigurācija](/learn/configuration)
 
 Uzziniet, kā konfigurēt ietvaru savai lietojumprogrammai.
 
-### [Notikumu Pārvaldnieks](/learn/events)
+### [Notikumu pārvaldnieks](/learn/events)
 
-Uzziniet, kā izmantot notikumu sistēmu, lai pievienotu pielāgotus notikumus savai lietojumprogrammai.
+Uzziniet, kā izmantot notikumu sistēmu, lai savai lietojumprogrammai pievienotu pielāgotus notikumus.
 
-### [Paplašināšana Flight](/learn/extending)
+### [Flight paplašināšana](/learn/extending)
 
 Uzziniet, kā paplašināt ietvaru, pievienojot savas metodes un klases.
 
-### [Metodes Āķi un Filtrēšana](/learn/filtering)
+### [Metodes āķi un filtrēšana](/learn/filtering)
 
 Uzziniet, kā pievienot notikumu āķus savām metodēm un iekšējām ietvara metodēm.
 
-### [Atkarību Injekcijas Konteiners (DIC)](/learn/dependency-injection-container)
+### [Atkarību injekcijas konteiners (DIC)](/learn/dependency-injection-container)
 
 Uzziniet, kā izmantot atkarību injekcijas konteinerus (DIC), lai pārvaldītu savas lietojumprogrammas atkarības.
 
-## Palīglasu Klases
+## Palīgklases
 
 ### [Kolekcijas](/learn/collections)
 
-Kolekcijas tiek izmantotas, lai turētu datus un tās būtu pieejamas kā masīvs vai kā objekts vieglākai izmantošanai.
+Kolekcijas tiek izmantotas, lai saglabātu datus un būtu pieejamas kā masīvs vai kā objekts, lai atvieglotu lietošanu.
 
-### [JSON Apvalks](/learn/json)
+### [JSON ietinējs](/learn/json)
 
-Šim ir dažas vienkāršas funkcijas, lai jūsu JSON kodēšana un dekodēšana būtu konsekventa.
+Tajā ir dažas vienkāršas funkcijas, lai jūsu JSON kodēšana un atkodēšana būtu konsekventa.
 
 ### [SimplePdo](/learn/simple-pdo)
 
-PDO dažreiz var radīt vairāk galvassāpju nekā nepieciešams. SimplePdo ir moderna PDO palīgklašu ar ērtām metodēm, piemēram, `insert()`, `update()`, `delete()` un `transaction()`, lai datubāzes operācijas padarītu daudz vieglākas.
+PDO reizēm var sagādāt vairāk galvassāpju, nekā nepieciešams. SimplePdo ir mūsdienīga PDO palīgklase ar ērtām metodēm, piemēram, `insert()`, `update()`, `delete()` un `transaction()`, lai datubāzes darbības būtu daudz vienkāršākas.
 
 ### [PdoWrapper](/learn/pdo-wrapper) (Novecojis)
 
-Sākotnējais PDO apvalks ir novecojis no v3.18.0. Lūdzu, izmantojiet [SimplePdo](/learn/simple-pdo) tā vietā.
+Sākotnējais PDO ietinējs ir novecojis no v3.18.0. Lūdzu, tā vietā izmantojiet [SimplePdo](/learn/simple-pdo).
 
-### [Augšupielādētā Faila Pārvaldnieks](/learn/uploaded-file)
+### [Augšupielādēto failu apstrādātājs](/learn/uploaded-file)
 
-Vienkārša klase, lai palīdzētu pārvaldīt augšupielādētos failus un pārvietot tos uz pastāvīgu atrašanās vietu.
+Vienkārša klase, kas palīdz pārvaldīt augšupielādētos failus un pārvietot tos uz pastāvīgu atrašanās vietu.
 
-## Svarīgi Koncepti
+## Svarīgi jēdzieni
 
-### [Kāpēc Ietvars?](/learn/why-frameworks)
+### [Kāpēc ietvars?](/learn/why-frameworks)
 
-Šeit ir īss raksts par to, kāpēc jums vajadzētu izmantot ietvaru. Ir laba ideja saprast ietvara izmantošanas priekšrocības, pirms sākat to izmantot.
+Šeit ir īss raksts par to, kāpēc jums vajadzētu izmantot ietvaru. Ir labi saprast ietvaru izmantošanas priekšrocības, pirms sākat to lietot.
 
-Turklāt ir izveidots lielisks mācību ceļvedis no [@lubiana](https://git.php.fail/lubiana). Lai gan tas neiet dziļi Flight specifiski, 
-šis ceļvedis palīdzēs jums saprast dažus no galvenajiem konceptiem, kas saistīti ar ietvaru, un kāpēc tie ir izdevīgi izmantot. 
-Jūs varat atrast mācību ceļvedi [šeit](https://git.php.fail/lubiana/no-framework-tutorial/src/branch/master/README.md).
+Turklāt izcilu apmācību ir izveidojis [@lubiana](https://git.php.fail/lubiana). Lai gan tajā nav detalizēti aprakstīts tieši Flight, šī rokasgrāmata palīdzēs jums saprast dažus galvenos jēdzienus, kas saistīti ar ietvariem, un kāpēc tos ir izdevīgi izmantot. Apmācību varat atrast [šeit](https://git.php.fail/lubiana/no-framework-tutorial/src/branch/master/README.md).
 
-### [Flight Salīdzinājumā ar Citiem Ietvariem](/learn/flight-vs-another-framework)
+### [Flight salīdzinājumā ar citiem ietvariem](/learn/flight-vs-another-framework)
 
-Ja jūs migrējat no cita ietvara, piemēram, Laravel, Slim, Fat-Free vai Symfony uz Flight, šī lapa palīdzēs jums saprast atšķirības starp abiem.
+Ja pārejat no cita ietvara, piemēram, Laravel, Slim, Fat-Free vai Symfony, uz Flight, šī lapa palīdzēs jums saprast atšķirības starp tiem.
 
-## Citi Temati
+## Citas tēmas
 
-### [Vienības Testēšana](/learn/unit-testing)
+### [Vienību testēšana](/learn/unit-testing)
 
-Sekojiet šim ceļvedim, lai uzzinātu, kā veikt vienības testēšanu savam Flight kodam, lai tas būtu stingrs kā klints.
+Sekojiet šai rokasgrāmatai, lai uzzinātu, kā veikt vienību testus savam Flight kodam, lai tas būtu ļoti stabils.
 
-### [AI & Izstrādātāja Pieredze](/learn/ai)
+### [AI un izstrādātāja pieredze](/learn/ai)
 
-Uzziniet, kā Flight darbojas ar AI rīkiem un modernām izstrādātāja darba plūsmēm, lai palīdzētu jums kodēt ātrāk un gudrāk.
+Flight ir veidots, lai sadarbotos ar programmēšanas LLM: `AGENTS.md`, Runway `ai:*` komandas un viens skaidrs skeletona izkārtojums, lai aģenti paliktu uz pareizā ceļa.
 
-### [Migrēšana v2 -> v3](/learn/migrating-to-v3)
+### [Pāreja no v2 uz v3](/learn/migrating-to-v3)
 
-Atpakaļsaderība lielākoties ir saglabāta, bet ir daži izmaiņas, par kurām jums vajadzētu zināt, migrējot no v2 uz v3.
+Atpakaļsaderība lielākoties ir saglabāta, taču ir dažas izmaiņas, par kurām jums jāzina, pārejot no v2 uz v3.
