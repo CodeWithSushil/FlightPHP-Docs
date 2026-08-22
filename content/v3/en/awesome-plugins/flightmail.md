@@ -1,5 +1,7 @@
 # FlightMail
 
+> **Third-party plugin** - maintained by [Ryan Stubbs](https://ryanstubbs.co.uk) ([ryanstubbs/flightmail](https://github.com/ryanstubbs/flightmail), MIT licensed). Not part of Flight core - please report issues on [its GitHub repo](https://github.com/ryanstubbs/flightmail/issues).
+
 [ryanstubbs/flightmail](https://github.com/ryanstubbs/flightmail) lets you send email from your Flight app without the headaches. It wraps **Symfony Mailer** - the most battle-tested mail library in PHP - and makes it feel like part of Flight. One line to install, one fluent chain to send:
 
 ```php
@@ -15,6 +17,7 @@ Flight::mail()->compose()
 - **Any provider, one line each.** SMTP, Postmark, Sendgrid, Mailgun, Amazon SES, Brevo and friends all work through simple DSN strings.
 - **Use several providers at once.** Transactional mail through Postmark, newsletters through your own SMTP - pick per message.
 - **Templates if you want them.** Render bodies with Twig or Latte. Don't want templates? Just pass strings and install nothing extra.
+- **Send-time polish.** Optional CSS inlining and automatic plain-text parts derived from your HTML, powered by libraries you only install if you use them.
 - **Boring in the best way.** Lazy connections, clear errors instead of silently swallowed mail, and everything is swappable if you need something custom.
 
 ## Requirements
@@ -38,7 +41,14 @@ composer require twig/twig      # for .twig templates
 composer require latte/latte    # for .latte templates
 ```
 
-Both can be installed side by side; FlightMail picks the right one based on the file extension.
+Two more optional libraries power the send-time enhancements covered [below](#styling-html-and-generating-text-parts):
+
+```bash
+composer require pelago/emogrifier         # for CSS inlining ("inline_css")
+composer require league/html-to-markdown   # for Markdown text parts ("text_from_html")
+```
+
+All of these can be installed side by side; FlightMail picks the right one based on what you configure.
 
 ## Your first email
 
@@ -147,6 +157,73 @@ A few things worth knowing about templates:
 - The engine is chosen by extension: `.twig` → Twig, `.latte` → Latte, anything else → your configured default (`renderer` option).
 - An explicit `->html()` or `->text()` body always wins over a template, so you can set a default template and override it per message.
 
+## Styling HTML and generating text parts
+
+Two optional send-time enhancements, both off by default and both powered by libraries you only install if you want them:
+
+| Feature             | Install                   | Config key       |
+| ------------------- | ------------------------- | ---------------- |
+| CSS inlining        | `pelago/emogrifier`       | `inline_css`     |
+| Text part from HTML | `league/html-to-markdown` | `text_from_html` |
+
+### Inline CSS into your HTML email
+
+Gmail and most webmail clients strip `<style>` blocks - inline `style=""` attributes are the only styling they reliably honor. Writing those by hand is miserable; let [Emogrifier](https://github.com/MyIntervals/emogrifier) do it at send time:
+
+```bash
+composer require pelago/emogrifier
+```
+
+```php
+MailPlugin::install([
+    'dsns' => ['default' => 'smtp://user:pass@localhost:1025'],
+    'inline_css' => true,
+]);
+```
+
+With that on, every HTML body gets its CSS inlined just before sending - whether it came from a template or `->html()`. A message like `<style>p { color: red; }</style><p>Hi</p>` goes out as `<p style="color: red;">Hi</p>`.
+
+To inject shared styles into every email (brand colors, resets) without repeating them in each template, pass rules directly or point at a stylesheet file:
+
+```php
+'inline_css' => ['css_file' => __DIR__ . '/mail-styles/base.css'],
+// or
+'inline_css' => ['css' => '.button { background: #0a84ff; color: #fff; }'],
+```
+
+Per-message control:
+
+```php
+$message->inlineCss();          // force inlining for this one message
+$message->withoutInlineCss();   // skip it even when globally enabled
+```
+
+### Generate the text part from your HTML
+
+Best practice is to send an HTML and a plain-text version together, but writing both is tedious. FlightMail can derive the text part from the final HTML automatically - basic conversion needs no extra dependency, since the converter ships with Symfony Mime:
+
+```php
+MailPlugin::install([
+    'dsns' => ['default' => 'smtp://user:pass@localhost:1025'],
+    'text_from_html' => true,       // Markdown when possible, plain otherwise
+]);
+```
+
+Modes:
+
+- `true` or `'auto'` - Markdown output if `league/html-to-markdown` is installed, otherwise simple tag-stripping.
+- `'markdown'` - force Markdown (`composer require league/html-to-markdown`; headings become `==`, links `[text](url)`, bold `**bold**`).
+- `'plain'` - always strip tags; works with zero extra packages.
+
+Generation runs after rendering and CSS inlining, and only when the message has an HTML body but no text body - an explicit `->text()` or `->textTemplate()` always wins. Per-message overrides mirror inlining:
+
+```php
+$message->textFromHtml('plain');    // force tag-stripping for this one
+$message->withoutTextFromHtml();    // HTML-only email
+```
+
+Enable a mode whose library isn't installed and you get a clear error naming the exact `composer require` to run - never silent degradation.
+
 ## Choosing a provider
 
 Providers plug in through DSN strings. Install the bridge package, paste the DSN into `dsns`, done.
@@ -222,6 +299,10 @@ MailPlugin::install([
 
     // Tweak the Latte engine at boot: fn(Latte\Engine $engine): void.
     'latte' => ['setup' => static fn (Latte\Engine $e) => $e->addExtension(new MyExtension())],
+
+    // Send-time body enhancements (see "Styling HTML and generating text parts").
+    'inline_css' => true,           // or ['css' => '...', 'css_file' => '...']
+    'text_from_html' => true,       // or 'plain' / 'markdown'
 
     // Custom DSN schemes, custom renderers, pre-send hooks (see below).
     'transport_factories' => [],
@@ -304,23 +385,6 @@ $plugin->eventDispatcher($dispatcher); // receives MessageEvent before each send
 $plugin->logger($logger);              // transport-level logs
 ```
 
-## Using FlightMail outside Flight
-
-The core has no framework coupling - instantiate it anywhere:
-
-```php
-use ryanstubbs\FlightMail\Mailer;
-use ryanstubbs\FlightMail\Render\RendererFactory;
-use ryanstubbs\FlightMail\Transport\TransportManager;
-
-$mailer = new Mailer(
-    new TransportManager(['default' => 'smtp://127.0.0.1:1025']),
-    new RendererFactory(['templates' => ['paths' => [__DIR__ . '/templates']]]),
-);
-
-$mailer->compose()->to('...')->template('welcome.latte', ['name' => 'Ryan'])->send();
-```
-
 ## API cheat sheet
 
 ```php
@@ -337,6 +401,9 @@ $message->html(string)                       // HTML string body
 $message->template($name, $params)           // HTML body from a template
 $message->htmlTemplate($name, $params)       // alias of template()
 $message->textTemplate($name, $params)       // text body from a template
+$message->inlineCss() / ->withoutInlineCss() // CSS inlining per message
+$message->textFromHtml($mode)                // auto text part: true/'auto'/'plain'/'markdown'/false
+$message->withoutTextFromHtml()              // HTML-only email
 $message->transport($name)                   // route via a named DSN
 $message->send(): ?SentMessage               // render + send
 

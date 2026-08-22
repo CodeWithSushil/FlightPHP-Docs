@@ -83,7 +83,7 @@ Encryption is crucial for any application that stores sensitive data. Encrypting
 
 Sending email is a core need for most web applications - welcome messages, password resets, notifications. These libraries make it painless while keeping deliverability solid.
 
-- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail wraps Symfony Mailer with a fluent Flight-friendly API. Send through SMTP or any major provider via simple DSN strings, route different providers per message, and render bodies with Twig or Latte templates.
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail wraps Symfony Mailer with a fluent Flight-friendly API. Send through SMTP or any major provider via simple DSN strings, route different providers per message, and render bodies with Twig or Latte templates. This is an unofficial plugin for Flight and is not maintained by the Flight team.
 
 ## Job Queue
 
