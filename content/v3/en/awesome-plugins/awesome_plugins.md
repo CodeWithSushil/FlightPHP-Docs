@@ -79,6 +79,12 @@ Encryption is crucial for any application that stores sensitive data. Encrypting
 
 - [defuse/php-encryption](/awesome-plugins/php-encryption) - This is a library that can be used to encrypt and decrypt data. Getting up and running is fairly simple to start encrypting and decrypting data.
 
+## Email
+
+Sending email is a core need for most web applications - welcome messages, password resets, notifications. These libraries make it painless while keeping deliverability solid.
+
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail wraps Symfony Mailer with a fluent Flight-friendly API. Send through SMTP or any major provider via simple DSN strings, route different providers per message, and render bodies with Twig or Latte templates.
+
 ## Job Queue
 
 Job queues are really helpful to asynchronously process tasks. This can be sending emails, processing images, or anything that doesn't need to be done in real time.
