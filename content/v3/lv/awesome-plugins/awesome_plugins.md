@@ -79,6 +79,12 @@ Datubāzes ir lielākās daļas lietotņu kodols. Tā ir vieta, kur saglabāt un
 
 - [defuse/php-encryption](/awesome-plugins/php-encryption) - Šī ir bibliotēka, ko var izmantot, lai šifrētu un atšifrētu datus. Darba sākšana ir diezgan vienkārša, lai sāktu šifrēt un atšifrēt datus.
 
+## E-pasts
+
+E-pasta sūtīšana ir pamatvajadzība lielākajai daļai tīmekļa lietotņu - sveiciena ziņojumi, paroles atiestatīšana, paziņojumi. Šīs bibliotēkas padara to nesāpīgu, saglabājot piegādi uzticamu.
+
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail ietver Symfony Mailer ar plūstošu, Flight draudzīgu API. Sūtiet caur SMTP vai jebkuru lielāko pakalpojumu sniedzēju, izmantojot vienkāršas DSN virknes, novirziet dažādus pakalpojumu sniedzējus katrā ziņojumā un renderējiet saturu ar Twig vai Latte veidnēm. Šis ir neoficiāls spraudnis Flight un to neuztur Flight komanda.
+
 ## Darbu rinda
 
 Darbu rindas ir patiešām noderīgas, lai asinhroni apstrādātu uzdevumus. Tas var būt e-pasta sūtīšana, attēlu apstrāde vai jebkas, kas nav jādara reālā laikā.

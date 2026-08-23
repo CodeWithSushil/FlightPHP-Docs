@@ -79,6 +79,12 @@ Le chiffrement est crucial pour toute application qui stocke des données sensib
 
 - [defuse/php-encryption](/awesome-plugins/php-encryption) - C'est une bibliothèque qui peut être utilisée pour chiffrer et déchiffrer des données. Démarrer et exécuter est assez simple pour commencer à chiffrer et déchiffrer des données.
 
+## E-mail
+
+L'envoi d'e-mails est un besoin essentiel pour la plupart des applications web - messages de bienvenue, réinitialisations de mot de passe, notifications. Ces bibliothèques rendent cela indolore tout en maintenant une délivrabilité solide.
+
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail encapsule Symfony Mailer avec une API fluide adaptée à Flight. Envoyez via SMTP ou n'importe quel fournisseur majeur grâce à de simples chaînes DSN, routez différents fournisseurs par message, et générez les corps avec des templates Twig ou Latte. Il s'agit d'un plugin non officiel pour Flight, non maintenu par l'équipe Flight.
+
 ## File d'Attente de Tâches
 
 Les files d'attente de tâches sont vraiment utiles pour traiter des tâches de manière asynchrone. Cela peut être l'envoi d'emails, le traitement d'images, ou tout ce qui n'a pas besoin d'être fait en temps réel.

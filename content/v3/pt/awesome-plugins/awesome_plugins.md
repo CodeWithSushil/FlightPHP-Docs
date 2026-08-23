@@ -79,6 +79,12 @@ A criptografia é crucial para qualquer aplicação que armazena dados sensívei
 
 - [defuse/php-encryption](/awesome-plugins/php-encryption) - Esta é uma biblioteca que pode ser usada para criptografar e descriptografar dados. Começar é bastante simples para começar a criptografar e descriptografar dados.
 
+## E-mail
+
+Enviar e-mail é uma necessidade central para a maioria das aplicações web - mensagens de boas-vindas, redefinição de senha, notificações. Essas bibliotecas tornam isso simples sem perder a confiabilidade da entrega.
+
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail envolve o Symfony Mailer com uma API fluente e amigável ao Flight. Envie por SMTP ou qualquer provedor importante via strings DSN simples, roteie provedores diferentes por mensagem e renderize corpos com templates Twig ou Latte. Este é um plugin não oficial para Flight e não é mantido pela equipe do Flight.
+
 ## Fila de Jobs
 
 Filas de jobs são realmente úteis para processar tarefas de forma assíncrona. Isso pode ser enviar emails, processar imagens ou qualquer coisa que não precise ser feita em tempo real.
