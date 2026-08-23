@@ -79,6 +79,12 @@ Enkripsi sangat penting untuk aplikasi apa pun yang menyimpan data sensitif. Men
 
 - [defuse/php-encryption](/awesome-plugins/php-encryption) - Ini adalah library yang dapat digunakan untuk mengenkripsi dan mendekripsi data. Memulai dan menjalankan cukup sederhana untuk mulai mengenkripsi dan mendekripsi data.
 
+## Email
+
+Mengirim email adalah kebutuhan inti untuk sebagian besar aplikasi web - pesan selamat datang, reset password, notifikasi. Library ini membuatnya mudah sambil menjaga deliverability tetap solid.
+
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail membungkus Symfony Mailer dengan API yang fluent dan ramah Flight. Kirim melalui SMTP atau penyedia utama mana pun via string DSN sederhana, arahkan penyedia berbeda per pesan, dan render body dengan templat Twig atau Latte. Ini adalah plugin tidak resmi untuk Flight dan tidak dikelola oleh tim Flight.
+
 ## Job Queue
 
 Job queue sangat membantu untuk memproses tugas secara asinkron. Ini bisa berupa mengirim email, memproses gambar, atau apa pun yang tidak perlu dilakukan secara real-time.

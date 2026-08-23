@@ -79,6 +79,12 @@ Verschlüsselung ist für jede Anwendung entscheidend, die sensible Daten speich
 
 - [defuse/php-encryption](/awesome-plugins/php-encryption) - Dies ist eine Bibliothek, die zum Verschlüsseln und Entschlüsseln von Daten verwendet werden kann. Der Einstieg ist ziemlich einfach, um mit dem Verschlüsseln und Entschlüsseln von Daten zu beginnen.
 
+## E-Mail
+
+Das Versenden von E-Mails ist ein Kernbedarf der meisten Webanwendungen - Willkommensnachrichten, Passwort-Resets, Benachrichtigungen. Diese Bibliotheken machen es schmerzlos und halten die Zustellbarkeit solide.
+
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail umhüllt Symfony Mailer mit einer fließenden, Flight-freundlichen API. Senden Sie über SMTP oder jeden großen Anbieter über einfache DSN-Strings, leiten Sie verschiedene Anbieter pro Nachricht und rendern Sie Inhalte mit Twig- oder Latte-Templates. Dies ist ein inoffizielles Plugin für Flight und wird nicht vom Flight-Team gepflegt.
+
 ## Job-Queue
 
 Job-Queues sind wirklich hilfreich, um Aufgaben asynchron zu verarbeiten. Dies kann das Senden von E-Mails, die Verarbeitung von Bildern oder alles sein, was nicht in Echtzeit erledigt werden muss.

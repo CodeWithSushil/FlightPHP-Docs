@@ -79,6 +79,12 @@ Cookie 是在客户端存储小块数据的好方法。它们可以用来存储�
 
 - [defuse/php-encryption](/awesome-plugins/php-encryption) - 这是一个可用于加密和解密数据的库。入门和运行相当简单，可以开始加密和解密数据。
 
+## 电子邮件
+
+发送电子邮件是大多数 Web 应用的核心需求——欢迎邮件、密码重置、通知。这些库让发送变得轻松，同时保持可靠的送达率。
+
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail 用流畅、Flight 友好的 API 封装了 Symfony Mailer。通过简单的 DSN 字符串即可经 SMTP 或任意主流服务商发送，按消息路由不同服务商，并用 Twig 或 Latte 模板渲染正文。这是一个非官方的 Flight 插件，不由 Flight 团队维护。
+
 ## 任务队列
 
 任务队列对于异步处理任务非常有帮助。这可以是发送电子邮件、处理图像或任何不需要实时完成的任务。

@@ -79,6 +79,12 @@ La encriptación es crucial para cualquier aplicación que almacene datos sensib
 
 - [defuse/php-encryption](/awesome-plugins/php-encryption) - Esta es una biblioteca que se puede usar para encriptar y desencriptar datos. Ponerse en marcha es bastante simple para comenzar a encriptar y desencriptar datos.
 
+## Correo Electrónico
+
+Enviar correo electrónico es una necesidad central para la mayoría de las aplicaciones web - mensajes de bienvenida, restablecimiento de contraseñas, notificaciones. Estas bibliotecas lo hacen sencillo mientras mantienen una entrega sólida.
+
+- [ryanstubbs/flightmail](/awesome-plugins/flightmail) - FlightMail envuelve Symfony Mailer con una API fluida y amigable con Flight. Envía a través de SMTP o cualquier proveedor importante mediante cadenas DSN simples, enruta diferentes proveedores por mensaje y renderiza cuerpos con plantillas Twig o Latte. Este es un plugin no oficial para Flight y no es mantenido por el equipo de Flight.
+
 ## Cola de Trabajos
 
 Las colas de trabajos son realmente útiles para procesar tareas de forma asíncrona. Esto puede ser enviar correos electrónicos, procesar imágenes, o cualquier cosa que no necesite hacerse en tiempo real.
