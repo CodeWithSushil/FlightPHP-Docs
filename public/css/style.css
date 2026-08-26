@@ -433,3 +433,198 @@ img {
 	max-width: 100%;
 	height: auto;
 }
+
+/* ===================== New Design CSS code here ========================= */
+ =========================
+           Navbar
+        ========================= */
+
+        .navbar {
+            min-height: 64px;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.25rem;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-brand .bi {
+            font-size: 1.4rem;
+        }
+
+
+        /* =========================
+           Flight SVG Logo
+        ========================= */
+
+        .flight-logo {
+            display: block;
+            width: 100px;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            overflow: visible;
+        }
+
+        .flight-logo .cursive-text {
+            font-family: "Great Vibes", cursive;
+            font-size: 120px;
+            fill: #000000;
+            letter-spacing:2.25rem;
+        }
+
+        /* Dark mode */
+        [data-bs-theme="dark"] .flight-logo .cursive-text {
+            fill: #ffffff;
+        }
+
+
+        /* =========================
+           GitHub
+        ========================= */
+
+        .github-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        .bi{
+        font-size:1.35rem;
+        }
+
+
+        /* =========================
+           Theme Button
+        ========================= */
+
+        .theme-btn {
+            border: 0;
+            background: transparent;
+            padding: .5rem;
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .theme-btn:hover {
+            opacity: .75;
+        }
+
+
+        /* =========================
+           Version Button
+        ========================= */
+
+        .version-btn {
+            white-space: nowrap;
+        }
+
+
+        /* =========================
+           Hamburger
+        ========================= */
+
+        .navbar-toggler {
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+            padding: .25rem;
+        }
+
+        .navbar-toggler:focus,
+        .navbar-toggler:active,
+        .navbar-toggler:hover {
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .navbar-toggler-icon {
+            width: 1.7rem;
+            height: 1.7rem;
+        }
+
+
+        /* =========================
+           Navigation Links
+        ========================= */
+
+        .navbar-nav .nav-link {
+            padding-left: .75rem;
+            padding-right: .75rem;
+        }
+
+        .navbar-nav .nav-link .bi {
+            margin-right: .25rem;
+        }
+
+
+        /* =========================
+           Mobile
+        ========================= */
+
+        @media (max-width: 992px) {
+
+            .navbar {
+                min-height: 60px;
+            }
+
+            .navbar-collapse {
+                margin-top: .75rem;
+                padding-top: .5rem;
+                border-top: 1px solid var(--bs-border-color);
+            }
+
+            .navbar-nav .nav-link {
+                padding: .75rem .5rem;
+            }
+
+            .navbar-nav {
+                padding-bottom: .5rem;
+            }
+        }
+
+
+        /* =========================
+           Small Mobile
+        ========================= */
+
+        @media (max-width: 576px) {
+
+            .container-lg {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .navbar-brand .bi {
+                font-size: 1.2rem;
+            }
+
+            .flight-logo {
+                width: 85px;
+            }
+
+            .github-icon {
+                font-size: 1.3rem;
+            }
+
+            .theme-btn {
+                padding: .4rem;
+                font-size: 1.1rem;
+            }
+
+            .version-btn {
+                font-size: .75rem;
+                padding: .3rem .5rem;
+            }
+
+            .navbar-toggler-icon {
+                width: 1.5rem;
+                height: 1.5rem;
+            }
+        }
