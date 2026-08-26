@@ -3,21 +3,20 @@
         {include 'logo.latte'}
 
         <div class="d-flex align-items-center gap-4">
-            <ul class="navbar-nav">
-                {include 'theme-toggler.latte'}
+            <ul id="themeToggle" class="navbar-nav">
+                <i class="bi bi-moon-stars-fill" data-bs-theme-value="light"></i>
             </ul>
 
-            <button
-                class="navbar-toggler"
+            <i
+                class="bi bi-list"
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#main_navBarFlight"
                 aria-controls="main_navBarFlight"
                 aria-expanded="false"
                 aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
                 <span class="visually-hidden">Toggle navigation</span>
-            </button>
+            </i>
         </div>
 
         <div class="collapse navbar-collapse" id="main_navBarFlight">

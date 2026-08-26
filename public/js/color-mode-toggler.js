@@ -53,3 +53,27 @@
         }
     });
 })();
+
+const toggle = document.getElementById("themeToggle");
+const icon = document.getElementById("themeIcon");
+
+function setTheme(theme) {
+    document.documentElement.setAttribute("data-bs-theme", theme);
+
+    icon.className =
+        theme === "dark"
+            ? "bi bi-sun-fill"
+            : "bi bi-moon-fill";
+
+    localStorage.setItem("theme", theme);
+}
+
+const saved = localStorage.getItem("theme") || "light";
+setTheme(saved);
+
+toggle.addEventListener("click", () => {
+    const current =
+        document.documentElement.getAttribute("data-bs-theme");
+
+    setTheme(current === "dark" ? "light" : "dark");
+});

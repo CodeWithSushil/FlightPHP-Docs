@@ -9,8 +9,8 @@ use Latte\Essential\TranslatorExtension;
 use Latte\Loaders\FileLoader;
 use flight\Cache;
 
-/** 
- * @var array $config 
+/**
+ * @var array $config
  * @var CustomEngine $app
  */
 
@@ -40,6 +40,7 @@ $app->register('cache', Cache::class, [__DIR__ . '/../cache/'], function (Cache 
 $app->register('parsedown', Parsedown::class);
 
 // Register the APM
-$ApmLogger = LoggerFactory::create($config['runway']);
-$Apm = new Apm($ApmLogger);
-$Apm->bindEventsToFlightInstance($app);
+//$ApmLogger = LoggerFactory::create($config['cache']);
+//$Apm = new Apm($ApmLogger);
+//$Apm->bindEventsToFlightInstance($app);
+

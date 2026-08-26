@@ -1,3 +1,12 @@
+.navbar{
+    background: #fff !important;
+    border: none !important;
+    outline: none !important;
+}
+.navbar .bi-list{
+    font-size: 2rem;
+}
+
 /* Improve learn section dropdown appearance */
 .dropdown-menu {
     background: #fff;
